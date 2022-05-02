@@ -1,0 +1,1 @@
+enum GalleryMode { list, grid }

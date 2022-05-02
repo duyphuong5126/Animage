@@ -1,0 +1,1 @@
+enum NavigationBarExpandStatus { expanded, collapsed }
