@@ -165,15 +165,40 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
           PagedChildBuilderDelegate(itemBuilder: (context, postItem, index) {
         return ClipRRect(
           borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-          child: Container(
-            color: Theme.of(context).getCardViewBackgroundColor(),
-            child: CachedNetworkImage(
-              imageUrl: postItem.previewThumbnailUrl,
-              width: double.infinity,
-              height: double.infinity,
-              alignment: FractionalOffset.center,
-              fit: BoxFit.cover,
-            ),
+          child: Stack(
+            children: [
+              Container(
+                color: Theme.of(context).getCardViewBackgroundColor(),
+                child: CachedNetworkImage(
+                  imageUrl: postItem.previewThumbnailUrl,
+                  width: double.infinity,
+                  height: double.infinity,
+                  alignment: FractionalOffset.center,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Container(
+                  constraints: const BoxConstraints.expand(height: 64),
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    postItem.author,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyText2
+                        ?.copyWith(color: Colors.white),
+                  ),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: <Color>[
+                          Color.fromARGB(150, 0, 0, 0),
+                          Color.fromARGB(0, 0, 0, 0)
+                        ]),
+                  ))
+            ],
           ),
         );
       }),
@@ -239,6 +264,8 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
                             padding: const EdgeInsets.all(16.0),
                             child: Text(
                               postItem.author,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: Theme.of(context)
                                   .textTheme
                                   .headline6
