@@ -5,6 +5,7 @@ import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/utils/log.dart';
 import 'package:animage/utils/theme_extension.dart';
+import 'package:animage/widget/favorite_checkbox.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -101,7 +102,7 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
                   children: [
                     Container(
                       child: isGrid
-                          ? _buildPagedGridView()
+                          ? _buildPagedGridView(brandColor)
                           : _buildPagedListView(brandColor),
                       margin: const EdgeInsets.only(top: 32.0),
                       padding: const EdgeInsets.only(top: 8.0),
@@ -158,52 +159,79 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
     );
   }
 
-  Widget _buildPagedGridView() {
+  Widget _buildPagedGridView(Color brandColor) {
+    double cardAspectRatio = 1.0;
     return PagedGridView<int, PostCardUiModel>(
       pagingController: _viewModel.getPagingController(),
-      builderDelegate:
-          PagedChildBuilderDelegate(itemBuilder: (context, postItem, index) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-          child: Stack(
-            children: [
-              Container(
-                color: Theme.of(context).getCardViewBackgroundColor(),
-                child: CachedNetworkImage(
-                  imageUrl: postItem.previewThumbnailUrl,
-                  width: double.infinity,
-                  height: double.infinity,
-                  alignment: FractionalOffset.center,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Container(
-                  constraints: const BoxConstraints.expand(height: 64),
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    postItem.author,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyText2
-                        ?.copyWith(color: Colors.white),
+      builderDelegate: PagedChildBuilderDelegate(
+          firstPageProgressIndicatorBuilder: (context) =>
+              _loadingWidget(brandColor),
+          newPageProgressIndicatorBuilder: (context) =>
+              _loadingWidget(brandColor),
+          itemBuilder: (context, postItem, index) {
+            BoxFit boxFit = postItem.previewAspectRatio > cardAspectRatio
+                ? BoxFit.cover
+                : BoxFit.fitWidth;
+            return ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+              child: Stack(
+                children: [
+                  Container(
+                    color: Theme.of(context).getCardViewBackgroundColor(),
+                    child: CachedNetworkImage(
+                      imageUrl: postItem.previewThumbnailUrl,
+                      width: double.infinity,
+                      height: double.infinity,
+                      alignment: FractionalOffset.topCenter,
+                      fit: boxFit,
+                      errorWidget: (context, url, error) => Container(
+                        constraints: const BoxConstraints.expand(),
+                        color: Theme.of(context).getCardViewBackgroundColor(),
+                      ),
+                    ),
                   ),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: <Color>[
-                          Color.fromARGB(150, 0, 0, 0),
-                          Color.fromARGB(0, 0, 0, 0)
-                        ]),
-                  ))
-            ],
-          ),
-        );
-      }),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, mainAxisSpacing: 8.0, crossAxisSpacing: 8.0),
+                  Container(
+                      constraints: const BoxConstraints.expand(height: 64),
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                              child: Text(
+                            postItem.author,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText2
+                                ?.copyWith(color: Colors.white),
+                          )),
+                          FavoriteCheckbox(
+                            size: 20,
+                            color: accentColor,
+                            isFavorite: false,
+                            onFavoriteChanged: (newFavStatus) {},
+                          )
+                        ],
+                      ),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: <Color>[
+                              Color.fromARGB(200, 0, 0, 0),
+                              Color.fromARGB(0, 0, 0, 0)
+                            ]),
+                      ))
+                ],
+              ),
+            );
+          }),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          childAspectRatio: cardAspectRatio,
+          crossAxisCount: 2,
+          mainAxisSpacing: 8.0,
+          crossAxisSpacing: 8.0),
     );
   }
 
@@ -211,24 +239,10 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
     return PagedListView<int, PostCardUiModel>(
         pagingController: _viewModel.getPagingController(),
         builderDelegate: PagedChildBuilderDelegate<PostCardUiModel>(
-            newPageProgressIndicatorBuilder: (context) => Center(
-                  child: SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                    ),
-                  ),
-                ),
-            firstPageProgressIndicatorBuilder: (context) => Center(
-                  child: SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(brandColor),
-                    ),
-                  ),
-                ),
+            newPageProgressIndicatorBuilder: (context) =>
+                _loadingWidget(brandColor),
+            firstPageProgressIndicatorBuilder: (context) =>
+                _loadingWidget(brandColor),
             firstPageErrorIndicatorBuilder: (context) => Center(
                   child: PlatformText(
                     _viewModel.firstPageErrorMessage,
@@ -242,50 +256,89 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
                   ),
                 ),
             itemBuilder: (context, postItem, index) {
+              double cardAspectRatio = 1.5;
+              BoxFit boxFit = postItem.sampleAspectRatio > cardAspectRatio
+                  ? BoxFit.cover
+                  : BoxFit.fitWidth;
               return Container(
                 child: ClipRRect(
                   borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-                  child: Container(
-                    color: Theme.of(context).getCardViewBackgroundColor(),
-                    constraints: const BoxConstraints.expand(height: 200),
-                    child: Stack(
-                      alignment: AlignmentDirectional.topCenter,
-                      children: [
-                        CachedNetworkImage(
-                          imageUrl: postItem.sampleUrl,
-                          width: double.infinity,
-                          height: double.infinity,
-                          alignment: FractionalOffset.topCenter,
-                          fit: BoxFit.fitWidth,
-                        ),
-                        Container(
-                            constraints:
-                                const BoxConstraints.expand(height: 80),
-                            padding: const EdgeInsets.all(16.0),
-                            child: Text(
-                              postItem.author,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headline6
-                                  ?.copyWith(color: Colors.white),
+                  child: AspectRatio(
+                    aspectRatio: cardAspectRatio,
+                    child: Container(
+                      color: Theme.of(context).getCardViewBackgroundColor(),
+                      child: Stack(
+                        alignment: AlignmentDirectional.topCenter,
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: postItem.sampleUrl,
+                            width: double.infinity,
+                            height: double.infinity,
+                            alignment: FractionalOffset.topCenter,
+                            errorWidget: (context, url, error) => Container(
+                              constraints: const BoxConstraints.expand(),
+                              color: Theme.of(context)
+                                  .getCardViewBackgroundColor(),
                             ),
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: <Color>[
-                                    Color.fromARGB(150, 0, 0, 0),
-                                    Color.fromARGB(0, 0, 0, 0)
-                                  ]),
-                            ))
-                      ],
+                            fit: boxFit,
+                          ),
+                          Container(
+                              constraints:
+                                  const BoxConstraints.expand(height: 80),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                      child: Text(
+                                    postItem.author,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headline6
+                                        ?.copyWith(color: Colors.white),
+                                  )),
+                                  FavoriteCheckbox(
+                                    size: 28,
+                                    color: accentColor,
+                                    isFavorite: false,
+                                    onFavoriteChanged: (newFavStatus) {},
+                                  )
+                                ],
+                              ),
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: <Color>[
+                                      Color.fromARGB(200, 0, 0, 0),
+                                      Color.fromARGB(0, 0, 0, 0)
+                                    ]),
+                              ))
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 margin: const EdgeInsets.only(bottom: 8.0),
               );
             }));
+  }
+
+  Widget _loadingWidget(Color color) {
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8.0),
+        child: SizedBox(
+          width: 32,
+          height: 32,
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+        ),
+      ),
+    );
   }
 }

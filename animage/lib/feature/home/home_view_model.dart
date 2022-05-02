@@ -49,12 +49,24 @@ class HomeViewModelImpl extends HomeViewModel {
     Log.d(_tag, 'fetching page $pageIndex');
     _getPostListUseCase.execute(pageIndex).asStream().listen((postList) {
       Log.d(_tag, 'postList=${postList.length}');
-      List<PostCardUiModel> result = postList
-          .map((post) => PostCardUiModel(
-              previewThumbnailUrl: post.previewUrl ?? '',
-              sampleUrl: post.sampleUrl ?? '',
-              author: post.author ?? ''))
-          .toList();
+      List<PostCardUiModel> result = postList.map((post) {
+        int sampleWidth = post.sampleWidth ?? 0;
+        int sampleHeight = post.sampleHeight ?? 0;
+        double sampleAspectRatio = sampleWidth > 0 && sampleHeight > 0
+            ? sampleWidth.toDouble() / sampleHeight
+            : 1;
+        int previewWidth = post.previewWidth ?? 0;
+        int previewHeight = post.previewHeight ?? 0;
+        double previewAspectRatio = previewWidth > 0 && previewHeight > 0
+            ? previewWidth.toDouble() / previewHeight
+            : 1;
+        return PostCardUiModel(
+            author: post.author ?? '',
+            previewThumbnailUrl: post.previewUrl ?? '',
+            previewAspectRatio: previewAspectRatio,
+            sampleUrl: post.sampleUrl ?? '',
+            sampleAspectRatio: sampleAspectRatio);
+      }).toList();
       if (result.isEmpty) {
         pagingController.appendLastPage(result);
       } else {

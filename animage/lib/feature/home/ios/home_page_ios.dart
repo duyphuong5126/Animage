@@ -6,6 +6,7 @@ import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/utils/log.dart';
 import 'package:animage/utils/theme_extension.dart';
+import 'package:animage/widget/favorite_checkbox.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -202,48 +203,63 @@ class _HomePageIOSState extends State<HomePageIOS> {
   Widget _buildPagedGridView() {
     return PagedGridView<int, PostCardUiModel>(
       pagingController: _viewModel.getPagingController(),
-      builderDelegate:
-          PagedChildBuilderDelegate(itemBuilder: (context, postItem, index) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-          child: Stack(
-            alignment: AlignmentDirectional.topCenter,
-            children: [
-              Container(
-                color: CupertinoTheme.of(context).getCardViewBackgroundColor(),
-                child: CachedNetworkImage(
-                  imageUrl: postItem.previewThumbnailUrl,
-                  width: double.infinity,
-                  height: double.infinity,
-                  alignment: FractionalOffset.center,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              Container(
-                  constraints: const BoxConstraints.expand(height: 64),
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    postItem.author,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyText2
-                        ?.copyWith(color: Colors.white),
+      builderDelegate: PagedChildBuilderDelegate(
+          firstPageProgressIndicatorBuilder: (context) => _loadingWidget(),
+          newPageProgressIndicatorBuilder: (context) => _loadingWidget(),
+          itemBuilder: (context, postItem, index) {
+            return ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+              child: Stack(
+                alignment: AlignmentDirectional.topCenter,
+                children: [
+                  Container(
+                    color:
+                        CupertinoTheme.of(context).getCardViewBackgroundColor(),
+                    child: CachedNetworkImage(
+                      imageUrl: postItem.previewThumbnailUrl,
+                      width: double.infinity,
+                      height: double.infinity,
+                      alignment: FractionalOffset.center,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: <Color>[
-                          Color.fromARGB(150, 0, 0, 0),
-                          Color.fromARGB(0, 0, 0, 0)
-                        ]),
-                  ))
-            ],
-          ),
-        );
-      }),
+                  Container(
+                      constraints: const BoxConstraints.expand(height: 64),
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                              child: Text(
+                            postItem.author,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText2
+                                ?.copyWith(color: Colors.white),
+                          )),
+                          FavoriteCheckbox(
+                            size: 20,
+                            color: accentColor,
+                            isFavorite: false,
+                            onFavoriteChanged: (newFavStatus) {},
+                          )
+                        ],
+                      ),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: <Color>[
+                              Color.fromARGB(200, 0, 0, 0),
+                              Color.fromARGB(0, 0, 0, 0)
+                            ]),
+                      ))
+                ],
+              ),
+            );
+          }),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2, mainAxisSpacing: 8.0, crossAxisSpacing: 8.0),
     );
@@ -253,16 +269,8 @@ class _HomePageIOSState extends State<HomePageIOS> {
     return PagedListView<int, PostCardUiModel>(
         pagingController: _viewModel.getPagingController(),
         builderDelegate: PagedChildBuilderDelegate<PostCardUiModel>(
-            newPageProgressIndicatorBuilder: (context) =>
-                const CupertinoActivityIndicator(
-                  radius: 16,
-                  color: accentColor,
-                ),
-            firstPageProgressIndicatorBuilder: (context) =>
-                const CupertinoActivityIndicator(
-                  radius: 32,
-                  color: accentColor,
-                ),
+            newPageProgressIndicatorBuilder: (context) => _loadingWidget(),
+            firstPageProgressIndicatorBuilder: (context) => _loadingWidget(),
             firstPageErrorIndicatorBuilder: (context) => Center(
                   child: PlatformText(
                     _viewModel.firstPageErrorMessage,
@@ -278,50 +286,80 @@ class _HomePageIOSState extends State<HomePageIOS> {
                   ),
                 ),
             itemBuilder: (context, postItem, index) {
+              double cardAspectRatio = 1.5;
+              Log.d('Test>>>',
+                  'sample=${postItem.sampleUrl} aspectRatio=${postItem.sampleAspectRatio}');
+              BoxFit sampleBoxFit = postItem.sampleAspectRatio > cardAspectRatio
+                  ? BoxFit.cover
+                  : BoxFit.fitWidth;
               return Container(
                 child: ClipRRect(
                   borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-                  child: Container(
-                    color:
-                        CupertinoTheme.of(context).getCardViewBackgroundColor(),
-                    constraints: const BoxConstraints.expand(height: 200),
-                    child: Stack(
-                      alignment: AlignmentDirectional.topCenter,
-                      children: [
-                        CachedNetworkImage(
-                          imageUrl: postItem.sampleUrl,
-                          width: double.infinity,
-                          alignment: FractionalOffset.topCenter,
-                          fit: BoxFit.fitWidth,
-                        ),
-                        Container(
-                            constraints:
-                                const BoxConstraints.expand(height: 80),
-                            padding: const EdgeInsets.all(16.0),
-                            child: Text(
-                              postItem.author,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headline6
-                                  ?.copyWith(color: Colors.white),
-                            ),
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: <Color>[
-                                    Color.fromARGB(150, 0, 0, 0),
-                                    Color.fromARGB(0, 0, 0, 0)
-                                  ]),
-                            ))
-                      ],
+                  child: AspectRatio(
+                    aspectRatio: cardAspectRatio,
+                    child: Container(
+                      color: CupertinoTheme.of(context)
+                          .getCardViewBackgroundColor(),
+                      child: Stack(
+                        alignment: AlignmentDirectional.topCenter,
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: postItem.sampleUrl,
+                            width: double.infinity,
+                            height: double.infinity,
+                            alignment: FractionalOffset.topCenter,
+                            fit: sampleBoxFit,
+                          ),
+                          Container(
+                              constraints:
+                                  const BoxConstraints.expand(height: 80),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 12.0, horizontal: 16.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      postItem.author,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headline6
+                                          ?.copyWith(color: Colors.white),
+                                    ),
+                                  ),
+                                  FavoriteCheckbox(
+                                    size: 28,
+                                    color: accentColor,
+                                    isFavorite: false,
+                                    onFavoriteChanged: (newFavStatus) {},
+                                  )
+                                ],
+                              ),
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: <Color>[
+                                      Color.fromARGB(200, 0, 0, 0),
+                                      Color.fromARGB(0, 0, 0, 0)
+                                    ]),
+                              ))
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 margin: const EdgeInsets.only(bottom: 24.0),
               );
             }));
+  }
+
+  Widget _loadingWidget() {
+    return const CupertinoActivityIndicator(
+      radius: 16,
+      color: accentColor,
+    );
   }
 }
