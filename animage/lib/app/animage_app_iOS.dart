@@ -1,5 +1,6 @@
 import 'package:animage/constant.dart';
 import 'package:animage/feature/home/ios/home_page_ios.dart';
+import 'package:animage/feature/post_detail/post_details_page_ios.dart';
 import 'package:flutter/cupertino.dart';
 
 class AnimageAppIOS extends StatefulWidget {
@@ -19,7 +20,10 @@ class _AnimageAppIOSState extends State<AnimageAppIOS> {
               color: CupertinoColors.white, darkColor: CupertinoColors.black),
           primaryColor: CupertinoDynamicColor.withBrightness(
               color: accentColor, darkColor: accentColorLight)),
-      routes: {'/': (context) => const HomePageIOS()},
+      routes: {
+        '/': (context) => const HomePageIOS(),
+        detailsPageRoute: (context) => const PostDetailsPageIOS()
+      },
     );
   }
 }

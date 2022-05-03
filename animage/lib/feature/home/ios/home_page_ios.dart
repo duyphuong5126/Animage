@@ -1,11 +1,11 @@
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/constant.dart';
 import 'package:animage/feature/home/home_view_model.dart';
-import 'package:animage/feature/home/ios/navigation_bar_expand_status.dart';
+import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:animage/utils/log.dart';
-import 'package:animage/utils/theme_extension.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -55,7 +55,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
     });
     TextEditingController _searchEditController = TextEditingController();
     Color? unSelectedModeColor =
-        CupertinoTheme.of(context).isDark ? Colors.white : Colors.grey[400];
+        context.isDark ? Colors.white : Colors.grey[400];
     return CupertinoPageScaffold(
       child: NestedScrollView(
         controller: scrollController,
@@ -70,7 +70,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
               largeTitle: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Explore'),
+                  const Text('Illustrations'),
                   Container(
                     child: CupertinoButton(
                       child: const Icon(
@@ -144,18 +144,29 @@ class _HomePageIOSState extends State<HomePageIOS> {
               bloc: _modeCubit,
               builder: (context, GalleryMode mode) {
                 bool isGrid = mode == GalleryMode.grid;
-                Log.d('Test>>>', 'isGrid=$isGrid');
                 return Stack(
                   alignment: AlignmentDirectional.topEnd,
                   children: [
-                    isGrid ? _buildPagedGridView() : _buildPagedListView(),
+                    BlocListener(
+                      bloc: _viewModel.postDetailsCubit,
+                      listener: (context, post) async {
+                        if (post != null) {
+                          await Navigator.of(context)
+                              .pushNamed(detailsPageRoute, arguments: post);
+                          _viewModel.clearDetailsPageRequest();
+                        }
+                      },
+                      child: isGrid
+                          ? _buildPagedGridView()
+                          : _buildPagedListView(),
+                    ),
                     Container(
                       height: 32,
                       width: 101,
                       decoration: BoxDecoration(
                           borderRadius:
                               const BorderRadius.all(Radius.circular(8.0)),
-                          border: Border.all(color: accentColor)),
+                          border: Border.all(color: context.primaryColor)),
                       child: Row(
                         children: [
                           Expanded(
@@ -165,8 +176,9 @@ class _HomePageIOSState extends State<HomePageIOS> {
                               },
                               child: Icon(
                                 CupertinoIcons.list_bullet,
-                                color:
-                                    isGrid ? unSelectedModeColor : accentColor,
+                                color: isGrid
+                                    ? unSelectedModeColor
+                                    : context.primaryColor,
                               ),
                               padding: const EdgeInsetsDirectional.all(4.0),
                             ),
@@ -174,7 +186,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
                           ),
                           Container(
                             width: 1,
-                            color: accentColor,
+                            color: context.primaryColor,
                           ),
                           Expanded(
                             child: CupertinoButton(
@@ -183,7 +195,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
                               },
                               child: Icon(CupertinoIcons.rectangle_grid_2x2,
                                   color: isGrid
-                                      ? accentColor
+                                      ? context.primaryColor
                                       : unSelectedModeColor),
                               padding: const EdgeInsetsDirectional.all(4.0),
                             ),
@@ -207,56 +219,58 @@ class _HomePageIOSState extends State<HomePageIOS> {
           firstPageProgressIndicatorBuilder: (context) => _loadingWidget(),
           newPageProgressIndicatorBuilder: (context) => _loadingWidget(),
           itemBuilder: (context, postItem, index) {
-            return ClipRRect(
-              borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-              child: Stack(
-                alignment: AlignmentDirectional.topCenter,
-                children: [
-                  Container(
-                    color:
-                        CupertinoTheme.of(context).getCardViewBackgroundColor(),
-                    child: CachedNetworkImage(
-                      imageUrl: postItem.previewThumbnailUrl,
-                      width: double.infinity,
-                      height: double.infinity,
-                      alignment: FractionalOffset.center,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Container(
-                      constraints: const BoxConstraints.expand(height: 64),
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                              child: Text(
-                            postItem.author,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText2
-                                ?.copyWith(color: Colors.white),
-                          )),
-                          FavoriteCheckbox(
-                            size: 20,
-                            color: accentColor,
-                            isFavorite: false,
-                            onFavoriteChanged: (newFavStatus) {},
-                          )
-                        ],
+            return GestureDetector(
+              onTap: () => _viewModel.requestDetailsPage(postItem.id),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                child: Stack(
+                  alignment: AlignmentDirectional.topCenter,
+                  children: [
+                    Container(
+                      color: context.cardViewBackgroundColor,
+                      child: CachedNetworkImage(
+                        imageUrl: postItem.previewThumbnailUrl,
+                        width: double.infinity,
+                        height: double.infinity,
+                        alignment: FractionalOffset.center,
+                        fit: BoxFit.cover,
                       ),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: <Color>[
-                              Color.fromARGB(200, 0, 0, 0),
-                              Color.fromARGB(0, 0, 0, 0)
-                            ]),
-                      ))
-                ],
+                    ),
+                    Container(
+                        constraints: const BoxConstraints.expand(height: 64),
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                                child: Text(
+                              postItem.author,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyText2
+                                  ?.copyWith(color: Colors.white),
+                            )),
+                            FavoriteCheckbox(
+                              size: 20,
+                              color: context.primaryColor,
+                              isFavorite: false,
+                              onFavoriteChanged: (newFavStatus) {},
+                            )
+                          ],
+                        ),
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: <Color>[
+                                Color.fromARGB(200, 0, 0, 0),
+                                Color.fromARGB(0, 0, 0, 0)
+                              ]),
+                        ))
+                  ],
+                ),
               ),
             );
           }),
@@ -287,66 +301,66 @@ class _HomePageIOSState extends State<HomePageIOS> {
                 ),
             itemBuilder: (context, postItem, index) {
               double cardAspectRatio = 1.5;
-              Log.d('Test>>>',
-                  'sample=${postItem.sampleUrl} aspectRatio=${postItem.sampleAspectRatio}');
               BoxFit sampleBoxFit = postItem.sampleAspectRatio > cardAspectRatio
                   ? BoxFit.cover
                   : BoxFit.fitWidth;
               return Container(
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-                  child: AspectRatio(
-                    aspectRatio: cardAspectRatio,
-                    child: Container(
-                      color: CupertinoTheme.of(context)
-                          .getCardViewBackgroundColor(),
-                      child: Stack(
-                        alignment: AlignmentDirectional.topCenter,
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: postItem.sampleUrl,
-                            width: double.infinity,
-                            height: double.infinity,
-                            alignment: FractionalOffset.topCenter,
-                            fit: sampleBoxFit,
-                          ),
-                          Container(
-                              constraints:
-                                  const BoxConstraints.expand(height: 80),
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 12.0, horizontal: 16.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      postItem.author,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .headline6
-                                          ?.copyWith(color: Colors.white),
+                child: GestureDetector(
+                  onTap: () => _viewModel.requestDetailsPage(postItem.id),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+                    child: AspectRatio(
+                      aspectRatio: cardAspectRatio,
+                      child: Container(
+                        color: context.cardViewBackgroundColor,
+                        child: Stack(
+                          alignment: AlignmentDirectional.topCenter,
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: postItem.sampleUrl,
+                              width: double.infinity,
+                              height: double.infinity,
+                              alignment: FractionalOffset.topCenter,
+                              fit: sampleBoxFit,
+                            ),
+                            Container(
+                                constraints:
+                                    const BoxConstraints.expand(height: 80),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12.0, horizontal: 16.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        postItem.author,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headline6
+                                            ?.copyWith(color: Colors.white),
+                                      ),
                                     ),
-                                  ),
-                                  FavoriteCheckbox(
-                                    size: 28,
-                                    color: accentColor,
-                                    isFavorite: false,
-                                    onFavoriteChanged: (newFavStatus) {},
-                                  )
-                                ],
-                              ),
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: <Color>[
-                                      Color.fromARGB(200, 0, 0, 0),
-                                      Color.fromARGB(0, 0, 0, 0)
-                                    ]),
-                              ))
-                        ],
+                                    FavoriteCheckbox(
+                                      size: 28,
+                                      color: context.primaryColor,
+                                      isFavorite: false,
+                                      onFavoriteChanged: (newFavStatus) {},
+                                    )
+                                  ],
+                                ),
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: <Color>[
+                                        Color.fromARGB(200, 0, 0, 0),
+                                        Color.fromARGB(0, 0, 0, 0)
+                                      ]),
+                                ))
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -357,9 +371,9 @@ class _HomePageIOSState extends State<HomePageIOS> {
   }
 
   Widget _loadingWidget() {
-    return const CupertinoActivityIndicator(
+    return CupertinoActivityIndicator(
       radius: 16,
-      color: accentColor,
+      color: context.primaryColor,
     );
   }
 }

@@ -1,4 +1,5 @@
 class PostCardUiModel {
+  final int id;
   final String previewThumbnailUrl;
   final double previewAspectRatio;
   final String sampleUrl;
@@ -7,7 +8,8 @@ class PostCardUiModel {
   final String author;
 
   const PostCardUiModel(
-      {required this.author,
+      {required this.id,
+      required this.author,
       required this.previewThumbnailUrl,
       required this.previewAspectRatio,
       required this.sampleUrl,

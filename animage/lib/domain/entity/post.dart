@@ -1,5 +1,5 @@
 class Post {
-  int? id;
+  int id = -1;
   String? tags;
   int? createdAt;
   int? updatedAt;
@@ -47,7 +47,7 @@ class Post {
   int? lastCommentedAt;
 
   Post(
-      {this.id,
+      {required this.id,
       this.tags,
       this.createdAt,
       this.updatedAt,
@@ -201,5 +201,11 @@ class Post {
     data['last_noted_at'] = lastNotedAt;
     data['last_commented_at'] = lastCommentedAt;
     return data;
+  }
+
+  double get sampleAspectRatio {
+    double width = sampleWidth?.toDouble() ?? 0.0;
+    double height = sampleHeight?.toDouble() ?? 0.0;
+    return width > 0 && height > 0 ? width.toDouble() / height : 0;
   }
 }
