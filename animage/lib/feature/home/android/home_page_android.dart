@@ -23,6 +23,7 @@ class HomePageAndroid extends StatefulWidget {
 class _HomePageAndroidState extends State<HomePageAndroid> {
   final HomeViewModel _viewModel = HomeViewModelImpl();
   final DataCubit<GalleryMode> _modeCubit = DataCubit(GalleryMode.list);
+  final DataCubit<bool> _showClearSearchButtonCubit = DataCubit(false);
 
   @override
   void initState() {
@@ -39,6 +40,9 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
   @override
   Widget build(BuildContext context) {
     TextEditingController searchEditingController = TextEditingController();
+    searchEditingController.addListener(() {
+      _showClearSearchButtonCubit.emit(searchEditingController.text.isNotEmpty);
+    });
     bool isDark = context.isDark;
 
     Color? searchBackgroundColor = isDark ? Colors.grey[900] : Colors.grey[200];
@@ -73,10 +77,18 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
                   Icons.search,
                   color: context.secondaryColor,
                 ),
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.clear, color: context.secondaryColor),
-                  onPressed: () {
-                    searchEditingController.clear();
+                suffixIcon: BlocBuilder(
+                  bloc: _showClearSearchButtonCubit,
+                  builder: (context, bool showClearButton) {
+                    return Visibility(
+                      child: IconButton(
+                        icon: Icon(Icons.clear, color: context.secondaryColor),
+                        onPressed: () {
+                          searchEditingController.clear();
+                        },
+                      ),
+                      visible: showClearButton,
+                    );
                   },
                 ),
                 hintText: 'Search...',
