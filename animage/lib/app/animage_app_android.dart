@@ -38,6 +38,14 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
 
   TextTheme _getTextTheme(BuildContext context, bool isDark) {
     return Theme.of(context).textTheme.copyWith(
+        headline4: Theme.of(context)
+            .textTheme
+            .headline4
+            ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
+        headline5: Theme.of(context)
+            .textTheme
+            .headline5
+            ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
         headline6: Theme.of(context)
             .textTheme
             .headline6

@@ -208,4 +208,8 @@ class Post {
     double height = sampleHeight?.toDouble() ?? 0.0;
     return width > 0 && height > 0 ? width.toDouble() / height : 0;
   }
+
+  List<String> get tagList {
+    return tags?.split(' ') ?? [];
+  }
 }

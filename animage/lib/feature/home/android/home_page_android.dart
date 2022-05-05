@@ -67,10 +67,7 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
               borderRadius: const BorderRadius.all(Radius.circular(20))),
           child: TextField(
             controller: searchEditingController,
-            style: Theme.of(context)
-                .textTheme
-                .bodyText2
-                ?.copyWith(color: searchTextColor),
+            style: context.bodyText2?.copyWith(color: searchTextColor),
             decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(vertical: 8.0),
                 prefixIcon: Icon(
@@ -92,10 +89,7 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
                   },
                 ),
                 hintText: 'Search...',
-                hintStyle: Theme.of(context)
-                    .textTheme
-                    .bodyText2
-                    ?.copyWith(color: searchHintColor),
+                hintStyle: context.bodyText2?.copyWith(color: searchHintColor),
                 border: InputBorder.none),
           ),
         ),
@@ -134,7 +128,7 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
                           Container(
                             child: Text(
                               'Illustrations',
-                              style: Theme.of(context).textTheme.headline6,
+                              style: context.headline6,
                             ),
                             margin: const EdgeInsets.only(left: 8.0),
                           ),
@@ -288,13 +282,13 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
             firstPageErrorIndicatorBuilder: (context) => Center(
                   child: PlatformText(
                     _viewModel.firstPageErrorMessage,
-                    style: Theme.of(context).textTheme.bodyText1,
+                    style: context.bodyText1,
                   ),
                 ),
             noItemsFoundIndicatorBuilder: (context) => Center(
                   child: PlatformText(
                     _viewModel.emptyMessage,
-                    style: Theme.of(context).textTheme.bodyText1,
+                    style: context.bodyText1,
                   ),
                 ),
             itemBuilder: (context, postItem, index) {
