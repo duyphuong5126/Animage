@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 class HomePageIOS extends StatefulWidget {
   const HomePageIOS({Key? key}) : super(key: key);
@@ -23,11 +24,15 @@ class HomePageIOS extends StatefulWidget {
 }
 
 class _HomePageIOSState extends State<HomePageIOS> {
+  static const double _switchModeSectionHeight = 52;
+
   final DataCubit<NavigationBarExpandStatus> _expandStatusCubit =
       DataCubit(NavigationBarExpandStatus.expanded);
   final DataCubit<GalleryMode> _modeCubit = DataCubit(GalleryMode.list);
   final DataCubit<bool> _showCancelSearchCubit = DataCubit(false);
   final HomeViewModel _viewModel = HomeViewModelImpl();
+  final RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
 
   @override
   void initState() {
@@ -76,7 +81,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      const Text('Illustrations'),
+                      Text(_viewModel.pageTitle),
                       Container(
                         child: CupertinoButton(
                           padding: EdgeInsetsDirectional.zero,
@@ -127,7 +132,8 @@ class _HomePageIOSState extends State<HomePageIOS> {
                             return Visibility(
                               child: CupertinoButton(
                                   padding: EdgeInsets.zero,
-                                  child: const Text('Cancel'),
+                                  child:
+                                      Text(_viewModel.cancelSearchButtonLabel),
                                   onPressed: () {
                                     Log.d('Test>>>', 'Cancel search');
                                     _searchEditController.clear();
@@ -163,9 +169,39 @@ class _HomePageIOSState extends State<HomePageIOS> {
                               _viewModel.clearDetailsPageRequest();
                             }
                           },
-                          child: isGrid
-                              ? _buildPagedGridView()
-                              : _buildPagedListView(),
+                          child: BlocListener(
+                            bloc: _viewModel.galleryRefreshedAtCubit,
+                            listener: (context, int refreshedAt) {
+                              Log.d('Test>>>', 'refreshedAt=$refreshedAt');
+                              if (refreshedAt > 0 &&
+                                  _refreshController.isRefresh) {
+                                _refreshController.refreshCompleted();
+                              }
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.only(
+                                  top: _switchModeSectionHeight),
+                              child: SmartRefresher(
+                                  header: ClassicHeader(
+                                    textStyle: context.navTitleTextStyle,
+                                    refreshingText: _viewModel.refreshingText,
+                                    failedText: _viewModel.failedToRefreshText,
+                                    completeText:
+                                        _viewModel.refreshedSuccessfullyText,
+                                    idleText: _viewModel.refresherIdleText,
+                                    releaseText:
+                                        _viewModel.refresherReleaseText,
+                                  ),
+                                  enablePullDown: true,
+                                  controller: _refreshController,
+                                  onRefresh: () {
+                                    _viewModel.refreshGallery();
+                                  },
+                                  child: isGrid
+                                      ? _buildPagedGridView()
+                                      : _buildPagedListView()),
+                            ),
+                          ),
                         ),
                         _buildSwitchModeButton(isGrid, unSelectedModeColor),
                       ],
@@ -182,14 +218,14 @@ class _HomePageIOSState extends State<HomePageIOS> {
                       return Visibility(
                         child: Container(
                           width: double.infinity,
-                          height: 52,
+                          height: _switchModeSectionHeight,
                           color: Colors.white,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                'Illustrations',
+                                _viewModel.pageTitle,
                                 style: context.navTitleTextStyle,
                               ),
                               _buildSwitchModeButton(mode == GalleryMode.grid,

@@ -12,6 +12,8 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 abstract class HomeViewModel {
   DataCubit<Post?> get postDetailsCubit;
 
+  String get pageTitle;
+
   String get firstPageErrorMessage;
 
   String get emptyMessage;
@@ -27,6 +29,21 @@ abstract class HomeViewModel {
   void refreshGallery();
 
   void destroy();
+
+  // For iOS only
+  DataCubit<int> get galleryRefreshedAtCubit;
+
+  String get cancelSearchButtonLabel;
+
+  String get refreshingText;
+
+  String get failedToRefreshText;
+
+  String get refreshedSuccessfullyText;
+
+  String get refresherIdleText;
+
+  String get refresherReleaseText;
 }
 
 class HomeViewModelImpl extends HomeViewModel {
@@ -37,6 +54,7 @@ class HomeViewModelImpl extends HomeViewModel {
   PagingController<int, PostCardUiModel>? _pagingController;
 
   DataCubit<Post?>? _postDetailsCubit;
+  DataCubit<int>? _galleryRefreshedAtCubit;
 
   final Map<int, Post> _postDetailsMap = {};
 
@@ -46,15 +64,40 @@ class HomeViewModelImpl extends HomeViewModel {
   DataCubit<Post?> get postDetailsCubit => _postDetailsCubit!;
 
   @override
+  DataCubit<int> get galleryRefreshedAtCubit => _galleryRefreshedAtCubit!;
+
+  @override
+  String get pageTitle => 'Illustrations';
+
+  @override
   String get firstPageErrorMessage => 'Could not load library';
 
   @override
   String get emptyMessage => 'Empty library';
 
   @override
+  String get cancelSearchButtonLabel => 'Cancel';
+
+  @override
+  String get refreshingText => 'Refreshing gallery';
+
+  @override
+  String get failedToRefreshText => 'Unable to refresh gallery';
+
+  @override
+  String get refreshedSuccessfullyText => 'Refreshed';
+
+  @override
+  String get refresherIdleText => 'Pull down';
+
+  @override
+  String get refresherReleaseText => 'Release to refresh';
+
+  @override
   void init() {
     Log.d(_tag, 'init');
     _postDetailsCubit = DataCubit(null);
+    _galleryRefreshedAtCubit = DataCubit(-1);
   }
 
   @override
@@ -93,6 +136,8 @@ class HomeViewModelImpl extends HomeViewModel {
     _pagingController = null;
     _postDetailsCubit?.closeAsync();
     _postDetailsCubit = null;
+    _galleryRefreshedAtCubit?.closeAsync();
+    _galleryRefreshedAtCubit = null;
   }
 
   Future<void> _getPage(int pageIndex,
@@ -101,6 +146,10 @@ class HomeViewModelImpl extends HomeViewModel {
     _getPostListUseCase
         .execute(pageIndex)
         .then<Pair<List<Post>, List<Artist>>>((List<Post> postList) {
+          if (pageIndex == 1) {
+            _galleryRefreshedAtCubit
+                ?.emit(DateTime.now().millisecondsSinceEpoch);
+          }
           List<int> creatorIdList = postList
               .map((post) => post.creatorId ?? -1)
               .where((creatorId) => creatorId != -1)

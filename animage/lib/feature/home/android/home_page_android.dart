@@ -132,7 +132,7 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
                         children: [
                           Container(
                             child: Text(
-                              'Illustrations',
+                              _viewModel.pageTitle,
                               style: context.headline6,
                             ),
                             margin: const EdgeInsets.only(left: 8.0),
