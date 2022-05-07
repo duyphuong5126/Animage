@@ -4,15 +4,15 @@ import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/constant.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/feature/post_detail/post_details_view_model.dart';
+import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/utils/material_context_extension.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
+import 'package:animage/widget/text_with_links.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class PostDetailsPageAndroid extends StatefulWidget {
   const PostDetailsPageAndroid({Key? key}) : super(key: key);
@@ -180,14 +180,23 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                  Text(
-                                                    'Artist name',
-                                                    maxLines: 1,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: context.headline6
-                                                        ?.copyWith(
-                                                            color: textColor),
+                                                  BlocBuilder(
+                                                    bloc:
+                                                        _viewModel.artistCubit,
+                                                    builder: (context,
+                                                        ArtistUiModel? artist) {
+                                                      return Text(
+                                                        artist?.name ??
+                                                            'Unknown artist',
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: context.headline6
+                                                            ?.copyWith(
+                                                                color:
+                                                                    textColor),
+                                                      );
+                                                    },
                                                   ),
                                                   const SizedBox(
                                                     height: 4.0,
@@ -253,9 +262,19 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                             const SizedBox(
                               height: 16.0,
                             ),
-                            Text(
-                              'Artist name',
-                              style: context.headline4,
+                            BlocBuilder(
+                              bloc: _viewModel.artistCubit,
+                              builder: (context, ArtistUiModel? artist) {
+                                return Visibility(
+                                  child: Text(
+                                    artist?.name ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: context.headline4,
+                                  ),
+                                  visible: artist != null,
+                                );
+                              },
                             )
                           ],
                         ),
@@ -346,23 +365,33 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                 child: Container(
                   margin: const EdgeInsets.symmetric(
                       vertical: 8.0, horizontal: 16.0),
-                  child: Linkify(
-                    onOpen: (link) async {
-                      Uri uri = Uri.parse(link.url);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri);
-                      } else {
-                        throw 'Could not launch $link';
-                      }
-                    },
-                    text: 'Source: $source',
-                    style: context.bodyText1,
-                    linkStyle:
-                        context.button?.copyWith(color: context.secondaryColor),
-                  ),
+                  child: TextWithLinks(
+                      text: 'Source: $source',
+                      textStyle: context.bodyText1,
+                      linkStyle: context.button
+                          ?.copyWith(color: context.secondaryColor)),
                 ),
                 visible: source != null && source.isNotEmpty,
-              )
+              ),
+              BlocBuilder(
+                  bloc: _viewModel.artistCubit,
+                  builder: (context, ArtistUiModel? artist) {
+                    List<String> urls =
+                        artist?.urls.where((url) => url.isNotEmpty).toList() ??
+                            [];
+                    return Visibility(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: TextWithLinks(
+                            text: 'Artist info: ${urls.join('\n')}',
+                            textStyle: context.bodyText1,
+                            linkStyle: context.button
+                                ?.copyWith(color: context.secondaryColor)),
+                      ),
+                      visible: urls.isNotEmpty,
+                    );
+                  })
             ],
           ),
         ),

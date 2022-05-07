@@ -1,11 +1,18 @@
+import 'dart:async';
+
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/domain/entity/post.dart';
+import 'package:animage/domain/use_case/get_artist_list_use_case.dart';
+import 'package:animage/domain/use_case/get_artist_use_case.dart';
+import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:palette_generator/palette_generator.dart';
 
 abstract class PostDetailsViewModel {
   DataCubit<Color> get sampleImageDominantColorCubit;
+
+  DataCubit<ArtistUiModel?> get artistCubit;
 
   void initData(Post post);
 
@@ -14,31 +21,33 @@ abstract class PostDetailsViewModel {
   String getUpdatedAtTimeStamp(Post post);
 
   String getRatingLabel(Post post);
+
+  void destroy();
 }
 
 class PostDetailsViewModelImpl extends PostDetailsViewModel {
   final DataCubit<Color> _sampleImageDominantColorCubit =
       DataCubit(Colors.white);
 
+  final DataCubit<ArtistUiModel?> _artistCubit = DataCubit(null);
+
+  final GetArtistUseCase _getArtistUseCase = GetArtistUseCaseImpl();
+
+  StreamSubscription? _getArtistSubscription;
+
   @override
   DataCubit<Color> get sampleImageDominantColorCubit =>
       _sampleImageDominantColorCubit;
+
+  @override
+  DataCubit<ArtistUiModel?> get artistCubit => _artistCubit;
 
   final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
 
   @override
   void initData(Post post) async {
-    String? sampleUrl = post.sampleUrl;
-    if (sampleUrl != null && sampleUrl.isNotEmpty) {
-      PaletteGenerator paletteGenerator =
-          await PaletteGenerator.fromImageProvider(
-        Image.network(sampleUrl).image,
-      );
-      Color? dominantColor = paletteGenerator.dominantColor?.color;
-      if (dominantColor != null) {
-        _sampleImageDominantColorCubit.emit(dominantColor);
-      }
-    }
+    _initArtist(post);
+    _initColorPalette(post);
   }
 
   @override
@@ -70,6 +79,38 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
       return 'Explicit';
     } else {
       return 'Unknown';
+    }
+  }
+
+  void _initColorPalette(Post post) async {
+    String? sampleUrl = post.sampleUrl;
+    if (sampleUrl != null && sampleUrl.isNotEmpty) {
+      PaletteGenerator paletteGenerator =
+          await PaletteGenerator.fromImageProvider(
+        Image.network(sampleUrl).image,
+      );
+      Color? dominantColor = paletteGenerator.dominantColor?.color;
+      if (dominantColor != null) {
+        _sampleImageDominantColorCubit.emit(dominantColor);
+      }
+    }
+  }
+
+  @override
+  void destroy() async {
+    await _getArtistSubscription?.cancel();
+  }
+
+  void _initArtist(Post post) async {
+    int? creatorId = post.creatorId;
+    if (creatorId != null) {
+      _getArtistSubscription =
+          _getArtistUseCase.execute(creatorId).asStream().listen((artist) {
+        if (artist != null) {
+          _artistCubit
+              .emit(ArtistUiModel(name: artist.name, urls: artist.urls));
+        }
+      });
     }
   }
 }

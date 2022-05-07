@@ -1,6 +1,7 @@
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/constant.dart';
 import 'package:animage/feature/home/home_view_model.dart';
+import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
@@ -304,6 +305,8 @@ class _HomePageIOSState extends State<HomePageIOS> {
               BoxFit sampleBoxFit = postItem.sampleAspectRatio > cardAspectRatio
                   ? BoxFit.cover
                   : BoxFit.fitWidth;
+
+              ArtistUiModel? artistUiModel = postItem.artist;
               return Container(
                 child: GestureDetector(
                   onTap: () => _viewModel.requestDetailsPage(postItem.id),
@@ -332,14 +335,35 @@ class _HomePageIOSState extends State<HomePageIOS> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
-                                      child: Text(
-                                        postItem.author,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .headline6
-                                            ?.copyWith(color: Colors.white),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            postItem.author,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyText1
+                                                ?.copyWith(color: Colors.white),
+                                          ),
+                                          Visibility(
+                                            child: Text(
+                                              artistUiModel?.name ?? '',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .headline5
+                                                  ?.copyWith(
+                                                      color: Colors.white),
+                                            ),
+                                            visible: artistUiModel != null,
+                                          )
+                                        ],
                                       ),
                                     ),
                                     FavoriteCheckbox(

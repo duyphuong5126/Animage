@@ -1,5 +1,9 @@
+import 'package:animage/feature/ui_model/artist_ui_model.dart';
+
 class PostCardUiModel {
   final int id;
+  final ArtistUiModel? artist;
+
   final String previewThumbnailUrl;
   final double previewAspectRatio;
   final String sampleUrl;
@@ -13,5 +17,6 @@ class PostCardUiModel {
       required this.previewThumbnailUrl,
       required this.previewAspectRatio,
       required this.sampleUrl,
-      required this.sampleAspectRatio});
+      required this.sampleAspectRatio,
+      this.artist});
 }
