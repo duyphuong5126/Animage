@@ -12,8 +12,6 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 abstract class HomeViewModel {
   DataCubit<Post?> get postDetailsCubit;
 
-  DataCubit<int> get buildGalleryCubit;
-
   String get firstPageErrorMessage;
 
   String get emptyMessage;
@@ -26,7 +24,7 @@ abstract class HomeViewModel {
 
   void clearDetailsPageRequest();
 
-  void rebuildGallery();
+  void refreshGallery();
 
   void destroy();
 }
@@ -40,17 +38,12 @@ class HomeViewModelImpl extends HomeViewModel {
 
   DataCubit<Post?>? _postDetailsCubit;
 
-  DataCubit<int>? _buildGalleryCubit;
-
   final Map<int, Post> _postDetailsMap = {};
 
   static const String _tag = 'HomeViewModelImpl';
 
   @override
   DataCubit<Post?> get postDetailsCubit => _postDetailsCubit!;
-
-  @override
-  DataCubit<int> get buildGalleryCubit => _buildGalleryCubit!;
 
   @override
   String get firstPageErrorMessage => 'Could not load library';
@@ -62,7 +55,6 @@ class HomeViewModelImpl extends HomeViewModel {
   void init() {
     Log.d(_tag, 'init');
     _postDetailsCubit = DataCubit(null);
-    _buildGalleryCubit = DataCubit(DateTime.now().millisecondsSinceEpoch);
   }
 
   @override
@@ -90,8 +82,8 @@ class HomeViewModelImpl extends HomeViewModel {
   }
 
   @override
-  void rebuildGallery() {
-    _buildGalleryCubit?.emit(DateTime.now().millisecondsSinceEpoch);
+  void refreshGallery() {
+    _pagingController?.refresh();
   }
 
   @override
@@ -101,8 +93,6 @@ class HomeViewModelImpl extends HomeViewModel {
     _pagingController = null;
     _postDetailsCubit?.closeAsync();
     _postDetailsCubit = null;
-    _buildGalleryCubit?.closeAsync();
-    _buildGalleryCubit = null;
   }
 
   Future<void> _getPage(int pageIndex,

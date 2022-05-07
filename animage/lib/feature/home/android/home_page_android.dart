@@ -115,18 +115,12 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
                             _viewModel.clearDetailsPageRequest();
                           }
                         },
-                        child: BlocBuilder(
-                          bloc: _viewModel.buildGalleryCubit,
-                          builder: (context, buildId) {
-                            return RefreshIndicator(
-                              onRefresh: () async {
-                                _viewModel.rebuildGallery();
-                              },
-                              child: isGrid
-                                  ? _buildPagedGridView(context.secondaryColor)
-                                  : _buildPagedListView(context.secondaryColor),
-                            );
-                          },
+                        child: RefreshIndicator(
+                          onRefresh: () =>
+                              Future.sync(() => _viewModel.refreshGallery()),
+                          child: isGrid
+                              ? _buildPagedGridView(context.secondaryColor)
+                              : _buildPagedListView(context.secondaryColor),
                         ),
                       ),
                       margin: const EdgeInsets.only(top: 32.0),
