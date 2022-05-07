@@ -1,5 +1,6 @@
 import 'package:animage/constant.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 extension CupertinoContextExtension on BuildContext {
   double get screenWidth => MediaQuery.of(this).size.width;
@@ -13,6 +14,30 @@ extension CupertinoContextExtension on BuildContext {
   Color get cardViewBackgroundColor {
     bool isDark = CupertinoTheme.of(this).brightness == Brightness.dark;
     return isDark ? CupertinoColors.white : CupertinoColors.systemGrey2;
+  }
+
+  void showCupertinoConfirmationDialog(
+      {required String title,
+      required String message,
+      required String actionLabel,
+      required Function action,
+      bool isDefaultAction = false}) {
+    showCupertinoDialog(
+        context: this,
+        builder: (context) => CupertinoAlertDialog(
+              title: Text(title),
+              content: Text(message),
+              actions: <Widget>[
+                CupertinoDialogAction(
+                  isDefaultAction: isDefaultAction,
+                  child: Text(actionLabel),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    action();
+                  },
+                ),
+              ],
+            ));
   }
 
   TextStyle get navTitleTextStyle =>

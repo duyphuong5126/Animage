@@ -12,6 +12,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:gallery_saver/gallery_saver.dart';
+import 'package:share/share.dart';
 
 class PostDetailsPageIOS extends StatefulWidget {
   const PostDetailsPageIOS({Key? key}) : super(key: key);
@@ -69,7 +71,10 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
               children: [
                 CupertinoButton(
                     padding: EdgeInsetsDirectional.zero,
-                    onPressed: () {},
+                    onPressed: () {
+                      Share.share(post.shareUrl,
+                          subject: 'Illustration ${post.id}');
+                    },
                     child: Icon(
                       CupertinoIcons.share,
                       color: context.primaryColor,
@@ -79,7 +84,21 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                 ),
                 CupertinoButton(
                     padding: EdgeInsetsDirectional.zero,
-                    onPressed: () {},
+                    onPressed: () async {
+                      String? fileUrl = post.fileUrl;
+                      if (fileUrl != null && fileUrl.isNotEmpty) {
+                        bool downloaded = await GallerySaver.saveImage(fileUrl,
+                                albumName: appDirectoryName) ??
+                            false;
+                        if (downloaded) {
+                          context.showCupertinoConfirmationDialog(
+                              title: 'Downloading Success',
+                              message: 'Full size illustration is downloaded.',
+                              actionLabel: 'OK',
+                              action: () {});
+                        }
+                      }
+                    },
                     child: Icon(
                       CupertinoIcons.cloud_download,
                       color: context.primaryColor,

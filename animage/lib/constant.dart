@@ -9,3 +9,7 @@ const Color transparency = Color.fromARGB(0, 0, 0, 0);
 const String detailsPageRoute = '/detailsPage';
 
 const String id = '_id';
+
+const String appDirectoryName = 'Animage';
+
+const String postShareUrl = 'https://yande.re/post/show';

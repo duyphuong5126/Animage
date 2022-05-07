@@ -1,4 +1,5 @@
 import 'package:animage/constant.dart';
+import 'package:animage/widget/android_confirmation_alert_dialog.dart';
 import 'package:flutter/material.dart';
 
 extension MaterialContextExtension on BuildContext {
@@ -56,4 +57,20 @@ extension MaterialContextExtension on BuildContext {
   TextStyle? get caption => Theme.of(this).textTheme.caption;
 
   TextStyle? get overLine => Theme.of(this).textTheme.overline;
+
+  void showConfirmationDialog(
+      {required String title,
+      required String message,
+      required String actionLabel,
+      required Function action}) {
+    showDialog(
+        context: this,
+        builder: (context) {
+          return AndroidConfirmationAlertDialog(
+              title: title,
+              content: message,
+              confirmLabel: actionLabel,
+              confirmAction: action);
+        });
+  }
 }

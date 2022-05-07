@@ -1,3 +1,5 @@
+import 'package:animage/constant.dart';
+
 class Post {
   int id = -1;
   String? tags;
@@ -211,5 +213,9 @@ class Post {
 
   List<String> get tagList {
     return tags?.split(' ') ?? [];
+  }
+
+  String get shareUrl {
+    return '$postShareUrl/$id';
   }
 }

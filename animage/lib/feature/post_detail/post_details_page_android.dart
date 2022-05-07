@@ -13,6 +13,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gallery_saver/gallery_saver.dart';
+import 'package:share/share.dart';
 
 class PostDetailsPageAndroid extends StatefulWidget {
   const PostDetailsPageAndroid({Key? key}) : super(key: key);
@@ -297,7 +299,10 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         IconButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Share.share(post.shareUrl,
+                                  subject: 'Illustration ${post.id}');
+                            },
                             icon: Icon(
                               Icons.share_rounded,
                               size: 24,
@@ -307,7 +312,23 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                           width: 16.0,
                         ),
                         IconButton(
-                            onPressed: () {},
+                            onPressed: () async {
+                              String? fileUrl = post.fileUrl;
+                              if (fileUrl != null && fileUrl.isNotEmpty) {
+                                bool downloaded = await GallerySaver.saveImage(
+                                        fileUrl,
+                                        albumName: appDirectoryName) ??
+                                    false;
+                                if (downloaded) {
+                                  context.showConfirmationDialog(
+                                      title: 'Downloading Success',
+                                      message:
+                                          'Full size illustration is downloaded.',
+                                      actionLabel: 'OK',
+                                      action: () {});
+                                }
+                              }
+                            },
                             icon: Icon(
                               Icons.download_rounded,
                               size: 24,
