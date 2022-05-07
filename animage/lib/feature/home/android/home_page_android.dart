@@ -115,9 +115,19 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
                             _viewModel.clearDetailsPageRequest();
                           }
                         },
-                        child: isGrid
-                            ? _buildPagedGridView(context.secondaryColor)
-                            : _buildPagedListView(context.secondaryColor),
+                        child: BlocBuilder(
+                          bloc: _viewModel.buildGalleryCubit,
+                          builder: (context, buildId) {
+                            return RefreshIndicator(
+                              onRefresh: () async {
+                                _viewModel.rebuildGallery();
+                              },
+                              child: isGrid
+                                  ? _buildPagedGridView(context.secondaryColor)
+                                  : _buildPagedListView(context.secondaryColor),
+                            );
+                          },
+                        ),
                       ),
                       margin: const EdgeInsets.only(top: 32.0),
                       padding: const EdgeInsets.only(top: 16.0),
