@@ -58,157 +58,197 @@ class _HomePageIOSState extends State<HomePageIOS> {
     Color? unSelectedModeColor =
         context.isDark ? Colors.white : Colors.grey[400];
     return CupertinoPageScaffold(
-      child: NestedScrollView(
-        controller: scrollController,
-        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-          return <Widget>[
-            CupertinoSliverNavigationBar(
-              border: const Border(
-                  bottom: BorderSide(
-                      width: 0,
-                      color: CupertinoDynamicColor.withBrightness(
-                          color: transparency, darkColor: transparency))),
-              largeTitle: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Illustrations'),
-                  Container(
-                    child: CupertinoButton(
-                      child: const Icon(
-                        CupertinoIcons.search,
-                        size: 32,
-                      ),
-                      onPressed: () {
-                        scrollController
-                            .jumpTo(scrollController.position.maxScrollExtent);
-                      },
-                    ),
-                    margin: const EdgeInsets.only(right: 8),
-                  )
-                ],
-              ),
-              middle: BlocBuilder(
-                bloc: _expandStatusCubit,
-                builder: (context, expandStatus) {
-                  return Visibility(
-                    child: Container(
-                      child: CupertinoSearchTextField(
-                        controller: _searchEditController,
-                        autofocus: true,
-                        suffixIcon: const Icon(
-                          CupertinoIcons.clear_circled_solid,
+      child: Stack(
+        alignment: Alignment.topRight,
+        children: [
+          NestedScrollView(
+            controller: scrollController,
+            headerSliverBuilder:
+                (BuildContext context, bool innerBoxIsScrolled) {
+              return <Widget>[
+                CupertinoSliverNavigationBar(
+                  border: const Border(
+                      bottom: BorderSide(
+                          width: 0,
+                          color: CupertinoDynamicColor.withBrightness(
+                              color: transparency, darkColor: transparency))),
+                  largeTitle: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text('Illustrations'),
+                      Container(
+                        child: CupertinoButton(
+                          padding: EdgeInsetsDirectional.zero,
+                          child: const Icon(
+                            CupertinoIcons.search,
+                            size: 32,
+                          ),
+                          onPressed: () {
+                            scrollController.jumpTo(
+                                scrollController.position.maxScrollExtent);
+                          },
                         ),
-                        onChanged: (value) {
-                          _showCancelSearchCubit.emit(value.isNotEmpty);
-                        },
-                        onSubmitted: (value) {
-                          Log.d('Test>>>', 'submitted value=$value');
-                        },
-                      ),
-                      margin: const EdgeInsets.only(left: 8, right: 8),
-                    ),
-                    visible:
-                        expandStatus == NavigationBarExpandStatus.collapsed,
-                  );
-                },
-              ),
-              trailing: BlocBuilder(
-                  bloc: _expandStatusCubit,
-                  builder: (context, expandStatus) {
-                    return BlocBuilder(
-                      bloc: _showCancelSearchCubit,
-                      builder: (context, bool showCancelSearchButton) {
-                        return Visibility(
-                          child: CupertinoButton(
-                              padding: EdgeInsets.zero,
-                              child: const Text('Cancel'),
-                              onPressed: () {
-                                Log.d('Test>>>', 'Cancel search');
-                                _searchEditController.clear();
-                                scrollController.jumpTo(
-                                    scrollController.position.minScrollExtent);
-                              }),
-                          visible: showCancelSearchButton &&
-                              expandStatus ==
-                                  NavigationBarExpandStatus.collapsed,
+                        margin: const EdgeInsets.only(right: 8),
+                      )
+                    ],
+                  ),
+                  middle: BlocBuilder(
+                    bloc: _expandStatusCubit,
+                    builder: (context, expandStatus) {
+                      return Visibility(
+                        child: Container(
+                          child: CupertinoSearchTextField(
+                            controller: _searchEditController,
+                            autofocus: true,
+                            suffixIcon: const Icon(
+                              CupertinoIcons.clear_circled_solid,
+                            ),
+                            onChanged: (value) {
+                              _showCancelSearchCubit.emit(value.isNotEmpty);
+                            },
+                            onSubmitted: (value) {
+                              Log.d('Test>>>', 'submitted value=$value');
+                            },
+                          ),
+                          margin: const EdgeInsets.only(left: 8, right: 8),
+                        ),
+                        visible:
+                            expandStatus == NavigationBarExpandStatus.collapsed,
+                      );
+                    },
+                  ),
+                  trailing: BlocBuilder(
+                      bloc: _expandStatusCubit,
+                      builder: (context, expandStatus) {
+                        return BlocBuilder(
+                          bloc: _showCancelSearchCubit,
+                          builder: (context, bool showCancelSearchButton) {
+                            return Visibility(
+                              child: CupertinoButton(
+                                  padding: EdgeInsets.zero,
+                                  child: const Text('Cancel'),
+                                  onPressed: () {
+                                    Log.d('Test>>>', 'Cancel search');
+                                    _searchEditController.clear();
+                                    scrollController.jumpTo(scrollController
+                                        .position.minScrollExtent);
+                                  }),
+                              visible: showCancelSearchButton &&
+                                  expandStatus ==
+                                      NavigationBarExpandStatus.collapsed,
+                            );
+                          },
                         );
-                      },
+                      }),
+                )
+              ];
+            },
+            body: Container(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 0.0, horizontal: 16.0),
+              child: BlocBuilder(
+                  bloc: _modeCubit,
+                  builder: (context, GalleryMode mode) {
+                    bool isGrid = mode == GalleryMode.grid;
+                    return Stack(
+                      alignment: AlignmentDirectional.topEnd,
+                      children: [
+                        BlocListener(
+                          bloc: _viewModel.postDetailsCubit,
+                          listener: (context, post) async {
+                            if (post != null) {
+                              await Navigator.of(context)
+                                  .pushNamed(detailsPageRoute, arguments: post);
+                              _viewModel.clearDetailsPageRequest();
+                            }
+                          },
+                          child: isGrid
+                              ? _buildPagedGridView()
+                              : _buildPagedListView(),
+                        ),
+                        _buildSwitchModeButton(isGrid, unSelectedModeColor),
+                      ],
                     );
                   }),
-            )
-          ];
-        },
-        body: Container(
-          margin: EdgeInsetsDirectional.zero,
-          padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 16.0),
-          child: BlocBuilder(
+            ),
+          ),
+          BlocBuilder(
               bloc: _modeCubit,
-              builder: (context, GalleryMode mode) {
-                bool isGrid = mode == GalleryMode.grid;
-                return Stack(
-                  alignment: AlignmentDirectional.topEnd,
-                  children: [
-                    BlocListener(
-                      bloc: _viewModel.postDetailsCubit,
-                      listener: (context, post) async {
-                        if (post != null) {
-                          await Navigator.of(context)
-                              .pushNamed(detailsPageRoute, arguments: post);
-                          _viewModel.clearDetailsPageRequest();
-                        }
-                      },
-                      child: isGrid
-                          ? _buildPagedGridView()
-                          : _buildPagedListView(),
-                    ),
-                    Container(
-                      height: 32,
-                      width: 101,
-                      decoration: BoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(8.0)),
-                          border: Border.all(color: context.primaryColor)),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: CupertinoButton(
-                              onPressed: () {
-                                _modeCubit.emit(GalleryMode.list);
-                              },
-                              child: Icon(
-                                CupertinoIcons.list_bullet,
-                                color: isGrid
-                                    ? unSelectedModeColor
-                                    : context.primaryColor,
+              builder: (context, mode) {
+                return BlocBuilder(
+                    bloc: _expandStatusCubit,
+                    builder: (context, expandStatus) {
+                      return Visibility(
+                        child: Container(
+                          width: double.infinity,
+                          height: 52,
+                          color: Colors.white,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Illustrations',
+                                style: context.navTitleTextStyle,
                               ),
-                              padding: const EdgeInsetsDirectional.all(4.0),
-                            ),
-                            flex: 1,
+                              _buildSwitchModeButton(mode == GalleryMode.grid,
+                                  unSelectedModeColor),
+                            ],
                           ),
-                          Container(
-                            width: 1,
-                            color: context.primaryColor,
-                          ),
-                          Expanded(
-                            child: CupertinoButton(
-                              onPressed: () {
-                                _modeCubit.emit(GalleryMode.grid);
-                              },
-                              child: Icon(CupertinoIcons.rectangle_grid_2x2,
-                                  color: isGrid
-                                      ? context.primaryColor
-                                      : unSelectedModeColor),
-                              padding: const EdgeInsetsDirectional.all(4.0),
-                            ),
-                            flex: 1,
-                          )
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              }),
-        ),
+                          margin: const EdgeInsets.only(
+                              top: kToolbarHeight + 32,
+                              left: 16.0,
+                              right: 16.0),
+                        ),
+                        visible:
+                            expandStatus == NavigationBarExpandStatus.collapsed,
+                      );
+                    });
+              })
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitchModeButton(bool isGrid, Color? unSelectedModeColor) {
+    return Container(
+      height: 32,
+      width: 101,
+      decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+          border: Border.all(color: context.primaryColor)),
+      child: Row(
+        children: [
+          Expanded(
+            child: CupertinoButton(
+              onPressed: () {
+                _modeCubit.emit(GalleryMode.list);
+              },
+              child: Icon(
+                CupertinoIcons.list_bullet,
+                color: isGrid ? unSelectedModeColor : context.primaryColor,
+              ),
+              padding: const EdgeInsetsDirectional.all(4.0),
+            ),
+            flex: 1,
+          ),
+          Container(
+            width: 1,
+            color: context.primaryColor,
+          ),
+          Expanded(
+            child: CupertinoButton(
+              onPressed: () {
+                _modeCubit.emit(GalleryMode.grid);
+              },
+              child: Icon(CupertinoIcons.rectangle_grid_2x2,
+                  color: isGrid ? context.primaryColor : unSelectedModeColor),
+              padding: const EdgeInsetsDirectional.all(4.0),
+            ),
+            flex: 1,
+          )
+        ],
       ),
     );
   }
