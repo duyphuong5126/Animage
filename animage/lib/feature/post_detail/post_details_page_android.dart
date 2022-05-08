@@ -359,7 +359,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                 Visibility(
                                   child: Container(
                                     margin: const EdgeInsets.only(
-                                        top: 8.0, right: 8.0),
+                                        left: 16.0, top: 8.0, right: 8.0),
                                     child: SizedBox(
                                       width: 24,
                                       height: 24,
