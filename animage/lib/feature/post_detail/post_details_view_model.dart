@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/domain/entity/post.dart';
-import 'package:animage/domain/use_case/get_artist_list_use_case.dart';
 import 'package:animage/domain/use_case/get_artist_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:flutter/material.dart';
@@ -102,15 +101,11 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
   }
 
   void _initArtist(Post post) async {
-    int? creatorId = post.creatorId;
-    if (creatorId != null) {
-      _getArtistSubscription =
-          _getArtistUseCase.execute(creatorId).asStream().listen((artist) {
-        if (artist != null) {
-          _artistCubit
-              .emit(ArtistUiModel(name: artist.name, urls: artist.urls));
-        }
-      });
-    }
+    _getArtistSubscription =
+        _getArtistUseCase.execute(post).asStream().listen((artist) {
+      if (artist != null) {
+        _artistCubit.emit(ArtistUiModel(name: artist.name, urls: artist.urls));
+      }
+    });
   }
 }

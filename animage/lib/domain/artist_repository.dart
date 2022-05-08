@@ -1,4 +1,5 @@
 import 'package:animage/domain/entity/artist/artist.dart';
+import 'package:animage/domain/entity/post.dart';
 
 abstract class ArtistRepository {
   Future<bool> get isArtistListChanged;
@@ -7,7 +8,7 @@ abstract class ArtistRepository {
 
   Future syncArtistList();
 
-  Future<List<Artist>> getArtistList(List<int> artistIdList);
+  Future<Map<int, Artist>> getArtists(List<Post> postList);
 
-  Future<Artist?> getArtist(int artistId);
+  Future<Artist?> getArtist(Post post);
 }

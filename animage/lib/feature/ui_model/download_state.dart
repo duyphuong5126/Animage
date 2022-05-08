@@ -1,0 +1,1 @@
+enum DownloadState { Downloading, Idle }

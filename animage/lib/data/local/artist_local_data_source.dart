@@ -1,6 +1,7 @@
 import 'package:animage/data/local/master_database.dart';
 import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/artist/artist_list_change_log.dart';
+import 'package:animage/domain/entity/post.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
@@ -10,9 +11,9 @@ abstract class ArtistLocalDataSource {
 
   Future<int?> get localVersionId;
 
-  Future<List<Artist>> getArtistList(List<int> artistIdList);
+  Future<Map<int, Artist>> getArtists(List<Post> postList);
 
-  Future<Artist?> getArtist(int artistId);
+  Future<Artist?> getArtist(Post post);
 
   Future insertArtist(List<Artist> artistList);
 
@@ -34,13 +35,14 @@ class ArtistLocalDataSourceImpl extends ArtistLocalDataSource {
   }
 
   @override
-  Future<Artist?> getArtist(int artistId) {
-    return _masterDatabase.getArtist(artistId);
+  Future<Artist?> getArtist(Post post) {
+    return _masterDatabase.getArtistsFromPosts([post]).then(
+        (artistMap) => Future.value(artistMap[post.id]));
   }
 
   @override
-  Future<List<Artist>> getArtistList(List<int> artistIdList) {
-    return _masterDatabase.getArtistList(artistIdList);
+  Future<Map<int, Artist>> getArtists(List<Post> postList) {
+    return _masterDatabase.getArtistsFromPosts(postList);
   }
 
   @override

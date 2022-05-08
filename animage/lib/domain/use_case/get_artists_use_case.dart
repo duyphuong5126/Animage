@@ -3,13 +3,14 @@ import 'package:animage/domain/artist_repository.dart';
 import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/post.dart';
 
-abstract class GetArtistUseCase {
-  Future<Artist?> execute(Post post);
+abstract class GetArtistsUseCase {
+  Future<Map<int, Artist>> execute(List<Post> postList);
 }
 
-class GetArtistUseCaseImpl extends GetArtistUseCase {
+class GetArtistListUseCaseImpl extends GetArtistsUseCase {
   final ArtistRepository _repository = ArtistRepositoryImpl();
 
   @override
-  Future<Artist?> execute(Post post) => _repository.getArtist(post);
+  Future<Map<int, Artist>> execute(List<Post> postList) =>
+      _repository.getArtists(postList);
 }

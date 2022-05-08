@@ -1,5 +1,6 @@
 import 'package:animage/constant.dart';
 import 'package:animage/domain/entity/artist/artist.dart';
+import 'package:animage/domain/entity/post.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -79,6 +80,33 @@ class MasterDatabase {
           aliasId: artistDbList[0][_aliasId],
           groupId: artistDbList[0][_groupId],
           urls: (artistDbList[0][_urls] as String).split(' '));
+    }
+
+    return result;
+  }
+
+  Future<Map<int, Artist>> getArtistsFromPosts(List<Post> postList) async {
+    await _openDataBase();
+    Map<int, Artist> result = {};
+
+    for (var post in postList) {
+      List<String> tagList = post.tagList;
+
+      List<Map<String, dynamic>> artistDbList = await _database!.query(
+        _artistTable,
+        columns: [id, _artistName, _aliasId, _groupId, _urls],
+        where:
+        '$_artistName in (${tagList.map((tag) => '"$tag"').join(',')})',
+      );
+
+      if (artistDbList.isNotEmpty) {
+        result[post.id] = Artist(
+            id: artistDbList[0][id],
+            name: artistDbList[0][_artistName],
+            aliasId: artistDbList[0][_aliasId],
+            groupId: artistDbList[0][_groupId],
+            urls: (artistDbList[0][_urls] as String).split(' '));
+      }
     }
 
     return result;

@@ -1,9 +1,11 @@
 import 'dart:ui';
 
+import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/constant.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/feature/post_detail/post_details_view_model.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
+import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
 import 'package:animage/widget/text_with_links.dart';
@@ -27,6 +29,9 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
   static const double _defaultGalleryFooterHeight = 72;
 
   final PostDetailsViewModel _viewModel = PostDetailsViewModelImpl();
+
+  final DataCubit<DownloadState> _downloadStateCubit =
+      DataCubit(DownloadState.Idle);
 
   @override
   Widget build(BuildContext context) {
@@ -65,48 +70,68 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
           middle: PlatformText('ID: ${post.id}'),
           trailing: SizedBox(
             width: 100,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                CupertinoButton(
-                    padding: EdgeInsetsDirectional.zero,
-                    onPressed: () {
-                      Share.share(post.shareUrl,
-                          subject: 'Illustration ${post.id}');
-                    },
-                    child: Icon(
-                      CupertinoIcons.share,
-                      color: context.primaryColor,
-                    )),
-                const SizedBox(
-                  width: 4.0,
-                ),
-                CupertinoButton(
-                    padding: EdgeInsetsDirectional.zero,
-                    onPressed: () async {
-                      String? fileUrl = post.fileUrl;
-                      if (fileUrl != null && fileUrl.isNotEmpty) {
-                        bool downloaded = await GallerySaver.saveImage(fileUrl,
-                                albumName: appDirectoryName) ??
-                            false;
-                        if (downloaded) {
-                          context.showCupertinoConfirmationDialog(
-                              title: 'Downloading Success',
-                              message: 'Full size illustration is downloaded.',
-                              actionLabel: 'OK',
-                              action: () {});
-                        }
-                      }
-                    },
-                    child: Icon(
-                      CupertinoIcons.cloud_download,
-                      color: context.primaryColor,
-                    )),
-                const SizedBox(
-                  width: 4.0,
-                ),
-              ],
+            child: BlocBuilder(
+              bloc: _downloadStateCubit,
+              builder: (context, state) {
+                bool isDownloading = state == DownloadState.Downloading;
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CupertinoButton(
+                        padding: EdgeInsetsDirectional.zero,
+                        onPressed: () {
+                          Share.share(post.shareUrl,
+                              subject: 'Illustration ${post.id}');
+                        },
+                        child: Icon(
+                          CupertinoIcons.share,
+                          color: context.primaryColor,
+                        )),
+                    const SizedBox(
+                      width: 4.0,
+                    ),
+                    isDownloading
+                        ? Container(
+                            child: CupertinoActivityIndicator(
+                              radius: 12,
+                              color: context.primaryColor,
+                            ),
+                            margin:
+                                const EdgeInsets.only(left: 12.0, right: 8.0),
+                          )
+                        : CupertinoButton(
+                            padding: EdgeInsetsDirectional.zero,
+                            onPressed: () async {
+                              String? fileUrl = post.fileUrl;
+                              if (fileUrl != null && fileUrl.isNotEmpty) {
+                                _downloadStateCubit
+                                    .emit(DownloadState.Downloading);
+                                bool downloaded = await GallerySaver.saveImage(
+                                        fileUrl,
+                                        albumName: appDirectoryName) ??
+                                    false;
+                                _downloadStateCubit.emit(DownloadState.Idle);
+                                if (downloaded) {
+                                  context.showCupertinoConfirmationDialog(
+                                      title: 'Downloading Success',
+                                      message:
+                                          'Full size illustration is downloaded.',
+                                      actionLabel: 'OK',
+                                      action: () {});
+                                }
+                              }
+                            },
+                            child: Icon(
+                              CupertinoIcons.cloud_download,
+                              color: context.primaryColor,
+                            )),
+                    const SizedBox(
+                      width: 4.0,
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),

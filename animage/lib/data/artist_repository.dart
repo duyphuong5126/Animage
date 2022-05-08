@@ -3,6 +3,7 @@ import 'package:animage/data/remote/artist_remote_data_source.dart';
 import 'package:animage/domain/artist_repository.dart';
 import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/artist/artist_list_change_log.dart';
+import 'package:animage/domain/entity/post.dart';
 import 'package:animage/utils/log.dart';
 
 class ArtistRepositoryImpl extends ArtistRepository {
@@ -43,10 +44,10 @@ class ArtistRepositoryImpl extends ArtistRepository {
   }
 
   @override
-  Future<List<Artist>> getArtistList(List<int> artistIdList) =>
-      _localDataSource.getArtistList(artistIdList);
+  Future<Map<int, Artist>> getArtists(List<Post> postList) =>
+      _localDataSource.getArtists(postList);
 
   @override
-  Future<Artist?> getArtist(int artistId) =>
-      _localDataSource.getArtist(artistId);
+  Future<Artist?> getArtist(Post post) =>
+      _localDataSource.getArtist(post);
 }

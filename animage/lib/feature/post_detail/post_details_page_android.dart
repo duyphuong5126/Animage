@@ -5,6 +5,7 @@ import 'package:animage/constant.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/feature/post_detail/post_details_view_model.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
+import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/utils/material_context_extension.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
@@ -29,6 +30,9 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
 
   final DataCubit<NavigationBarExpandStatus> _expandStatusCubit =
       DataCubit(NavigationBarExpandStatus.expanded);
+
+  final DataCubit<DownloadState> _downloadStateCubit =
+      DataCubit(DownloadState.Idle);
 
   final DataCubit<bool> _showMasterInfo = DataCubit(false);
 
@@ -311,29 +315,67 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                         const SizedBox(
                           width: 16.0,
                         ),
-                        IconButton(
-                            onPressed: () async {
-                              String? fileUrl = post.fileUrl;
-                              if (fileUrl != null && fileUrl.isNotEmpty) {
-                                bool downloaded = await GallerySaver.saveImage(
-                                        fileUrl,
-                                        albumName: appDirectoryName) ??
-                                    false;
-                                if (downloaded) {
-                                  context.showConfirmationDialog(
-                                      title: 'Downloading Success',
-                                      message:
-                                          'Full size illustration is downloaded.',
-                                      actionLabel: 'OK',
-                                      action: () {});
-                                }
-                              }
-                            },
-                            icon: Icon(
-                              Icons.download_rounded,
-                              size: 24,
-                              color: context.primaryColor,
-                            ))
+                        BlocBuilder(
+                          bloc: _downloadStateCubit,
+                          builder: (context, state) {
+                            bool isDownloading =
+                                state == DownloadState.Downloading;
+                            return Stack(
+                              alignment: Alignment.bottomCenter,
+                              children: [
+                                Visibility(
+                                  child: IconButton(
+                                      onPressed: () async {
+                                        String? fileUrl = post.fileUrl;
+                                        if (fileUrl != null &&
+                                            fileUrl.isNotEmpty) {
+                                          _downloadStateCubit
+                                              .emit(DownloadState.Downloading);
+                                          bool downloaded =
+                                              await GallerySaver.saveImage(
+                                                      fileUrl,
+                                                      albumName:
+                                                          appDirectoryName) ??
+                                                  false;
+                                          _downloadStateCubit
+                                              .emit(DownloadState.Idle);
+                                          if (downloaded) {
+                                            context.showConfirmationDialog(
+                                                title: 'Downloading Success',
+                                                message:
+                                                    'Full size illustration is downloaded.',
+                                                actionLabel: 'OK',
+                                                action: () {});
+                                          }
+                                        }
+                                      },
+                                      icon: Icon(
+                                        Icons.download_rounded,
+                                        size: 24,
+                                        color: context.primaryColor,
+                                      )),
+                                  visible: !isDownloading,
+                                ),
+                                Visibility(
+                                  child: Container(
+                                    margin: const EdgeInsets.only(
+                                        top: 8.0, right: 8.0),
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                context.secondaryColor),
+                                      ),
+                                    ),
+                                  ),
+                                  visible: isDownloading,
+                                )
+                              ],
+                            );
+                          },
+                        )
                       ],
                     )
                   ],

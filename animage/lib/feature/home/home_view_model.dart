@@ -2,7 +2,7 @@ import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/general/pair.dart';
 import 'package:animage/domain/entity/post.dart';
-import 'package:animage/domain/use_case/get_artist_list_use_case.dart';
+import 'package:animage/domain/use_case/get_artists_use_case.dart';
 import 'package:animage/domain/use_case/get_post_list_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
@@ -48,8 +48,7 @@ abstract class HomeViewModel {
 
 class HomeViewModelImpl extends HomeViewModel {
   late final GetPostListUseCase _getPostListUseCase = GetPostListUseCaseImpl();
-  late final GetArtistListUseCase _getArtistListUseCase =
-      GetArtistListUseCaseImpl();
+  late final GetArtistsUseCase _getArtistsUseCase = GetArtistListUseCaseImpl();
 
   PagingController<int, PostCardUiModel>? _pagingController;
 
@@ -145,7 +144,7 @@ class HomeViewModelImpl extends HomeViewModel {
     Log.d(_tag, 'fetching page $pageIndex');
     _getPostListUseCase
         .execute(pageIndex)
-        .then<Pair<List<Post>, List<Artist>>>((List<Post> postList) {
+        .then<Pair<List<Post>, Map<int, Artist>>>((List<Post> postList) {
           if (pageIndex == 1) {
             _galleryRefreshedAtCubit
                 ?.emit(DateTime.now().millisecondsSinceEpoch);
@@ -155,16 +154,17 @@ class HomeViewModelImpl extends HomeViewModel {
               .where((creatorId) => creatorId != -1)
               .toList();
           if (creatorIdList.isNotEmpty) {
-            return _getArtistListUseCase.execute(creatorIdList).then(
-                (artistList) => Pair(first: postList, second: artistList));
+            return _getArtistsUseCase
+                .execute(postList)
+                .then((artistMap) => Pair(first: postList, second: artistMap));
           } else {
-            return Pair(first: postList, second: []);
+            return Pair(first: postList, second: {});
           }
         })
         .asStream()
-        .listen((Pair<List<Post>, List<Artist>> postsAndArtists) {
+        .listen((Pair<List<Post>, Map<int, Artist>> postsAndArtists) {
           List<Post> postList = postsAndArtists.first;
-          List<Artist> artistList = postsAndArtists.second;
+          Map<int, Artist> artistMap = postsAndArtists.second;
 
           Log.d(_tag, 'postList=${postList.length}');
           List<PostCardUiModel> result = postList.map((post) {
@@ -182,10 +182,11 @@ class HomeViewModelImpl extends HomeViewModel {
 
             ArtistUiModel? artistUiModel;
             try {
-              Artist artist = artistList
-                  .firstWhere((artistData) => artistData.id == post.creatorId);
-              artistUiModel =
-                  ArtistUiModel(name: artist.name, urls: artist.urls);
+              Artist? artist = artistMap[post.id];
+              if (artist != null) {
+                artistUiModel =
+                    ArtistUiModel(name: artist.name, urls: artist.urls);
+              }
             } catch (error) {
               Log.d(_tag,
                   'Could not find any artist matches id ${post.creatorId}');
