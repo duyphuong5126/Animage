@@ -141,11 +141,17 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
               Stack(
                 alignment: Alignment.bottomCenter,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: post.sampleUrl ?? '',
-                    height: galleryHeight,
-                    alignment: Alignment.topCenter,
-                    fit: BoxFit.fitWidth,
+                  GestureDetector(
+                    child: CachedNetworkImage(
+                      imageUrl: post.sampleUrl ?? '',
+                      height: galleryHeight,
+                      alignment: Alignment.topCenter,
+                      fit: BoxFit.fitWidth,
+                    ),
+                    onTap: () {
+                      Navigator.of(context)
+                          .pushNamed(viewOriginalPage, arguments: post);
+                    },
                   ),
                   ClipRect(
                     child: SizedBox(

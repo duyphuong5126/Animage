@@ -8,6 +8,8 @@ const Color transparency = Color.fromARGB(0, 0, 0, 0);
 
 const String detailsPageRoute = '/detailsPage';
 
+const String viewOriginalPage = '/viewOriginal';
+
 const String id = '_id';
 
 const String appDirectoryName = 'Animage';

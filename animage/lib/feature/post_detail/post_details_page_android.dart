@@ -143,10 +143,17 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                           Stack(
                             alignment: Alignment.bottomCenter,
                             children: [
-                              CachedNetworkImage(
-                                imageUrl: post.sampleUrl ?? '',
-                                alignment: Alignment.topCenter,
-                                fit: BoxFit.fitWidth,
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).pushNamed(
+                                      viewOriginalPage,
+                                      arguments: post);
+                                },
+                                child: CachedNetworkImage(
+                                  imageUrl: post.sampleUrl ?? '',
+                                  alignment: Alignment.topCenter,
+                                  fit: BoxFit.fitWidth,
+                                ),
                               ),
                               ClipRect(
                                 child: SizedBox(

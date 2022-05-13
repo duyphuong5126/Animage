@@ -1,6 +1,5 @@
 import 'package:animage/constant.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
 extension CupertinoContextExtension on BuildContext {
   double get screenWidth => MediaQuery.of(this).size.width;
@@ -11,9 +10,16 @@ extension CupertinoContextExtension on BuildContext {
 
   Color get brandColor => accentColor;
 
+  Color get brandColorDayNight => isDark ? accentColorLight : accentColor;
+
   Color get cardViewBackgroundColor {
     bool isDark = CupertinoTheme.of(this).brightness == Brightness.dark;
     return isDark ? CupertinoColors.white : CupertinoColors.systemGrey2;
+  }
+
+  Color get defaultBackgroundColor {
+    bool isDark = CupertinoTheme.of(this).brightness == Brightness.dark;
+    return isDark ? CupertinoColors.black : CupertinoColors.white;
   }
 
   void showCupertinoConfirmationDialog(
