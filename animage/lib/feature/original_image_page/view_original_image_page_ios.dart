@@ -25,6 +25,7 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
 
     String? url = post.fileUrl;
     return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.black,
       child: url != null && url.isNotEmpty
           ? Stack(
               alignment: Alignment.topLeft,

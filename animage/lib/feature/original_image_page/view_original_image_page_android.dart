@@ -27,6 +27,7 @@ class _ViewOriginalImagePageAndroidState
     String? url = post.fileUrl;
     return Scaffold(
       extendBodyBehindAppBar: true,
+      backgroundColor: Colors.black,
       appBar: FadingAppBarAndroid(
           appBar: AppBar(
             elevation: 0,
