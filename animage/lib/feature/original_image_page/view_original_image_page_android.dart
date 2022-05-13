@@ -1,6 +1,7 @@
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/utils/material_context_extension.dart';
-import 'package:animage/widget/sliding_app_bar_android.dart';
+import 'package:animage/widget/fading_app_bar_android.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
@@ -26,20 +27,21 @@ class _ViewOriginalImagePageAndroidState
     String? url = post.fileUrl;
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: SlidingAppBarAndroid(
+      appBar: FadingAppBarAndroid(
           appBar: AppBar(
             elevation: 0,
             systemOverlayStyle: const SystemUiOverlayStyle(
                 systemStatusBarContrastEnforced: true,
                 statusBarColor: Color.fromARGB(0, 0, 0, 0)),
             backgroundColor: const Color.fromARGB(100, 0, 0, 0),
+            foregroundColor: context.secondaryColor,
           ),
           controller: _animationController),
       body: url != null && url.isNotEmpty
           ? Stack(
               children: [
                 PhotoView(
-                  imageProvider: NetworkImage(url),
+                  imageProvider: CachedNetworkImageProvider(url),
                   loadingBuilder: (context, event) {
                     return Center(
                       child: SizedBox(
