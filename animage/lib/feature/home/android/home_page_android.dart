@@ -5,6 +5,7 @@ import 'package:animage/feature/home/home_view_model.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/utils/log.dart';
 import 'package:animage/utils/material_context_extension.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -69,6 +70,7 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
           child: TextField(
             controller: searchEditingController,
             style: context.bodyText2?.copyWith(color: searchTextColor),
+            textInputAction: TextInputAction.search,
             decoration: InputDecoration(
                 contentPadding: const EdgeInsets.symmetric(vertical: 8.0),
                 prefixIcon: Icon(
@@ -89,9 +91,13 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
                     );
                   },
                 ),
-                hintText: 'Search...',
+                hintText: 'Type something...',
                 hintStyle: context.bodyText2?.copyWith(color: searchHintColor),
                 border: InputBorder.none),
+            onSubmitted: (String searchTerm) {
+              searchEditingController.clear();
+              _viewModel.addSearchTag(searchTerm);
+            },
           ),
         ),
       ),
@@ -102,93 +108,155 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
               bloc: _modeCubit,
               builder: (context, GalleryMode mode) {
                 bool isGrid = mode == GalleryMode.grid;
-                return Stack(
-                  alignment: AlignmentDirectional.topCenter,
-                  children: [
-                    Container(
-                      child: BlocListener(
-                        bloc: _viewModel.postDetailsCubit,
-                        listener: (context, Post? post) async {
-                          if (post != null) {
-                            await Navigator.of(context)
-                                .pushNamed(detailsPageRoute, arguments: post);
-                            _viewModel.clearDetailsPageRequest();
-                          }
-                        },
-                        child: RefreshIndicator(
-                          onRefresh: () =>
-                              Future.sync(() => _viewModel.refreshGallery()),
-                          child: isGrid
-                              ? _buildPagedGridView(context.secondaryColor)
-                              : _buildPagedListView(context.secondaryColor),
-                        ),
-                      ),
-                      margin: const EdgeInsets.only(top: 32.0),
-                      padding: const EdgeInsets.only(top: 16.0),
-                    ),
-                    Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            child: Text(
-                              _viewModel.pageTitle,
-                              style: context.headline6,
+                return BlocBuilder(
+                  bloc: _viewModel.tagListCubit,
+                  builder: (context, List<String> tags) {
+                    bool hasTag = tags.isNotEmpty;
+                    Log.d('Test>>>', 'tags=$tags');
+                    return Stack(
+                      alignment: AlignmentDirectional.topCenter,
+                      children: [
+                        Container(
+                          child: BlocListener(
+                            bloc: _viewModel.postDetailsCubit,
+                            listener: (context, Post? post) async {
+                              if (post != null) {
+                                await Navigator.of(context).pushNamed(
+                                    detailsPageRoute,
+                                    arguments: post);
+                                _viewModel.clearDetailsPageRequest();
+                              }
+                            },
+                            child: RefreshIndicator(
+                              onRefresh: () => Future.sync(
+                                  () => _viewModel.refreshGallery()),
+                              child: isGrid
+                                  ? _buildPagedGridView(context.secondaryColor)
+                                  : _buildPagedListView(context.secondaryColor),
                             ),
-                            margin: const EdgeInsets.only(left: 8.0),
                           ),
-                          Container(
-                            height: 32,
-                            width: 101,
-                            decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(8.0)),
-                                border:
-                                    Border.all(color: context.secondaryColor)),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: IconButton(
-                                    onPressed: () {
-                                      _modeCubit.emit(GalleryMode.list);
-                                    },
-                                    icon: Icon(
-                                      Icons.list,
-                                      color: isGrid
-                                          ? unSelectedModeColor
-                                          : context.secondaryColor,
+                          margin: EdgeInsets.only(top: hasTag ? 80.0 : 32.0),
+                          padding: const EdgeInsets.only(top: 16.0),
+                        ),
+                        Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    child: Text(
+                                      _viewModel.pageTitle,
+                                      style: context.headline6,
                                     ),
-                                    padding:
-                                        const EdgeInsetsDirectional.all(4.0),
+                                    margin: const EdgeInsets.only(left: 8.0),
                                   ),
-                                  flex: 1,
+                                  Container(
+                                    height: 32,
+                                    width: 101,
+                                    decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(8.0)),
+                                        border: Border.all(
+                                            color: context.secondaryColor)),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: IconButton(
+                                            onPressed: () {
+                                              _modeCubit.emit(GalleryMode.list);
+                                            },
+                                            icon: Icon(
+                                              Icons.list,
+                                              color: isGrid
+                                                  ? unSelectedModeColor
+                                                  : context.secondaryColor,
+                                            ),
+                                            padding:
+                                                const EdgeInsetsDirectional.all(
+                                                    4.0),
+                                          ),
+                                          flex: 1,
+                                        ),
+                                        Container(
+                                          width: 1,
+                                          color: context.secondaryColor,
+                                        ),
+                                        Expanded(
+                                          child: IconButton(
+                                            onPressed: () {
+                                              _modeCubit.emit(GalleryMode.grid);
+                                            },
+                                            icon: Icon(Icons.grid_view,
+                                                color: isGrid
+                                                    ? context.secondaryColor
+                                                    : unSelectedModeColor),
+                                            padding:
+                                                const EdgeInsetsDirectional.all(
+                                                    4.0),
+                                          ),
+                                          flex: 1,
+                                        )
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                              Visibility(
+                                child: Container(
+                                  child: ListView.separated(
+                                      scrollDirection: Axis.horizontal,
+                                      itemBuilder: (context, index) {
+                                        String tag = tags[index];
+                                        return Chip(
+                                          deleteIcon: const Icon(Icons.close),
+                                          deleteIconColor: Colors.white,
+                                          onDeleted: () {
+                                            context.showYesNoDialog(
+                                                title: 'REMOVE TAG',
+                                                content: 'Remove tag "$tag"?',
+                                                yesLabel: 'Yes',
+                                                noLabel: 'No',
+                                                yesAction: () {
+                                                  _viewModel
+                                                      .removeSearchTag(tag);
+                                                },
+                                                noAction: () {});
+                                          },
+                                          label: Text(
+                                            tag,
+                                            style: context.bodyText2
+                                                ?.copyWith(color: Colors.white),
+                                          ),
+                                          backgroundColor:
+                                              context.secondaryColor,
+                                          labelPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 8.0),
+                                        );
+                                      },
+                                      separatorBuilder: (context, index) {
+                                        return const SizedBox(
+                                          width: 8.0,
+                                        );
+                                      },
+                                      itemCount: tags.length),
+                                  constraints:
+                                      const BoxConstraints.expand(height: 32),
+                                  margin: const EdgeInsets.only(top: 8.0),
                                 ),
-                                Container(
-                                  width: 1,
-                                  color: context.secondaryColor,
-                                ),
-                                Expanded(
-                                  child: IconButton(
-                                    onPressed: () {
-                                      _modeCubit.emit(GalleryMode.grid);
-                                    },
-                                    icon: Icon(Icons.grid_view,
-                                        color: isGrid
-                                            ? context.secondaryColor
-                                            : unSelectedModeColor),
-                                    padding:
-                                        const EdgeInsetsDirectional.all(4.0),
-                                  ),
-                                  flex: 1,
-                                )
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    )
-                  ],
+                                visible: tags.isNotEmpty,
+                              )
+                            ],
+                          ),
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                        )
+                      ],
+                    );
+                  },
                 );
               }),
         ),

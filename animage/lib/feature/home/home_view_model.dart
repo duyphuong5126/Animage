@@ -4,6 +4,7 @@ import 'package:animage/domain/entity/general/pair.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/domain/use_case/get_artists_use_case.dart';
 import 'package:animage/domain/use_case/get_post_list_use_case.dart';
+import 'package:animage/domain/use_case/search_posts_by_tags_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/utils/log.dart';
@@ -11,6 +12,8 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 abstract class HomeViewModel {
   DataCubit<Post?> get postDetailsCubit;
+
+  DataCubit<List<String>> get tagListCubit;
 
   String get pageTitle;
 
@@ -27,6 +30,10 @@ abstract class HomeViewModel {
   void clearDetailsPageRequest();
 
   void refreshGallery();
+
+  void addSearchTag(String tag);
+
+  void removeSearchTag(String tag);
 
   void destroy();
 
@@ -49,11 +56,14 @@ abstract class HomeViewModel {
 class HomeViewModelImpl extends HomeViewModel {
   late final GetPostListUseCase _getPostListUseCase = GetPostListUseCaseImpl();
   late final GetArtistsUseCase _getArtistsUseCase = GetArtistListUseCaseImpl();
+  late final SearchPostsByTagsUseCase _searchPostsByTagsUseCase =
+      SearchPostsByTagsUseCaseImpl();
 
   PagingController<int, PostCardUiModel>? _pagingController;
 
   DataCubit<Post?>? _postDetailsCubit;
   DataCubit<int>? _galleryRefreshedAtCubit;
+  DataCubit<List<String>>? _tagListCubit;
 
   final Map<int, Post> _postDetailsMap = {};
 
@@ -64,6 +74,9 @@ class HomeViewModelImpl extends HomeViewModel {
 
   @override
   DataCubit<int> get galleryRefreshedAtCubit => _galleryRefreshedAtCubit!;
+
+  @override
+  DataCubit<List<String>> get tagListCubit => _tagListCubit!;
 
   @override
   String get pageTitle => 'Illustrations';
@@ -97,6 +110,7 @@ class HomeViewModelImpl extends HomeViewModel {
     Log.d(_tag, 'init');
     _postDetailsCubit = DataCubit(null);
     _galleryRefreshedAtCubit = DataCubit(-1);
+    _tagListCubit = DataCubit([]);
   }
 
   @override
@@ -129,6 +143,38 @@ class HomeViewModelImpl extends HomeViewModel {
   }
 
   @override
+  void addSearchTag(String tag) {
+    if (tag.isNotEmpty) {
+      String normalizedSearchTag = tag.trim().toLowerCase();
+      List<String> currentTagList = _tagListCubit?.state ?? [];
+      if (currentTagList.contains(normalizedSearchTag)) {
+        return;
+      }
+      List<String> tagList = [];
+      tagList.addAll(currentTagList);
+      tagList.add(normalizedSearchTag);
+      _tagListCubit?.emit(tagList);
+      _pagingController?.refresh();
+    }
+  }
+
+  @override
+  void removeSearchTag(String tag) {
+    if (tag.isNotEmpty) {
+      String normalizedSearchTag = tag.trim().toLowerCase();
+      List<String> currentTagList = _tagListCubit?.state ?? [];
+      if (!currentTagList.contains(normalizedSearchTag)) {
+        return;
+      }
+      currentTagList.remove(normalizedSearchTag);
+      List<String> tagList = [];
+      tagList.addAll(currentTagList);
+      _tagListCubit?.emit(tagList);
+      _pagingController?.refresh();
+    }
+  }
+
+  @override
   void destroy() {
     Log.d(_tag, 'destroy');
     _pagingController?.dispose();
@@ -137,13 +183,17 @@ class HomeViewModelImpl extends HomeViewModel {
     _postDetailsCubit = null;
     _galleryRefreshedAtCubit?.closeAsync();
     _galleryRefreshedAtCubit = null;
+    _tagListCubit?.closeAsync();
+    _tagListCubit = null;
   }
 
   Future<void> _getPage(int pageIndex,
       PagingController<int, PostCardUiModel> pagingController) async {
     Log.d(_tag, 'fetching page $pageIndex');
-    _getPostListUseCase
-        .execute(pageIndex)
+    List<String> tagList = _tagListCubit?.state ?? [];
+    (tagList.isEmpty
+            ? _getPostListUseCase.execute(pageIndex)
+            : _searchPostsByTagsUseCase.execute(tagList, pageIndex))
         .then<Pair<List<Post>, Map<int, Artist>>>((List<Post> postList) {
           if (pageIndex == 1) {
             _galleryRefreshedAtCubit
@@ -207,7 +257,7 @@ class HomeViewModelImpl extends HomeViewModel {
             pagingController.appendPage(result, pageIndex + 1);
           }
         }, onError: (error, stackTrace) {
-          Log.d(_tag, 'failed to get postList with error $error');
+          Log.d(_tag, 'failed to get postList with error: $error');
           pagingController.error = error;
         });
   }

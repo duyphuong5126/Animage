@@ -1,5 +1,6 @@
 import 'package:animage/constant.dart';
 import 'package:animage/widget/android_confirmation_alert_dialog.dart';
+import 'package:animage/widget/android_yes_no_alert_dialog.dart';
 import 'package:flutter/material.dart';
 
 extension MaterialContextExtension on BuildContext {
@@ -71,6 +72,27 @@ extension MaterialContextExtension on BuildContext {
               content: message,
               confirmLabel: actionLabel,
               confirmAction: action);
+        });
+  }
+
+  void showYesNoDialog(
+      {required String title,
+      required String content,
+      required String yesLabel,
+      required String noLabel,
+      required Function yesAction,
+      required Function noAction}) {
+    showDialog(
+        context: this,
+        builder: (context) {
+          return YesNoConfirmationAlertDialog(
+            title: title,
+            content: content,
+            yesLabel: yesLabel,
+            yesAction: yesAction,
+            noLabel: noLabel,
+            noAction: noAction,
+          );
         });
   }
 }

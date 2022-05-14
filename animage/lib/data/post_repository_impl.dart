@@ -12,7 +12,7 @@ class PostRepositoryImpl implements PostRepository {
   }
 
   @override
-  Future<List<Post>> searchPostsByTag(String tag, int page) {
-    return _remoteDataSource.searchPostsByTag(tag, page);
+  Future<List<Post>> searchPostsByTag(List<String> tags, int page) {
+    return _remoteDataSource.searchPostsByTag(tags, page);
   }
 }

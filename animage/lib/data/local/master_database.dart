@@ -95,14 +95,13 @@ class MasterDatabase {
       List<Map<String, dynamic>> artistDbList = await _database!.query(
         _artistTable,
         columns: [id, _artistName, _aliasId, _groupId, _urls],
-        where:
-        '$_artistName in (${tagList.map((tag) => '"$tag"').join(',')})',
+        where: '$_artistName in (${tagList.map((tag) => '"$tag"').join(',')})',
       );
 
       if (artistDbList.isNotEmpty) {
         result[post.id] = Artist(
             id: artistDbList[0][id],
-            name: artistDbList[0][_artistName],
+            name: '${artistDbList[0][_artistName]}',
             aliasId: artistDbList[0][_aliasId],
             groupId: artistDbList[0][_groupId],
             urls: (artistDbList[0][_urls] as String).split(' '));
