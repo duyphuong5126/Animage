@@ -49,9 +49,8 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
                   ),
                   child: CupertinoButton(
                     padding: EdgeInsetsDirectional.zero,
-                    child: Icon(
+                    child: const Icon(
                       CupertinoIcons.back,
-                      color: context.brandColorDayNight,
                       size: 32,
                     ),
                     onPressed: () => Navigator.pop(context),

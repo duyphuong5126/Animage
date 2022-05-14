@@ -35,7 +35,6 @@ class _ViewOriginalImagePageAndroidState
                 systemStatusBarContrastEnforced: true,
                 statusBarColor: Color.fromARGB(0, 0, 0, 0)),
             backgroundColor: const Color.fromARGB(100, 0, 0, 0),
-            foregroundColor: context.secondaryColor,
           ),
           controller: _animationController),
       body: url != null && url.isNotEmpty
