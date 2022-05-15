@@ -46,6 +46,40 @@ extension CupertinoContextExtension on BuildContext {
             ));
   }
 
+  void showCupertinoYesNoDialog(
+      {required String title,
+      required String message,
+      required String yesLabel,
+      required Function yesAction,
+      required String noLabel,
+      required Function noAction,
+      bool isYesDefaultAction = true}) {
+    showCupertinoDialog(
+        context: this,
+        builder: (context) => CupertinoAlertDialog(
+              title: Text(title),
+              content: Text(message),
+              actions: <Widget>[
+                CupertinoDialogAction(
+                  isDefaultAction: isYesDefaultAction,
+                  child: Text(yesLabel),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    yesAction();
+                  },
+                ),
+                CupertinoDialogAction(
+                  isDefaultAction: !isYesDefaultAction,
+                  child: Text(noLabel),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    noAction();
+                  },
+                )
+              ],
+            ));
+  }
+
   TextStyle get navTitleTextStyle =>
       CupertinoTheme.of(this).textTheme.navTitleTextStyle;
 

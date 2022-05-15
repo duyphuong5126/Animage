@@ -8,6 +8,7 @@ import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:animage/utils/log.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
+import 'package:animage/widget/removable_chip_ios.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class HomePageIOS extends StatefulWidget {
 
 class _HomePageIOSState extends State<HomePageIOS> {
   static const double _switchModeSectionHeight = 52;
+  static const double _defaultTagListHeight = 32;
 
   final DataCubit<NavigationBarExpandStatus> _expandStatusCubit =
       DataCubit(NavigationBarExpandStatus.expanded);
@@ -59,7 +61,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
         _expandStatusCubit.emit(NavigationBarExpandStatus.collapsed);
       }
     });
-    TextEditingController _searchEditController = TextEditingController();
+    TextEditingController searchEditController = TextEditingController();
     Color? unSelectedModeColor =
         context.isDark ? Colors.white : Colors.grey[400];
     return CupertinoPageScaffold(
@@ -104,7 +106,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
                       return Visibility(
                         child: Container(
                           child: CupertinoSearchTextField(
-                            controller: _searchEditController,
+                            controller: searchEditController,
                             autofocus: true,
                             suffixIcon: const Icon(
                               CupertinoIcons.clear_circled_solid,
@@ -112,8 +114,9 @@ class _HomePageIOSState extends State<HomePageIOS> {
                             onChanged: (value) {
                               _showCancelSearchCubit.emit(value.isNotEmpty);
                             },
-                            onSubmitted: (value) {
-                              Log.d('Test>>>', 'submitted value=$value');
+                            onSubmitted: (String searchTerm) {
+                              searchEditController.clear();
+                              _viewModel.addSearchTag(searchTerm);
                             },
                           ),
                           margin: const EdgeInsets.only(left: 8, right: 8),
@@ -136,7 +139,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
                                       Text(_viewModel.cancelSearchButtonLabel),
                                   onPressed: () {
                                     Log.d('Test>>>', 'Cancel search');
-                                    _searchEditController.clear();
+                                    searchEditController.clear();
                                     scrollController.jumpTo(scrollController
                                         .position.minScrollExtent);
                                   }),
@@ -150,64 +153,151 @@ class _HomePageIOSState extends State<HomePageIOS> {
                 )
               ];
             },
-            body: Container(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 0.0, horizontal: 16.0),
-              child: BlocBuilder(
-                  bloc: _modeCubit,
-                  builder: (context, GalleryMode mode) {
-                    bool isGrid = mode == GalleryMode.grid;
-                    return Stack(
-                      alignment: AlignmentDirectional.topEnd,
-                      children: [
-                        BlocListener(
-                          bloc: _viewModel.postDetailsCubit,
-                          listener: (context, post) async {
-                            if (post != null) {
-                              await Navigator.of(context)
-                                  .pushNamed(detailsPageRoute, arguments: post);
-                              _viewModel.clearDetailsPageRequest();
-                            }
-                          },
-                          child: BlocListener(
-                            bloc: _viewModel.galleryRefreshedAtCubit,
-                            listener: (context, int refreshedAt) {
-                              Log.d('Test>>>', 'refreshedAt=$refreshedAt');
-                              if (refreshedAt > 0 &&
-                                  _refreshController.isRefresh) {
-                                _refreshController.refreshCompleted();
-                              }
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.only(
-                                  top: _switchModeSectionHeight),
-                              child: SmartRefresher(
-                                  header: ClassicHeader(
-                                    textStyle: context.navTitleTextStyle,
-                                    refreshingText: _viewModel.refreshingText,
-                                    failedText: _viewModel.failedToRefreshText,
-                                    completeText:
-                                        _viewModel.refreshedSuccessfullyText,
-                                    idleText: _viewModel.refresherIdleText,
-                                    releaseText:
-                                        _viewModel.refresherReleaseText,
-                                  ),
-                                  enablePullDown: true,
-                                  controller: _refreshController,
-                                  onRefresh: () {
-                                    _viewModel.refreshGallery();
+            body: BlocBuilder(
+                bloc: _viewModel.setUpFinishCubit,
+                builder: (context, bool setUpFinished) {
+                  return setUpFinished
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 0.0, horizontal: 16.0),
+                          child: BlocBuilder(
+                              bloc: _modeCubit,
+                              builder: (context, GalleryMode mode) {
+                                bool isGrid = mode == GalleryMode.grid;
+                                return BlocBuilder(
+                                  bloc: _viewModel.tagListCubit,
+                                  builder: (context, List<String> tags) {
+                                    bool hasTag = tags.isNotEmpty;
+                                    return Stack(
+                                      alignment: AlignmentDirectional.topEnd,
+                                      children: [
+                                        BlocListener(
+                                          bloc: _viewModel.postDetailsCubit,
+                                          listener: (context, post) async {
+                                            if (post != null) {
+                                              await Navigator.of(context)
+                                                  .pushNamed(detailsPageRoute,
+                                                      arguments: post);
+                                              _viewModel
+                                                  .clearDetailsPageRequest();
+                                            }
+                                          },
+                                          child: BlocListener(
+                                            bloc: _viewModel
+                                                .galleryRefreshedAtCubit,
+                                            listener:
+                                                (context, int refreshedAt) {
+                                              Log.d('Test>>>',
+                                                  'refreshedAt=$refreshedAt');
+                                              if (refreshedAt > 0 &&
+                                                  _refreshController
+                                                      .isRefresh) {
+                                                _refreshController
+                                                    .refreshCompleted();
+                                              }
+                                            },
+                                            child: Container(
+                                              margin: EdgeInsets.only(
+                                                  top: _switchModeSectionHeight +
+                                                      (hasTag
+                                                          ? _defaultTagListHeight
+                                                          : 0)),
+                                              child: SmartRefresher(
+                                                  header: ClassicHeader(
+                                                    textStyle: context
+                                                        .navTitleTextStyle,
+                                                    refreshingText: _viewModel
+                                                        .refreshingText,
+                                                    failedText: _viewModel
+                                                        .failedToRefreshText,
+                                                    completeText: _viewModel
+                                                        .refreshedSuccessfullyText,
+                                                    idleText: _viewModel
+                                                        .refresherIdleText,
+                                                    releaseText: _viewModel
+                                                        .refresherReleaseText,
+                                                  ),
+                                                  enablePullDown: true,
+                                                  controller:
+                                                      _refreshController,
+                                                  onRefresh: () {
+                                                    _viewModel.refreshGallery();
+                                                  },
+                                                  child: isGrid
+                                                      ? _buildPagedGridView()
+                                                      : _buildPagedListView()),
+                                            ),
+                                          ),
+                                        ),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            _buildSwitchModeButton(
+                                                isGrid, unSelectedModeColor),
+                                            SizedBox(
+                                              height: hasTag ? 10.0 : 0.0,
+                                            ),
+                                            Container(
+                                                child: ListView.separated(
+                                                    scrollDirection:
+                                                        Axis.horizontal,
+                                                    itemBuilder:
+                                                        (context, index) {
+                                                      String tag = tags[index];
+                                                      return RemovableChipIOS(
+                                                          label: tag,
+                                                          bgColor: context
+                                                              .brandColor,
+                                                          textColor:
+                                                              CupertinoColors
+                                                                  .white,
+                                                          allowRemoval: true,
+                                                          onRemove: () {
+                                                            context
+                                                                .showCupertinoYesNoDialog(
+                                                                    title:
+                                                                        'REMOVE TAG',
+                                                                    message:
+                                                                        'Remove tag $tag?',
+                                                                    yesLabel:
+                                                                        'Yes',
+                                                                    yesAction:
+                                                                        () {
+                                                                      _viewModel
+                                                                          .removeSearchTag(
+                                                                              tag);
+                                                                    },
+                                                                    noLabel:
+                                                                        'No',
+                                                                    noAction:
+                                                                        () {});
+                                                          });
+                                                    },
+                                                    separatorBuilder:
+                                                        (context, index) {
+                                                      return const SizedBox(
+                                                        width: 8.0,
+                                                      );
+                                                    },
+                                                    itemCount: tags.length),
+                                                constraints:
+                                                    const BoxConstraints.expand(
+                                                        height: 32)),
+                                          ],
+                                        ),
+                                      ],
+                                    );
                                   },
-                                  child: isGrid
-                                      ? _buildPagedGridView()
-                                      : _buildPagedListView()),
-                            ),
-                          ),
-                        ),
-                        _buildSwitchModeButton(isGrid, unSelectedModeColor),
-                      ],
-                    );
-                  }),
-            ),
+                                );
+                              }),
+                        )
+                      : Center(
+                          child: _loadingWidget(),
+                        );
+                }),
           ),
           BlocBuilder(
               bloc: _modeCubit,
@@ -216,27 +306,84 @@ class _HomePageIOSState extends State<HomePageIOS> {
                     bloc: _expandStatusCubit,
                     builder: (context, expandStatus) {
                       return Visibility(
-                        child: Container(
-                          width: double.infinity,
-                          height: _switchModeSectionHeight,
-                          color: Colors.white,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                _viewModel.pageTitle,
-                                style: context.navTitleTextStyle,
-                              ),
-                              _buildSwitchModeButton(mode == GalleryMode.grid,
-                                  unSelectedModeColor),
-                            ],
-                          ),
-                          margin: const EdgeInsets.only(
-                              top: kToolbarHeight + 32,
-                              left: 16.0,
-                              right: 16.0),
-                        ),
+                        child: BlocBuilder(
+                            bloc: _viewModel.tagListCubit,
+                            builder: (context, List<String> tags) {
+                              bool hasTag = tags.isNotEmpty;
+                              return Container(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: hasTag ? 8.0 : 0),
+                                width: double.infinity,
+                                height: _switchModeSectionHeight +
+                                    (hasTag
+                                        ? _defaultTagListHeight + 16.0
+                                        : 0.0),
+                                color: Colors.white,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          _viewModel.pageTitle,
+                                          style: context.navTitleTextStyle,
+                                        ),
+                                        _buildSwitchModeButton(
+                                            mode == GalleryMode.grid,
+                                            unSelectedModeColor),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: hasTag ? 12.0 : 0,
+                                    ),
+                                    Container(
+                                        child: ListView.separated(
+                                            scrollDirection: Axis.horizontal,
+                                            itemBuilder: (context, index) {
+                                              String tag = tags[index];
+                                              return RemovableChipIOS(
+                                                  label: tag,
+                                                  bgColor: context.brandColor,
+                                                  textColor:
+                                                      CupertinoColors.white,
+                                                  allowRemoval: true,
+                                                  onRemove: () {
+                                                    context
+                                                        .showCupertinoYesNoDialog(
+                                                            title: 'REMOVE TAG',
+                                                            message:
+                                                                'Remove tag $tag?',
+                                                            yesLabel: 'Yes',
+                                                            yesAction: () {
+                                                              _viewModel
+                                                                  .removeSearchTag(
+                                                                      tag);
+                                                            },
+                                                            noLabel: 'No',
+                                                            noAction: () {});
+                                                  });
+                                            },
+                                            separatorBuilder: (context, index) {
+                                              return const SizedBox(
+                                                width: 8.0,
+                                              );
+                                            },
+                                            itemCount: tags.length),
+                                        constraints: BoxConstraints.expand(
+                                            height: hasTag ? 32 : 0)),
+                                  ],
+                                ),
+                                margin: const EdgeInsets.only(
+                                    top: kToolbarHeight + 32,
+                                    left: 16.0,
+                                    right: 16.0),
+                              );
+                            }),
                         visible:
                             expandStatus == NavigationBarExpandStatus.collapsed,
                       );

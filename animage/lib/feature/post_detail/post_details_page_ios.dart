@@ -8,10 +8,10 @@ import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
+import 'package:animage/widget/removable_chip_ios.dart';
 import 'package:animage/widget/text_with_links.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:gallery_saver/gallery_saver.dart';
@@ -48,8 +48,13 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
         style: context.textStyle,
       ),
     ));
-    tagChipList.addAll(tagList.map(
-        (tag) => _buildChip(tag, context.brandColor, CupertinoColors.white)));
+    tagChipList.addAll(tagList.map((tag) => RemovableChipIOS(
+          label: tag,
+          bgColor: context.brandColor,
+          textColor: CupertinoColors.white,
+          allowRemoval: false,
+          onRemove: () {},
+        )));
 
     _viewModel.initData(post);
 
@@ -329,18 +334,5 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
             ],
           ),
         ));
-  }
-
-  Widget _buildChip(String label, Color bgColor, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(32.0)),
-          color: bgColor),
-      child: Text(
-        label,
-        style: context.textStyle.copyWith(color: Colors.white),
-      ),
-    );
   }
 }
