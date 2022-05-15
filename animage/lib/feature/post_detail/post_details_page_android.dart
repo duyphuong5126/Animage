@@ -158,16 +158,15 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                               ClipRect(
                                 child: SizedBox(
                                   width: double.infinity,
-                                  height: _defaultGalleryFooterHeight,
+                                  height: _defaultGalleryFooterHeight +
+                                      _galleryFooterVerticalMargin,
                                   child: BackdropFilter(
                                     filter: ImageFilter.blur(
                                       sigmaX: 50.0,
                                       sigmaY: 50.0,
                                     ),
                                     child: Container(
-                                      margin: EdgeInsets.symmetric(
-                                          vertical:
-                                              _galleryFooterVerticalMargin,
+                                      margin: const EdgeInsets.symmetric(
                                           horizontal: 16.0),
                                       child: BlocBuilder(
                                         bloc: _viewModel
@@ -182,53 +181,76 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                           Color favoriteColor = luminance > 0.5
                                               ? accentColorDark
                                               : accentColor;
-                                          return Row(
+                                          return Column(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
+                                                MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              Expanded(
-                                                  child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  BlocBuilder(
-                                                    bloc:
-                                                        _viewModel.artistCubit,
-                                                    builder: (context,
-                                                        ArtistUiModel? artist) {
-                                                      return Text(
-                                                        artist?.name ??
-                                                            'Unknown artist',
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: context.headline6
-                                                            ?.copyWith(
-                                                                color:
-                                                                    textColor),
-                                                      );
-                                                    },
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 4.0,
-                                                  ),
-                                                  Text(
-                                                    'Score: ${post.score}',
-                                                    style: context.bodyText1
-                                                        ?.copyWith(
-                                                            color: textColor),
-                                                  )
-                                                ],
-                                              )),
-                                              FavoriteCheckbox(
-                                                size: 32,
-                                                color: favoriteColor,
-                                                isFavorite: false,
-                                                onFavoriteChanged:
-                                                    (newFavStatus) {},
-                                              )
+                                              SizedBox(
+                                                height:
+                                                    _defaultGalleryFooterHeight,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Expanded(
+                                                        child: Column(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        BlocBuilder(
+                                                          bloc: _viewModel
+                                                              .artistCubit,
+                                                          builder: (context,
+                                                              ArtistUiModel?
+                                                                  artist) {
+                                                            return Text(
+                                                              artist?.name ??
+                                                                  'Unknown artist',
+                                                              maxLines: 1,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: context
+                                                                  .headline6
+                                                                  ?.copyWith(
+                                                                      color:
+                                                                          textColor),
+                                                            );
+                                                          },
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 4.0,
+                                                        ),
+                                                        Text(
+                                                          'Score: ${post.score}',
+                                                          style: context
+                                                              .bodyText1
+                                                              ?.copyWith(
+                                                                  color:
+                                                                      textColor),
+                                                        )
+                                                      ],
+                                                    )),
+                                                    FavoriteCheckbox(
+                                                      size: 32,
+                                                      color: favoriteColor,
+                                                      isFavorite: false,
+                                                      onFavoriteChanged:
+                                                          (newFavStatus) {},
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                  height:
+                                                      _galleryFooterVerticalMargin)
                                             ],
                                           );
                                         },
