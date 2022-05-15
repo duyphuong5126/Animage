@@ -117,24 +117,43 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
                       alignment: AlignmentDirectional.topCenter,
                       children: [
                         Container(
-                          child: BlocListener(
-                            bloc: _viewModel.postDetailsCubit,
-                            listener: (context, Post? post) async {
-                              if (post != null) {
-                                await Navigator.of(context).pushNamed(
-                                    detailsPageRoute,
-                                    arguments: post);
-                                _viewModel.clearDetailsPageRequest();
-                              }
-                            },
-                            child: RefreshIndicator(
-                              onRefresh: () => Future.sync(
-                                  () => _viewModel.refreshGallery()),
-                              child: isGrid
-                                  ? _buildPagedGridView(context.secondaryColor)
-                                  : _buildPagedListView(context.secondaryColor),
-                            ),
-                          ),
+                          child: BlocBuilder(
+                              bloc: _viewModel.setUpFinishCubit,
+                              builder: (context, bool setUpFinished) {
+                                return setUpFinished
+                                    ? BlocListener(
+                                        bloc: _viewModel.postDetailsCubit,
+                                        listener: (context, Post? post) async {
+                                          if (post != null) {
+                                            await Navigator.of(context)
+                                                .pushNamed(detailsPageRoute,
+                                                    arguments: post);
+                                            _viewModel
+                                                .clearDetailsPageRequest();
+                                          }
+                                        },
+                                        child: RefreshIndicator(
+                                          onRefresh: () => Future.sync(() =>
+                                              _viewModel.refreshGallery()),
+                                          child: isGrid
+                                              ? _buildPagedGridView(
+                                                  context.secondaryColor)
+                                              : _buildPagedListView(
+                                                  context.secondaryColor),
+                                        ),
+                                      )
+                                    : Center(
+                                        child: SizedBox(
+                                          width: 32,
+                                          height: 32,
+                                          child: CircularProgressIndicator(
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                    context.secondaryColor),
+                                          ),
+                                        ),
+                                      );
+                              }),
                           margin: EdgeInsets.only(top: hasTag ? 80.0 : 32.0),
                           padding: const EdgeInsets.only(top: 16.0),
                         ),

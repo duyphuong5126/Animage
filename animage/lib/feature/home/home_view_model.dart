@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/general/pair.dart';
 import 'package:animage/domain/entity/post.dart';
+import 'package:animage/domain/use_case/add_search_term_use_case.dart';
+import 'package:animage/domain/use_case/delete_search_term_use_case.dart';
+import 'package:animage/domain/use_case/get_all_search_history_use_case.dart';
 import 'package:animage/domain/use_case/get_artists_use_case.dart';
 import 'package:animage/domain/use_case/get_post_list_use_case.dart';
 import 'package:animage/domain/use_case/search_posts_by_tags_use_case.dart';
@@ -14,6 +19,8 @@ abstract class HomeViewModel {
   DataCubit<Post?> get postDetailsCubit;
 
   DataCubit<List<String>> get tagListCubit;
+
+  DataCubit<bool> get setUpFinishCubit;
 
   String get pageTitle;
 
@@ -58,12 +65,21 @@ class HomeViewModelImpl extends HomeViewModel {
   late final GetArtistsUseCase _getArtistsUseCase = GetArtistListUseCaseImpl();
   late final SearchPostsByTagsUseCase _searchPostsByTagsUseCase =
       SearchPostsByTagsUseCaseImpl();
+  late final GetAllSearchHistoryUseCase _getAllSearchHistoryUseCase =
+      GetAllSearchHistoryUseCaseImpl();
+  late final AddSearchTermUseCase _addSearchTermUseCase =
+      AddSearchTermUseCaseImpl();
+  late final DeleteSearchTermUseCase _deleteSearchTermUseCase =
+      DeleteSearchTermUseCaseImpl();
+
+  late final StreamSubscription? _getAllSearchHistorySubscription;
 
   PagingController<int, PostCardUiModel>? _pagingController;
 
   DataCubit<Post?>? _postDetailsCubit;
   DataCubit<int>? _galleryRefreshedAtCubit;
   DataCubit<List<String>>? _tagListCubit;
+  DataCubit<bool>? _setUpFinishCubit;
 
   final Map<int, Post> _postDetailsMap = {};
 
@@ -77,6 +93,9 @@ class HomeViewModelImpl extends HomeViewModel {
 
   @override
   DataCubit<List<String>> get tagListCubit => _tagListCubit!;
+
+  @override
+  DataCubit<bool> get setUpFinishCubit => _setUpFinishCubit!;
 
   @override
   String get pageTitle => 'Illustrations';
@@ -111,6 +130,15 @@ class HomeViewModelImpl extends HomeViewModel {
     _postDetailsCubit = DataCubit(null);
     _galleryRefreshedAtCubit = DataCubit(-1);
     _tagListCubit = DataCubit([]);
+    _setUpFinishCubit = DataCubit(false);
+
+    _getAllSearchHistorySubscription = _getAllSearchHistoryUseCase
+        .execute()
+        .asStream()
+        .listen((searchHistory) {
+      _tagListCubit?.emit(searchHistory);
+      _setUpFinishCubit?.emit(true);
+    });
   }
 
   @override
@@ -155,7 +183,14 @@ class HomeViewModelImpl extends HomeViewModel {
       tagList.add(normalizedSearchTag);
       _tagListCubit?.emit(tagList);
       _pagingController?.refresh();
+      _addSearchTag(normalizedSearchTag);
     }
+  }
+
+  void _addSearchTag(String tag) async {
+    bool addResult = await _addSearchTermUseCase.execute(
+        tag, DateTime.now().millisecondsSinceEpoch);
+    Log.d(_tag, 'Add result of tag $tag: $addResult');
   }
 
   @override
@@ -171,7 +206,13 @@ class HomeViewModelImpl extends HomeViewModel {
       tagList.addAll(currentTagList);
       _tagListCubit?.emit(tagList);
       _pagingController?.refresh();
+      _removeSearchTag(normalizedSearchTag);
     }
+  }
+
+  void _removeSearchTag(String tag) async {
+    bool removeResult = await _deleteSearchTermUseCase.execute(tag);
+    Log.d(_tag, 'Remove result of tag $tag: $removeResult');
   }
 
   @override
@@ -185,12 +226,14 @@ class HomeViewModelImpl extends HomeViewModel {
     _galleryRefreshedAtCubit = null;
     _tagListCubit?.closeAsync();
     _tagListCubit = null;
+    _getAllSearchHistorySubscription?.cancel();
+    _getAllSearchHistorySubscription = null;
   }
 
   Future<void> _getPage(int pageIndex,
       PagingController<int, PostCardUiModel> pagingController) async {
-    Log.d(_tag, 'fetching page $pageIndex');
     List<String> tagList = _tagListCubit?.state ?? [];
+    Log.d(_tag, 'fetching page $pageIndex, tagList=$tagList');
     (tagList.isEmpty
             ? _getPostListUseCase.execute(pageIndex)
             : _searchPostsByTagsUseCase.execute(tagList, pageIndex))
