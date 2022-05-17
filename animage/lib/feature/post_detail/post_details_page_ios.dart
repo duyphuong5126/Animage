@@ -63,11 +63,6 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
         ? context.screenWidth / sampleAspectRatio
         : _defaultGalleryHeight;
 
-    double screenHeight = MediaQuery.of(context).size.height;
-
-    double _galleryFooterVerticalMargin =
-        galleryHeight > screenHeight ? galleryHeight - screenHeight : 0;
-
     return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
           padding: const EdgeInsetsDirectional.only(bottom: 8.0),
@@ -168,18 +163,14 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                           sigmaY: 50.0,
                         ),
                         child: Container(
-                          margin: EdgeInsets.symmetric(
-                              vertical: _galleryFooterVerticalMargin,
+                          margin: const EdgeInsets.symmetric(
                               horizontal: 16.0),
                           child: BlocBuilder(
                             bloc: _viewModel.sampleImageDominantColorCubit,
                             builder: (context, Color dominantColor) {
                               double luminance =
                                   dominantColor.computeLuminance();
-                              Color textColor = luminance > 0.5
-                                  ? context.primaryColor
-                                  : CupertinoColors.white;
-                              Color favoriteColor = luminance > 0.5
+                              Color color = luminance > 0.5
                                   ? accentColorDark
                                   : accentColor;
                               return Row(
@@ -201,7 +192,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                             style: context.navTitleTextStyle
-                                                .copyWith(color: textColor),
+                                                .copyWith(color: color),
                                           );
                                         },
                                       ),
@@ -211,13 +202,13 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                                       Text(
                                         'Score: ${post.score}',
                                         style: context.textStyle
-                                            .copyWith(color: textColor),
+                                            .copyWith(color: color),
                                       )
                                     ],
                                   )),
                                   FavoriteCheckbox(
                                     size: 32,
-                                    color: favoriteColor,
+                                    color: color,
                                     isFavorite: false,
                                     onFavoriteChanged: (newFavStatus) {},
                                   )
