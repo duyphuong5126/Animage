@@ -68,6 +68,7 @@ class _HomePageAndroidState extends State<HomePageAndroid> {
               color: searchBackgroundColor,
               borderRadius: const BorderRadius.all(Radius.circular(20))),
           child: TextField(
+            autofocus: false,
             controller: searchEditingController,
             style: context.bodyText2?.copyWith(color: searchTextColor),
             textInputAction: TextInputAction.search,

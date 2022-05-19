@@ -107,7 +107,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
                         child: Container(
                           child: CupertinoSearchTextField(
                             controller: searchEditController,
-                            autofocus: true,
+                            autofocus: false,
                             suffixIcon: const Icon(
                               CupertinoIcons.clear_circled_solid,
                             ),
