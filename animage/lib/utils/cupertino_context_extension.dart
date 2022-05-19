@@ -22,6 +22,12 @@ extension CupertinoContextExtension on BuildContext {
     return isDark ? CupertinoColors.black : CupertinoColors.white;
   }
 
+  double get safeAreaHeight {
+    double height = MediaQuery.of(this).size.height;
+    EdgeInsets padding = MediaQuery.of(this).padding;
+    return height - padding.top - padding.bottom;
+  }
+
   void showCupertinoConfirmationDialog(
       {required String title,
       required String message,
