@@ -31,10 +31,11 @@ class RemovableChipIOS extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          Flexible(
+              child: Text(
             label,
             style: context.textStyle.copyWith(color: textColor),
-          ),
+          )),
           Visibility(
             child: CupertinoButton(
                 minSize: 0,

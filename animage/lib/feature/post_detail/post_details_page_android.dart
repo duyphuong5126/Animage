@@ -175,10 +175,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                             (context, Color dominantColor) {
                                           double luminance =
                                               dominantColor.computeLuminance();
-                                          Color textColor = luminance > 0.5
-                                              ? context.primaryColor
-                                              : Colors.white;
-                                          Color favoriteColor = luminance > 0.5
+                                          Color brandColor = luminance > 0.5
                                               ? accentColorDark
                                               : accentColor;
                                           return Column(
@@ -221,7 +218,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                                                   .headline6
                                                                   ?.copyWith(
                                                                       color:
-                                                                          textColor),
+                                                                          brandColor),
                                                             );
                                                           },
                                                         ),
@@ -234,13 +231,13 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                                               .bodyText1
                                                               ?.copyWith(
                                                                   color:
-                                                                      textColor),
+                                                                      brandColor),
                                                         )
                                                       ],
                                                     )),
                                                     FavoriteCheckbox(
                                                       size: 32,
-                                                      color: favoriteColor,
+                                                      color: brandColor,
                                                       isFavorite: false,
                                                       onFavoriteChanged:
                                                           (newFavStatus) {},

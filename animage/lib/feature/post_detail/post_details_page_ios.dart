@@ -7,6 +7,7 @@ import 'package:animage/feature/post_detail/post_details_view_model.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
+import 'package:animage/utils/log.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
 import 'package:animage/widget/removable_chip_ios.dart';
 import 'package:animage/widget/text_with_links.dart';
@@ -62,6 +63,8 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
     double galleryHeight = sampleAspectRatio > 0
         ? context.screenWidth / sampleAspectRatio
         : _defaultGalleryHeight;
+
+    ScrollController scrollController = ScrollController();
 
     return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
@@ -136,193 +139,204 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
           ),
         ),
         child: SafeArea(
-          child: ListView(
-            children: [
-              Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  GestureDetector(
-                    child: CachedNetworkImage(
-                      imageUrl: post.sampleUrl ?? '',
-                      height: galleryHeight,
-                      alignment: Alignment.topCenter,
-                      fit: BoxFit.fitWidth,
+          child: NotificationListener(
+            child: ListView(
+              controller: scrollController,
+              children: [
+                Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    GestureDetector(
+                      child: CachedNetworkImage(
+                        imageUrl: post.sampleUrl ?? '',
+                        height: galleryHeight,
+                        alignment: Alignment.topCenter,
+                        fit: BoxFit.fitWidth,
+                      ),
+                      onTap: () {
+                        Navigator.of(context)
+                            .pushNamed(viewOriginalPage, arguments: post);
+                      },
                     ),
-                    onTap: () {
-                      Navigator.of(context)
-                          .pushNamed(viewOriginalPage, arguments: post);
-                    },
-                  ),
-                  ClipRect(
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: _defaultGalleryFooterHeight,
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(
-                          sigmaX: 50.0,
-                          sigmaY: 50.0,
-                        ),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16.0),
-                          child: BlocBuilder(
-                            bloc: _viewModel.sampleImageDominantColorCubit,
-                            builder: (context, Color dominantColor) {
-                              double luminance =
-                                  dominantColor.computeLuminance();
-                              Color color = luminance > 0.5
-                                  ? accentColorDark
-                                  : accentColor;
-                              return Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                      child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      BlocBuilder(
-                                        bloc: _viewModel.artistCubit,
-                                        builder:
-                                            (context, ArtistUiModel? artist) {
-                                          return Text(
-                                            artist?.name ?? 'Unknown artist',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: context.navTitleTextStyle
-                                                .copyWith(color: color),
-                                          );
-                                        },
-                                      ),
-                                      const SizedBox(
-                                        height: 4.0,
-                                      ),
-                                      Text(
-                                        'Score: ${post.score}',
-                                        style: context.textStyle
-                                            .copyWith(color: color),
-                                      )
-                                    ],
-                                  )),
-                                  FavoriteCheckbox(
-                                    size: 32,
-                                    color: color,
-                                    isFavorite: false,
-                                    onFavoriteChanged: (newFavStatus) {},
-                                  )
-                                ],
-                              );
-                            },
+                    ClipRect(
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: _defaultGalleryFooterHeight,
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(
+                            sigmaX: 50.0,
+                            sigmaY: 50.0,
+                          ),
+                          child: Container(
+                            margin:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: BlocBuilder(
+                              bloc: _viewModel.sampleImageDominantColorCubit,
+                              builder: (context, Color dominantColor) {
+                                double luminance =
+                                    dominantColor.computeLuminance();
+                                Color brandColor = luminance > 0.5
+                                    ? accentColorDark
+                                    : accentColor;
+                                return Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                        child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        BlocBuilder(
+                                          bloc: _viewModel.artistCubit,
+                                          builder:
+                                              (context, ArtistUiModel? artist) {
+                                            return Text(
+                                              artist?.name ?? 'Unknown artist',
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: context.navTitleTextStyle
+                                                  .copyWith(color: brandColor),
+                                            );
+                                          },
+                                        ),
+                                        const SizedBox(
+                                          height: 4.0,
+                                        ),
+                                        Text(
+                                          'Score: ${post.score}',
+                                          style: context.textStyle
+                                              .copyWith(color: brandColor),
+                                        )
+                                      ],
+                                    )),
+                                    FavoriteCheckbox(
+                                      size: 32,
+                                      color: brandColor,
+                                      isFavorite: false,
+                                      onFavoriteChanged: (newFavStatus) {},
+                                    )
+                                  ],
+                                );
+                              },
+                            ),
                           ),
                         ),
                       ),
+                    )
+                  ],
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(
+                      height: 16.0,
                     ),
-                  )
-                ],
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(
-                    height: 16.0,
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                            child: Text(
-                          post.author ?? '',
-                          style: context.navTitleTextStyle,
-                        )),
-                      ],
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8.0, horizontal: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                              child: Text(
+                            post.author ?? '',
+                            style: context.navTitleTextStyle,
+                          )),
+                        ],
+                      ),
                     ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Wrap(
-                      spacing: 6.0,
-                      runSpacing: 6.0,
-                      children: tagChipList,
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8.0, horizontal: 16.0),
+                      child: Wrap(
+                        spacing: 6.0,
+                        runSpacing: 6.0,
+                        children: tagChipList,
+                      ),
                     ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Text(
-                      'Rating: ${_viewModel.getRatingLabel(post)}',
-                      style: context.textStyle,
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Text(
-                      'Created at: ${_viewModel.getCreatedAtTimeStamp(post)}',
-                      style: context.textStyle,
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Text(
-                      'Updated at: ${_viewModel.getUpdatedAtTimeStamp(post)}',
-                      style: context.textStyle,
-                    ),
-                  ),
-                  Visibility(
-                    child: Container(
+                    Container(
                       margin: const EdgeInsets.symmetric(
                           vertical: 8.0, horizontal: 16.0),
                       child: Text(
-                        'Status: $status',
+                        'Rating: ${_viewModel.getRatingLabel(post)}',
                         style: context.textStyle,
                       ),
                     ),
-                    visible: status != null && status.isNotEmpty,
-                  ),
-                  Visibility(
-                    child: Container(
+                    Container(
                       margin: const EdgeInsets.symmetric(
                           vertical: 8.0, horizontal: 16.0),
-                      child: TextWithLinks(
-                          text: 'Source: $source',
-                          textStyle: context.textStyle,
-                          linkStyle: context.actionTextStyle
-                              .copyWith(color: context.brandColor)),
+                      child: Text(
+                        'Created at: ${_viewModel.getCreatedAtTimeStamp(post)}',
+                        style: context.textStyle,
+                      ),
                     ),
-                    visible: source != null && source.isNotEmpty,
-                  ),
-                  BlocBuilder(
-                      bloc: _viewModel.artistCubit,
-                      builder: (context, ArtistUiModel? artist) {
-                        List<String> urls = artist?.urls
-                                .where((url) => url.isNotEmpty)
-                                .toList() ??
-                            [];
-                        return Visibility(
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 8.0, horizontal: 16.0),
-                            child: TextWithLinks(
-                                text: 'Artist info: ${urls.join('\n')}',
-                                textStyle: context.textStyle,
-                                linkStyle: context.actionTextStyle
-                                    .copyWith(color: context.brandColor)),
-                          ),
-                          visible: urls.isNotEmpty,
-                        );
-                      })
-                ],
-              )
-            ],
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8.0, horizontal: 16.0),
+                      child: Text(
+                        'Updated at: ${_viewModel.getUpdatedAtTimeStamp(post)}',
+                        style: context.textStyle,
+                      ),
+                    ),
+                    Visibility(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: Text(
+                          'Status: $status',
+                          style: context.textStyle,
+                        ),
+                      ),
+                      visible: status != null && status.isNotEmpty,
+                    ),
+                    Visibility(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: TextWithLinks(
+                            text: 'Source: $source',
+                            textStyle: context.textStyle,
+                            linkStyle: context.actionTextStyle
+                                .copyWith(color: context.brandColor)),
+                      ),
+                      visible: source != null && source.isNotEmpty,
+                    ),
+                    BlocBuilder(
+                        bloc: _viewModel.artistCubit,
+                        builder: (context, ArtistUiModel? artist) {
+                          List<String> urls = artist?.urls
+                                  .where((url) => url.isNotEmpty)
+                                  .toList() ??
+                              [];
+                          return Visibility(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              child: TextWithLinks(
+                                  text: 'Artist info: ${urls.join('\n')}',
+                                  textStyle: context.textStyle,
+                                  linkStyle: context.actionTextStyle
+                                      .copyWith(color: context.brandColor)),
+                            ),
+                            visible: urls.isNotEmpty,
+                          );
+                        })
+                  ],
+                )
+              ],
+            ),
+            onNotification: (event) {
+              if (event is ScrollNotification) {
+                Log.d('Test>>>',
+                    'galleryHeight=$galleryHeight, pixels=${scrollController.position.pixels}, offset=${scrollController.offset}');
+              }
+              return false;
+            },
           ),
         ));
   }

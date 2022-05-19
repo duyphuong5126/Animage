@@ -41,6 +41,7 @@ class _ViewOriginalImagePageAndroidState
           ? Stack(
               children: [
                 PhotoView(
+                  minScale: PhotoViewComputedScale.contained * 1.0,
                   imageProvider: CachedNetworkImageProvider(url),
                   loadingBuilder: (context, event) {
                     return Center(
