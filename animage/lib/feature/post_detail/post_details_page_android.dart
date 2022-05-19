@@ -7,6 +7,8 @@ import 'package:animage/feature/post_detail/post_details_view_model.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
+import 'package:animage/service/image_down_load_state.dart';
+import 'package:animage/service/image_downloader.dart';
 import 'package:animage/utils/material_context_extension.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
 import 'package:animage/widget/text_with_links.dart';
@@ -14,7 +16,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gallery_saver/gallery_saver.dart';
 import 'package:share/share.dart';
 
 class PostDetailsPageAndroid extends StatefulWidget {
@@ -30,9 +31,6 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
 
   final DataCubit<NavigationBarExpandStatus> _expandStatusCubit =
       DataCubit(NavigationBarExpandStatus.expanded);
-
-  final DataCubit<DownloadState> _downloadStateCubit =
-      DataCubit(DownloadState.Idle);
 
   final DataCubit<bool> _showMasterInfo = DataCubit(false);
 
@@ -281,6 +279,33 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
           removeTop: true,
           child: ListView(
             children: [
+              BlocListener(
+                bloc: ImageDownloader.downloadStateCubit,
+                listener: (context, ImageDownloadState? state) {
+                  _processDownloadState(state, post);
+                },
+                child: Visibility(
+                  child: Container(),
+                  visible: false,
+                ),
+              ),
+              BlocListener(
+                bloc: ImageDownloader.pendingListCubit,
+                listener: (context, String? newPendingUrl) {
+                  if (newPendingUrl != null && newPendingUrl == post.fileUrl) {
+                    context.showConfirmationDialog(
+                        title: 'Download On Hold',
+                        message:
+                            'This post is added to pending list. Please wait.',
+                        actionLabel: 'OK',
+                        action: () {});
+                  }
+                },
+                child: Visibility(
+                  child: Container(),
+                  visible: false,
+                ),
+              ),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: BlocBuilder(
@@ -342,39 +367,18 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                           width: 16.0,
                         ),
                         BlocBuilder(
-                          bloc: _downloadStateCubit,
-                          builder: (context, state) {
+                          bloc: ImageDownloader.downloadStateCubit,
+                          builder: (context, ImageDownloadState? state) {
                             bool isDownloading =
-                                state == DownloadState.Downloading;
+                                state?.state == DownloadState.downloading &&
+                                    state?.url == post.fileUrl;
                             return Stack(
                               alignment: Alignment.bottomCenter,
                               children: [
                                 Visibility(
                                   child: IconButton(
-                                      onPressed: () async {
-                                        String? fileUrl = post.fileUrl;
-                                        if (fileUrl != null &&
-                                            fileUrl.isNotEmpty) {
-                                          _downloadStateCubit
-                                              .emit(DownloadState.Downloading);
-                                          bool downloaded =
-                                              await GallerySaver.saveImage(
-                                                      fileUrl,
-                                                      albumName:
-                                                          appDirectoryName) ??
-                                                  false;
-                                          _downloadStateCubit
-                                              .emit(DownloadState.Idle);
-                                          if (downloaded) {
-                                            context.showConfirmationDialog(
-                                                title: 'Downloading Success',
-                                                message:
-                                                    'Full size illustration is downloaded.',
-                                                actionLabel: 'OK',
-                                                action: () {});
-                                          }
-                                        }
-                                      },
+                                      onPressed: () => _viewModel
+                                          .startDownloadingOriginalImage(post),
                                       icon: Icon(
                                         Icons.download_rounded,
                                         size: 24,
@@ -510,5 +514,25 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
       backgroundColor: color,
       padding: const EdgeInsets.all(8.0),
     );
+  }
+
+  void _processDownloadState(ImageDownloadState? state, Post currentPost) {
+    String? fileUrl = currentPost.fileUrl;
+    if (state == null || state.url != fileUrl) {
+      return;
+    }
+    if (state.state == DownloadState.success) {
+      context.showConfirmationDialog(
+          title: 'Download Success',
+          message: 'Original illustration is downloaded.',
+          actionLabel: 'OK',
+          action: () {});
+    } else if (state.state == DownloadState.failed) {
+      context.showConfirmationDialog(
+          title: 'Download Failed',
+          message: 'Could not download original illustration.',
+          actionLabel: 'OK',
+          action: () {});
+    }
   }
 }

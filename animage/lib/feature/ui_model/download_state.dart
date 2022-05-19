@@ -1,1 +1,1 @@
-enum DownloadState { Downloading, Idle }
+enum DownloadState { downloading, success, failed }

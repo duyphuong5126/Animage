@@ -6,6 +6,8 @@ import 'package:animage/domain/entity/post.dart';
 import 'package:animage/feature/post_detail/post_details_view_model.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
+import 'package:animage/service/image_down_load_state.dart';
+import 'package:animage/service/image_downloader.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
 import 'package:animage/widget/removable_chip_ios.dart';
@@ -14,7 +16,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
-import 'package:gallery_saver/gallery_saver.dart';
 import 'package:share/share.dart';
 
 class PostDetailsPageIOS extends StatefulWidget {
@@ -29,8 +30,6 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
   static const double _defaultGalleryFooterHeight = 72;
 
   final PostDetailsViewModel _viewModel = PostDetailsViewModelImpl();
-
-  DataCubit<DownloadState>? _downloadStateCubit = DataCubit(DownloadState.Idle);
 
   DataCubit<bool>? _showPinnedMasterSectionCubit = DataCubit(false);
 
@@ -80,9 +79,11 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
           trailing: SizedBox(
             width: 100,
             child: BlocBuilder(
-              bloc: _downloadStateCubit,
-              builder: (context, state) {
-                bool isDownloading = state == DownloadState.Downloading;
+              bloc: ImageDownloader.downloadStateCubit,
+              builder: (context, ImageDownloadState? state) {
+                bool isDownloading =
+                    state?.state == DownloadState.downloading &&
+                        state?.url == post.fileUrl;
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -112,24 +113,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                         : CupertinoButton(
                             padding: EdgeInsetsDirectional.zero,
                             onPressed: () async {
-                              String? fileUrl = post.fileUrl;
-                              if (fileUrl != null && fileUrl.isNotEmpty) {
-                                _downloadStateCubit
-                                    ?.emit(DownloadState.Downloading);
-                                bool downloaded = await GallerySaver.saveImage(
-                                        fileUrl,
-                                        albumName: appDirectoryName) ??
-                                    false;
-                                _downloadStateCubit?.emit(DownloadState.Idle);
-                                if (downloaded) {
-                                  context.showCupertinoConfirmationDialog(
-                                      title: 'Downloading Success',
-                                      message:
-                                          'Full size illustration is downloaded.',
-                                      actionLabel: 'OK',
-                                      action: () {});
-                                }
-                              }
+                              _viewModel.startDownloadingOriginalImage(post);
                             },
                             child: Icon(
                               CupertinoIcons.cloud_download,
@@ -149,6 +133,34 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
             child: Stack(
               alignment: Alignment.bottomCenter,
               children: [
+                BlocListener(
+                  bloc: ImageDownloader.downloadStateCubit,
+                  listener: (context, ImageDownloadState? state) {
+                    _processDownloadState(state, post);
+                  },
+                  child: Visibility(
+                    child: Container(),
+                    visible: false,
+                  ),
+                ),
+                BlocListener(
+                  bloc: ImageDownloader.pendingListCubit,
+                  listener: (context, String? newPendingUrl) {
+                    if (newPendingUrl != null &&
+                        newPendingUrl == post.fileUrl) {
+                      context.showCupertinoConfirmationDialog(
+                          title: 'Download On Hold',
+                          message:
+                              'This post is added to pending list. Please wait.',
+                          actionLabel: 'OK',
+                          action: () {});
+                    }
+                  },
+                  child: Visibility(
+                    child: Container(),
+                    visible: false,
+                  ),
+                ),
                 ListView(
                   controller: scrollController,
                   children: [
@@ -299,8 +311,6 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
   @override
   void dispose() {
     super.dispose();
-    _downloadStateCubit?.closeAsync();
-    _downloadStateCubit = null;
     _showPinnedMasterSectionCubit?.closeAsync();
     _showPinnedMasterSectionCubit = null;
   }
@@ -366,5 +376,25 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
         ),
       ),
     );
+  }
+
+  void _processDownloadState(ImageDownloadState? state, Post currentPost) {
+    String? fileUrl = currentPost.fileUrl;
+    if (state == null || state.url != fileUrl) {
+      return;
+    }
+    if (state.state == DownloadState.success) {
+      context.showCupertinoConfirmationDialog(
+          title: 'Download Success',
+          message: 'Original illustration is downloaded.',
+          actionLabel: 'OK',
+          action: () {});
+    } else if (state.state == DownloadState.failed) {
+      context.showCupertinoConfirmationDialog(
+          title: 'Download Failed',
+          message: 'Could not download original illustration.',
+          actionLabel: 'OK',
+          action: () {});
+    }
   }
 }

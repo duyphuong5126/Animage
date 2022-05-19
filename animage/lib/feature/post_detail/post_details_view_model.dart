@@ -4,6 +4,7 @@ import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/domain/use_case/get_artist_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
+import 'package:animage/service/image_downloader.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:palette_generator/palette_generator.dart';
@@ -20,6 +21,8 @@ abstract class PostDetailsViewModel {
   String getUpdatedAtTimeStamp(Post post);
 
   String getRatingLabel(Post post);
+
+  void startDownloadingOriginalImage(Post post);
 
   void destroy();
 }
@@ -78,6 +81,14 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
       return 'Explicit';
     } else {
       return 'Unknown';
+    }
+  }
+
+  @override
+  void startDownloadingOriginalImage(Post post) {
+    String? fileUrl = post.fileUrl;
+    if (fileUrl != null && fileUrl.isNotEmpty) {
+      ImageDownloader.startDownloading(fileUrl);
     }
   }
 
