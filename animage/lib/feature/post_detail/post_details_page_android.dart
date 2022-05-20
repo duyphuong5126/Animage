@@ -37,6 +37,13 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
   final PostDetailsViewModel _viewModel = PostDetailsViewModelImpl();
 
   @override
+  void dispose() {
+    super.dispose();
+    _expandStatusCubit.closeAsync();
+    _showMasterInfo.closeAsync();
+  }
+
+  @override
   Widget build(BuildContext context) {
     Post post = ModalRoute.of(context)?.settings.arguments as Post;
     String? status = post.status;
@@ -61,12 +68,12 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
       bool expanded = position.pixels < (position.maxScrollExtent / 3);
       bool collapsed = position.pixels > ((position.maxScrollExtent * 3) / 4);
       if (expanded) {
-        _expandStatusCubit.emit(NavigationBarExpandStatus.expanded);
+        _expandStatusCubit.push(NavigationBarExpandStatus.expanded);
       } else if (collapsed) {
-        _expandStatusCubit.emit(NavigationBarExpandStatus.collapsed);
+        _expandStatusCubit.push(NavigationBarExpandStatus.collapsed);
       }
 
-      _showMasterInfo.emit(position.pixels > _defaultGalleryFooterHeight * 2);
+      _showMasterInfo.push(position.pixels > _defaultGalleryFooterHeight * 2);
     });
 
     List<String> tagList = post.tagList;

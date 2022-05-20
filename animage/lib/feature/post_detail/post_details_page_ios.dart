@@ -69,7 +69,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
 
     bool isGalleryOutOfScreen = galleryHeight > safeAreaHeight;
 
-    _showPinnedMasterSectionCubit?.emit(isGalleryOutOfScreen);
+    _showPinnedMasterSectionCubit?.push(isGalleryOutOfScreen);
 
     return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
@@ -300,7 +300,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                     safeAreaHeight + scrollController.position.pixels >
                         galleryHeight;
                 _showPinnedMasterSectionCubit
-                    ?.emit(!reachDefaultMasterSection && isGalleryOutOfScreen);
+                    ?.push(!reachDefaultMasterSection && isGalleryOutOfScreen);
               }
               return false;
             },

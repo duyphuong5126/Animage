@@ -15,7 +15,7 @@ import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/utils/log.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
-abstract class HomeViewModel {
+abstract class GalleryViewModel {
   DataCubit<Post?> get postDetailsCubit;
 
   DataCubit<List<String>> get tagListCubit;
@@ -60,7 +60,7 @@ abstract class HomeViewModel {
   String get refresherReleaseText;
 }
 
-class HomeViewModelImpl extends HomeViewModel {
+class GalleryViewModelImpl extends GalleryViewModel {
   late final GetPostListUseCase _getPostListUseCase = GetPostListUseCaseImpl();
   late final GetArtistsUseCase _getArtistsUseCase = GetArtistListUseCaseImpl();
   late final SearchPostsByTagsUseCase _searchPostsByTagsUseCase =
@@ -83,7 +83,7 @@ class HomeViewModelImpl extends HomeViewModel {
 
   final Map<int, Post> _postDetailsMap = {};
 
-  static const String _tag = 'HomeViewModelImpl';
+  static const String _tag = 'GalleryViewModelImpl';
 
   @override
   DataCubit<Post?> get postDetailsCubit => _postDetailsCubit!;
@@ -136,8 +136,8 @@ class HomeViewModelImpl extends HomeViewModel {
         .execute()
         .asStream()
         .listen((searchHistory) {
-      _tagListCubit?.emit(searchHistory);
-      _setUpFinishCubit?.emit(true);
+      _tagListCubit?.push(searchHistory);
+      _setUpFinishCubit?.push(true);
     });
   }
 
@@ -156,13 +156,13 @@ class HomeViewModelImpl extends HomeViewModel {
   void requestDetailsPage(int postId) {
     Post? matchedPost = _postDetailsMap[postId];
     if (matchedPost != null) {
-      _postDetailsCubit?.emit(matchedPost);
+      _postDetailsCubit?.push(matchedPost);
     }
   }
 
   @override
   void clearDetailsPageRequest() {
-    _postDetailsCubit?.emit(null);
+    _postDetailsCubit?.push(null);
   }
 
   @override
@@ -181,7 +181,7 @@ class HomeViewModelImpl extends HomeViewModel {
       List<String> tagList = [];
       tagList.addAll(currentTagList);
       tagList.add(normalizedSearchTag);
-      _tagListCubit?.emit(tagList);
+      _tagListCubit?.push(tagList);
       _pagingController?.refresh();
       _addSearchTag(normalizedSearchTag);
     }
@@ -204,7 +204,7 @@ class HomeViewModelImpl extends HomeViewModel {
       currentTagList.remove(normalizedSearchTag);
       List<String> tagList = [];
       tagList.addAll(currentTagList);
-      _tagListCubit?.emit(tagList);
+      _tagListCubit?.push(tagList);
       _pagingController?.refresh();
       _removeSearchTag(normalizedSearchTag);
     }
@@ -240,7 +240,7 @@ class HomeViewModelImpl extends HomeViewModel {
         .then<Pair<List<Post>, Map<int, Artist>>>((List<Post> postList) {
           if (pageIndex == 1) {
             _galleryRefreshedAtCubit
-                ?.emit(DateTime.now().millisecondsSinceEpoch);
+                ?.push(DateTime.now().millisecondsSinceEpoch);
           }
           List<int> creatorIdList = postList
               .map((post) => post.creatorId ?? -1)

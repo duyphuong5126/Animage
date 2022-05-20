@@ -101,7 +101,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
       );
       Color? dominantColor = paletteGenerator.dominantColor?.color;
       if (dominantColor != null) {
-        _sampleImageDominantColorCubit.emit(dominantColor);
+        _sampleImageDominantColorCubit.push(dominantColor);
       }
     }
   }
@@ -115,7 +115,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
     _getArtistSubscription =
         _getArtistUseCase.execute(post).asStream().listen((artist) {
       if (artist != null) {
-        _artistCubit.emit(ArtistUiModel(name: artist.name, urls: artist.urls));
+        _artistCubit.push(ArtistUiModel(name: artist.name, urls: artist.urls));
       }
     });
   }

@@ -1,5 +1,5 @@
 import 'package:animage/app/animage_app_android.dart';
-import 'package:animage/app/animage_app_iOS.dart';
+import 'package:animage/app/animage_app_ios.dart';
 import 'package:animage/domain/use_case/check_artist_list_changed_use_case.dart';
 import 'package:animage/domain/use_case/sync_artist_list_use_case.dart';
 import 'package:animage/utils/log.dart';

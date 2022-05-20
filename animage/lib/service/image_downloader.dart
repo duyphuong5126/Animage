@@ -27,13 +27,13 @@ class ImageDownloader {
     if (currentState == null ||
         currentState.state == DownloadState.success ||
         currentState.state == DownloadState.failed) {
-      downloadStateCubit.emit(
+      downloadStateCubit.push(
           ImageDownloadState(url: fileUrl, state: DownloadState.downloading));
       _sendDownloadInProgressNotification(post);
       bool downloaded =
           await GallerySaver.saveImage(fileUrl, albumName: appDirectoryName) ??
               false;
-      downloadStateCubit.emit(ImageDownloadState(
+      downloadStateCubit.push(ImageDownloadState(
           url: fileUrl,
           state: downloaded ? DownloadState.success : DownloadState.failed));
       _sendFinishDownloadNotification(post, downloaded);
@@ -46,9 +46,9 @@ class ImageDownloader {
           .isEmpty) {
         _pendingList.add(post);
       }
-      pendingListCubit.emit(fileUrl);
+      pendingListCubit.push(fileUrl);
     } else {
-      downloadStateCubit.emit(
+      downloadStateCubit.push(
           ImageDownloadState(url: fileUrl, state: DownloadState.downloading));
     }
   }
