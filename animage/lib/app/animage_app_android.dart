@@ -3,6 +3,7 @@ import 'package:animage/feature/home/android/home_page_android.dart';
 import 'package:animage/feature/original_image_page/view_original_image_page_android.dart';
 import 'package:animage/feature/post_detail/post_details_page_android.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class AnimageAppAndroid extends StatefulWidget {
   const AnimageAppAndroid({Key? key}) : super(key: key);
@@ -12,6 +13,12 @@ class AnimageAppAndroid extends StatefulWidget {
 }
 
 class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
+  @override
+  void initState() {
+    super.initState();
+    _initNotificationSettings();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -60,5 +67,24 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
             .textTheme
             .bodyText2
             ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]));
+  }
+
+  void _initNotificationSettings() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('ic_notification');
+
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+            android: initializationSettingsAndroid, macOS: null);
+
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: _selectNotification);
+  }
+
+  Future _selectNotification(String? payload) async {
+    //Handle notification tapped logic here
   }
 }

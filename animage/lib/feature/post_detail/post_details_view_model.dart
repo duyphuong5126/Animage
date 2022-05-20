@@ -88,7 +88,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
   void startDownloadingOriginalImage(Post post) {
     String? fileUrl = post.fileUrl;
     if (fileUrl != null && fileUrl.isNotEmpty) {
-      ImageDownloader.startDownloading(fileUrl);
+      ImageDownloader.startDownloadingOriginalFile(post);
     }
   }
 
