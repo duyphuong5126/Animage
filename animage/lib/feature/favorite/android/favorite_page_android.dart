@@ -119,8 +119,7 @@ class _FavoritePageState extends State<FavoritePage> {
             ),
             body: SafeArea(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+                padding: const EdgeInsets.only(top: 8.0, left: 8.0, right: 8.0),
                 child: RefreshIndicator(
                   onRefresh: () =>
                       Future.sync(() => _viewModel.refreshGallery()),
