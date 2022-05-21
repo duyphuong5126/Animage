@@ -31,13 +31,16 @@ class FavoriteDatabase {
 
   Future<List<Post>> getFavoriteList(int skip, int take) async {
     await _openDataBase();
-    List<Map<String, dynamic>> favoriteList = await _database!
-        .query(_favoriteTable, columns: [_postJson], limit: take, offset: skip);
+    List<Map<String, dynamic>> favoriteList = await _database!.query(
+        _favoriteTable,
+        columns: [_postJson],
+        limit: take,
+        offset: skip,
+        where: '$_favoriteTime > 0');
 
-    return favoriteList
-        .map((Map<String, dynamic> data) =>
-            Post.fromJson(jsonDecode(data[_postJson] as String)))
-        .toList();
+    return favoriteList.map((Map<String, dynamic> data) {
+      return Post.fromJson(jsonDecode(data[_postJson]));
+    }).toList();
   }
 
   Future<List<int>> filterFavoriteList(List<int> postIdList) async {
@@ -68,7 +71,7 @@ class FavoriteDatabase {
     } else {
       int result = await _database!.insert(_favoriteTable, {
         id: post.id,
-        _postJson: post.toJson().toString(),
+        _postJson: jsonEncode(post.toJson()),
         _favoriteTime: timeMillis
       });
       return result > 0;

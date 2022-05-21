@@ -33,7 +33,9 @@ class _HomePageState extends State<HomePageAndroid> {
           GalleryPageAndroid(
             scrollToTopCubit: _scrollToTopCubit,
           ),
-          const FavoritePage()
+          FavoritePage(
+            scrollToTopCubit: _scrollToTopCubit,
+          )
         ],
         index: _selectedIndex,
       ),
