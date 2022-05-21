@@ -362,12 +362,22 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                         )
                       ],
                     )),
-                    FavoriteCheckbox(
-                      size: 32,
-                      color: brandColor,
-                      isFavorite: false,
-                      onFavoriteChanged: (newFavStatus) {},
-                    )
+                    BlocBuilder(
+                        bloc: _viewModel.favoriteStateCubit,
+                        builder: (context, bool isFavorite) {
+                          return Container(
+                            margin: const EdgeInsets.only(right: 16.0),
+                            child: FavoriteCheckbox(
+                              key: ValueKey(
+                                  DateTime.now().millisecondsSinceEpoch),
+                              size: 32,
+                              color: brandColor,
+                              isFavorite: isFavorite,
+                              onFavoriteChanged: (newFavStatus) =>
+                                  _viewModel.toggleFavorite(post, isFavorite),
+                            ),
+                          );
+                        })
                   ],
                 );
               },

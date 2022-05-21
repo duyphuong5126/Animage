@@ -501,8 +501,10 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                             FavoriteCheckbox(
                               size: 20,
                               color: context.primaryColor,
-                              isFavorite: false,
-                              onFavoriteChanged: (newFavStatus) {},
+                              isFavorite: postItem.isFavorite,
+                              onFavoriteChanged: (newFavStatus) {
+                                _viewModel.toggleFavorite(postItem);
+                              },
                             )
                           ],
                         ),
@@ -617,8 +619,10 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                     FavoriteCheckbox(
                                       size: 28,
                                       color: context.primaryColor,
-                                      isFavorite: false,
-                                      onFavoriteChanged: (newFavStatus) {},
+                                      isFavorite: postItem.isFavorite,
+                                      onFavoriteChanged: (newFavStatus) {
+                                        _viewModel.toggleFavorite(postItem);
+                                      },
                                     )
                                   ],
                                 ),

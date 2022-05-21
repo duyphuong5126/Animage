@@ -118,15 +118,22 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                             bool isExpanded = expandStatus ==
                                 NavigationBarExpandStatus.expanded;
                             return Visibility(
-                              child: Container(
-                                margin: const EdgeInsets.only(right: 16.0),
-                                child: FavoriteCheckbox(
-                                  size: 28,
-                                  color: context.secondaryColor,
-                                  isFavorite: false,
-                                  onFavoriteChanged: (newFavStatus) {},
-                                ),
-                              ),
+                              child: BlocBuilder(
+                                  bloc: _viewModel.favoriteStateCubit,
+                                  builder: (context, bool isFavorite) {
+                                    return Container(
+                                      margin:
+                                          const EdgeInsets.only(right: 16.0),
+                                      child: FavoriteCheckbox(
+                                        size: 28,
+                                        color: context.secondaryColor,
+                                        isFavorite: isFavorite,
+                                        onFavoriteChanged: (newFavStatus) =>
+                                            _viewModel.toggleFavorite(
+                                                post, isFavorite),
+                                      ),
+                                    );
+                                  }),
                               visible: !isExpanded,
                             );
                           })
@@ -240,13 +247,27 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                                         )
                                                       ],
                                                     )),
-                                                    FavoriteCheckbox(
-                                                      size: 32,
-                                                      color: brandColor,
-                                                      isFavorite: false,
-                                                      onFavoriteChanged:
-                                                          (newFavStatus) {},
-                                                    )
+                                                    BlocBuilder(
+                                                        bloc: _viewModel
+                                                            .favoriteStateCubit,
+                                                        builder: (context,
+                                                            bool isFavorite) {
+                                                          return FavoriteCheckbox(
+                                                            key: ValueKey(DateTime
+                                                                    .now()
+                                                                .millisecondsSinceEpoch),
+                                                            size: 32,
+                                                            color: brandColor,
+                                                            isFavorite:
+                                                                isFavorite,
+                                                            onFavoriteChanged:
+                                                                (newFavStatus) =>
+                                                                    _viewModel
+                                                                        .toggleFavorite(
+                                                                            post,
+                                                                            isFavorite),
+                                                          );
+                                                        }),
                                                   ],
                                                 ),
                                               ),

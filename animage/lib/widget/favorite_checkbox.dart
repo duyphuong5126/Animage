@@ -42,6 +42,7 @@ class _FavoriteCheckboxState extends State<FavoriteCheckbox> {
             ),
             onPressed: () => setState(() {
                   _isFavorite = !_isFavorite;
+                  widget.onFavoriteChanged(_isFavorite);
                 }))
         : IconButton(
             padding: EdgeInsetsDirectional.zero,
@@ -54,6 +55,7 @@ class _FavoriteCheckboxState extends State<FavoriteCheckbox> {
             ),
             onPressed: () => setState(() {
               _isFavorite = !_isFavorite;
+              widget.onFavoriteChanged(_isFavorite);
             }),
           );
   }

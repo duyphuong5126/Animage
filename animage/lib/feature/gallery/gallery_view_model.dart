@@ -6,10 +6,12 @@ import 'package:animage/domain/entity/general/pair.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/domain/use_case/add_search_term_use_case.dart';
 import 'package:animage/domain/use_case/delete_search_term_use_case.dart';
+import 'package:animage/domain/use_case/filter_favorite_list_use_case.dart';
 import 'package:animage/domain/use_case/get_all_search_history_use_case.dart';
 import 'package:animage/domain/use_case/get_artists_use_case.dart';
 import 'package:animage/domain/use_case/get_post_list_use_case.dart';
 import 'package:animage/domain/use_case/search_posts_by_tags_use_case.dart';
+import 'package:animage/domain/use_case/toggle_favorite_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/utils/log.dart';
@@ -42,6 +44,8 @@ abstract class GalleryViewModel {
 
   void removeSearchTag(String tag);
 
+  void toggleFavorite(PostCardUiModel uiModel);
+
   void destroy();
 
   // For iOS only
@@ -71,6 +75,10 @@ class GalleryViewModelImpl extends GalleryViewModel {
       AddSearchTermUseCaseImpl();
   late final DeleteSearchTermUseCase _deleteSearchTermUseCase =
       DeleteSearchTermUseCaseImpl();
+  late final ToggleFavoriteUseCase _toggleFavoriteUseCase =
+      ToggleFavoriteUseCaseImpl();
+  late final FilterFavoriteListUseCase _filterFavoriteListUseCase =
+      FilterFavoriteListUseCaseImpl();
 
   late final StreamSubscription? _getAllSearchHistorySubscription;
 
@@ -216,6 +224,18 @@ class GalleryViewModelImpl extends GalleryViewModel {
   }
 
   @override
+  void toggleFavorite(PostCardUiModel uiModel) async {
+    Post? post = _postDetailsMap[uiModel.id];
+    if (post != null) {
+      bool result = await _toggleFavoriteUseCase.execute(post);
+      Log.d(_tag, 'Toggle favorite result: $result');
+      if (result) {
+        uiModel.isFavorite = !uiModel.isFavorite;
+      }
+    }
+  }
+
+  @override
   void destroy() {
     Log.d(_tag, 'destroy');
     _pagingController?.dispose();
@@ -255,9 +275,12 @@ class GalleryViewModelImpl extends GalleryViewModel {
           }
         })
         .asStream()
-        .listen((Pair<List<Post>, Map<int, Artist>> postsAndArtists) {
+        .listen((Pair<List<Post>, Map<int, Artist>> postsAndArtists) async {
           List<Post> postList = postsAndArtists.first;
           Map<int, Artist> artistMap = postsAndArtists.second;
+
+          List<int> favoriteList = await _filterFavoriteListUseCase
+              .execute(postList.map((post) => post.id).toList());
 
           Log.d(_tag, 'postList=${postList.length}');
           List<PostCardUiModel> result = postList.map((post) {
@@ -286,13 +309,15 @@ class GalleryViewModelImpl extends GalleryViewModel {
             }
 
             return PostCardUiModel(
-                id: post.id,
-                author: post.author ?? '',
-                previewThumbnailUrl: post.previewUrl ?? '',
-                previewAspectRatio: previewAspectRatio,
-                sampleUrl: post.sampleUrl ?? '',
-                sampleAspectRatio: sampleAspectRatio,
-                artist: artistUiModel);
+              id: post.id,
+              author: post.author ?? '',
+              previewThumbnailUrl: post.previewUrl ?? '',
+              previewAspectRatio: previewAspectRatio,
+              sampleUrl: post.sampleUrl ?? '',
+              sampleAspectRatio: sampleAspectRatio,
+              artist: artistUiModel,
+              isFavorite: favoriteList.contains(post.id),
+            );
           }).toList();
           if (result.isEmpty) {
             pagingController.appendLastPage(result);
