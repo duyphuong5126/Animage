@@ -6,6 +6,7 @@ import 'package:animage/domain/entity/post.dart';
 import 'package:animage/feature/post_detail/post_details_view_model.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
+import 'package:animage/feature/ui_model/favorite_changed_ui_model.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/image_downloader.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
@@ -71,241 +72,253 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
 
     _showPinnedMasterSectionCubit?.push(isGalleryOutOfScreen);
 
-    return CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
-          padding: const EdgeInsetsDirectional.only(bottom: 8.0),
-          automaticallyImplyMiddle: true,
-          middle: PlatformText('ID: ${post.id}'),
-          trailing: SizedBox(
-            width: 100,
-            child: BlocBuilder(
-              bloc: ImageDownloader.downloadStateCubit,
-              builder: (context, ImageDownloadState? state) {
-                bool isDownloading =
-                    state?.state == DownloadState.downloading &&
-                        state?.url == post.fileUrl;
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    CupertinoButton(
-                        padding: EdgeInsetsDirectional.zero,
-                        onPressed: () {
-                          Share.share(post.shareUrl,
-                              subject: 'Illustration ${post.id}');
-                        },
-                        child: Icon(
-                          CupertinoIcons.share,
-                          color: context.primaryColor,
-                        )),
-                    const SizedBox(
-                      width: 4.0,
-                    ),
-                    isDownloading
-                        ? Container(
-                            child: CupertinoActivityIndicator(
-                              radius: 12,
-                              color: context.primaryColor,
-                            ),
-                            margin:
-                                const EdgeInsets.only(left: 12.0, right: 8.0),
-                          )
-                        : CupertinoButton(
+    return WillPopScope(
+        child: CupertinoPageScaffold(
+            navigationBar: CupertinoNavigationBar(
+              padding: const EdgeInsetsDirectional.only(bottom: 8.0),
+              automaticallyImplyMiddle: true,
+              middle: PlatformText('ID: ${post.id}'),
+              trailing: SizedBox(
+                width: 100,
+                child: BlocBuilder(
+                  bloc: ImageDownloader.downloadStateCubit,
+                  builder: (context, ImageDownloadState? state) {
+                    bool isDownloading =
+                        state?.state == DownloadState.downloading &&
+                            state?.url == post.fileUrl;
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        CupertinoButton(
                             padding: EdgeInsetsDirectional.zero,
-                            onPressed: () async {
-                              _viewModel.startDownloadingOriginalImage(post);
+                            onPressed: () {
+                              Share.share(post.shareUrl,
+                                  subject: 'Illustration ${post.id}');
                             },
                             child: Icon(
-                              CupertinoIcons.cloud_download,
+                              CupertinoIcons.share,
                               color: context.primaryColor,
                             )),
-                    const SizedBox(
-                      width: 4.0,
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-        child: SafeArea(
-          child: NotificationListener(
-            child: Stack(
-              alignment: Alignment.bottomCenter,
-              children: [
-                BlocListener(
-                  bloc: ImageDownloader.downloadStateCubit,
-                  listener: (context, ImageDownloadState? state) {
-                    _processDownloadState(state, post);
-                  },
-                  child: Visibility(
-                    child: Container(),
-                    visible: false,
-                  ),
-                ),
-                BlocListener(
-                  bloc: ImageDownloader.pendingListCubit,
-                  listener: (context, String? newPendingUrl) {
-                    if (newPendingUrl != null &&
-                        newPendingUrl == post.fileUrl) {
-                      context.showCupertinoConfirmationDialog(
-                          title: 'Download On Hold',
-                          message:
-                              'This post is added to pending list. Please wait.',
-                          actionLabel: 'OK',
-                          action: () {});
-                    }
-                  },
-                  child: Visibility(
-                    child: Container(),
-                    visible: false,
-                  ),
-                ),
-                ListView(
-                  controller: scrollController,
-                  children: [
-                    Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        GestureDetector(
-                          child: CachedNetworkImage(
-                            imageUrl: post.sampleUrl ?? '',
-                            height: galleryHeight,
-                            alignment: Alignment.topCenter,
-                            fit: BoxFit.fitWidth,
-                          ),
-                          onTap: () {
-                            Navigator.of(context)
-                                .pushNamed(viewOriginalPage, arguments: post);
-                          },
-                        ),
-                        _getMasterInfoSection(post)
-                      ],
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
                         const SizedBox(
-                          height: 16.0,
+                          width: 4.0,
                         ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 8.0, horizontal: 16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                  child: Text(
-                                post.author ?? '',
-                                style: context.navTitleTextStyle,
-                              )),
-                            ],
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 8.0, horizontal: 16.0),
-                          child: Wrap(
-                            spacing: 6.0,
-                            runSpacing: 6.0,
-                            children: tagChipList,
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 8.0, horizontal: 16.0),
-                          child: Text(
-                            'Rating: ${_viewModel.getRatingLabel(post)}',
-                            style: context.textStyle,
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 8.0, horizontal: 16.0),
-                          child: Text(
-                            'Created at: ${_viewModel.getCreatedAtTimeStamp(post)}',
-                            style: context.textStyle,
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 8.0, horizontal: 16.0),
-                          child: Text(
-                            'Updated at: ${_viewModel.getUpdatedAtTimeStamp(post)}',
-                            style: context.textStyle,
-                          ),
-                        ),
-                        Visibility(
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 8.0, horizontal: 16.0),
-                            child: Text(
-                              'Status: $status',
-                              style: context.textStyle,
-                            ),
-                          ),
-                          visible: status != null && status.isNotEmpty,
-                        ),
-                        Visibility(
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 8.0, horizontal: 16.0),
-                            child: TextWithLinks(
-                                text: 'Source: $source',
-                                textStyle: context.textStyle,
-                                linkStyle: context.actionTextStyle
-                                    .copyWith(color: context.brandColor)),
-                          ),
-                          visible: source != null && source.isNotEmpty,
-                        ),
-                        BlocBuilder(
-                            bloc: _viewModel.artistCubit,
-                            builder: (context, ArtistUiModel? artist) {
-                              List<String> urls = artist?.urls
-                                      .where((url) => url.isNotEmpty)
-                                      .toList() ??
-                                  [];
-                              return Visibility(
-                                child: Container(
-                                  margin: const EdgeInsets.symmetric(
-                                      vertical: 8.0, horizontal: 16.0),
-                                  child: TextWithLinks(
-                                      text: 'Artist info: ${urls.join('\n')}',
-                                      textStyle: context.textStyle,
-                                      linkStyle: context.actionTextStyle
-                                          .copyWith(color: context.brandColor)),
+                        isDownloading
+                            ? Container(
+                                child: CupertinoActivityIndicator(
+                                  radius: 12,
+                                  color: context.primaryColor,
                                 ),
-                                visible: urls.isNotEmpty,
-                              );
-                            })
+                                margin: const EdgeInsets.only(
+                                    left: 12.0, right: 8.0),
+                              )
+                            : CupertinoButton(
+                                padding: EdgeInsetsDirectional.zero,
+                                onPressed: () async {
+                                  _viewModel
+                                      .startDownloadingOriginalImage(post);
+                                },
+                                child: Icon(
+                                  CupertinoIcons.cloud_download,
+                                  color: context.primaryColor,
+                                )),
+                        const SizedBox(
+                          width: 4.0,
+                        ),
                       ],
-                    )
+                    );
+                  },
+                ),
+              ),
+            ),
+            child: SafeArea(
+              child: NotificationListener(
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    BlocListener(
+                      bloc: ImageDownloader.downloadStateCubit,
+                      listener: (context, ImageDownloadState? state) {
+                        _processDownloadState(state, post);
+                      },
+                      child: Visibility(
+                        child: Container(),
+                        visible: false,
+                      ),
+                    ),
+                    BlocListener(
+                      bloc: ImageDownloader.pendingListCubit,
+                      listener: (context, String? newPendingUrl) {
+                        if (newPendingUrl != null &&
+                            newPendingUrl == post.fileUrl) {
+                          context.showCupertinoConfirmationDialog(
+                              title: 'Download On Hold',
+                              message:
+                                  'This post is added to pending list. Please wait.',
+                              actionLabel: 'OK',
+                              action: () {});
+                        }
+                      },
+                      child: Visibility(
+                        child: Container(),
+                        visible: false,
+                      ),
+                    ),
+                    ListView(
+                      controller: scrollController,
+                      children: [
+                        Stack(
+                          alignment: Alignment.bottomCenter,
+                          children: [
+                            GestureDetector(
+                              child: CachedNetworkImage(
+                                imageUrl: post.sampleUrl ?? '',
+                                height: galleryHeight,
+                                alignment: Alignment.topCenter,
+                                fit: BoxFit.fitWidth,
+                              ),
+                              onTap: () {
+                                Navigator.of(context).pushNamed(
+                                    viewOriginalPage,
+                                    arguments: post);
+                              },
+                            ),
+                            _getMasterInfoSection(post)
+                          ],
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              height: 16.0,
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                      child: Text(
+                                    post.author ?? '',
+                                    style: context.navTitleTextStyle,
+                                  )),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              child: Wrap(
+                                spacing: 6.0,
+                                runSpacing: 6.0,
+                                children: tagChipList,
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              child: Text(
+                                'Rating: ${_viewModel.getRatingLabel(post)}',
+                                style: context.textStyle,
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              child: Text(
+                                'Created at: ${_viewModel.getCreatedAtTimeStamp(post)}',
+                                style: context.textStyle,
+                              ),
+                            ),
+                            Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              child: Text(
+                                'Updated at: ${_viewModel.getUpdatedAtTimeStamp(post)}',
+                                style: context.textStyle,
+                              ),
+                            ),
+                            Visibility(
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                child: Text(
+                                  'Status: $status',
+                                  style: context.textStyle,
+                                ),
+                              ),
+                              visible: status != null && status.isNotEmpty,
+                            ),
+                            Visibility(
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                    vertical: 8.0, horizontal: 16.0),
+                                child: TextWithLinks(
+                                    text: 'Source: $source',
+                                    textStyle: context.textStyle,
+                                    linkStyle: context.actionTextStyle
+                                        .copyWith(color: context.brandColor)),
+                              ),
+                              visible: source != null && source.isNotEmpty,
+                            ),
+                            BlocBuilder(
+                                bloc: _viewModel.artistCubit,
+                                builder: (context, ArtistUiModel? artist) {
+                                  List<String> urls = artist?.urls
+                                          .where((url) => url.isNotEmpty)
+                                          .toList() ??
+                                      [];
+                                  return Visibility(
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 8.0, horizontal: 16.0),
+                                      child: TextWithLinks(
+                                          text:
+                                              'Artist info: ${urls.join('\n')}',
+                                          textStyle: context.textStyle,
+                                          linkStyle: context.actionTextStyle
+                                              .copyWith(
+                                                  color: context.brandColor)),
+                                    ),
+                                    visible: urls.isNotEmpty,
+                                  );
+                                })
+                          ],
+                        )
+                      ],
+                    ),
+                    BlocBuilder(
+                        bloc: _showPinnedMasterSectionCubit,
+                        builder: (context, bool showPinnedMasterSection) {
+                          return Visibility(
+                            child: _getMasterInfoSection(post),
+                            visible: showPinnedMasterSection,
+                          );
+                        })
                   ],
                 ),
-                BlocBuilder(
-                    bloc: _showPinnedMasterSectionCubit,
-                    builder: (context, bool showPinnedMasterSection) {
-                      return Visibility(
-                        child: _getMasterInfoSection(post),
-                        visible: showPinnedMasterSection,
-                      );
-                    })
-              ],
-            ),
-            onNotification: (event) {
-              if (event is ScrollNotification) {
-                bool reachDefaultMasterSection =
-                    safeAreaHeight + scrollController.position.pixels >
-                        galleryHeight;
-                _showPinnedMasterSectionCubit
-                    ?.push(!reachDefaultMasterSection && isGalleryOutOfScreen);
-              }
-              return false;
-            },
-          ),
-        ));
+                onNotification: (event) {
+                  if (event is ScrollNotification) {
+                    bool reachDefaultMasterSection =
+                        safeAreaHeight + scrollController.position.pixels >
+                            galleryHeight;
+                    _showPinnedMasterSectionCubit?.push(
+                        !reachDefaultMasterSection && isGalleryOutOfScreen);
+                  }
+                  return false;
+                },
+              ),
+            )),
+        onWillPop: () async {
+          Navigator.of(context).pop(FavoriteChangedUiModel(
+              postId: post.id,
+              isFavorite: _viewModel.favoriteStateCubit.state));
+          return true;
+        });
   }
 
   @override

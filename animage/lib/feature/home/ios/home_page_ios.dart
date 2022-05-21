@@ -33,7 +33,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
       const FavoritePageIOS()
       // see the SettingsTab class below
     ];
-    Color selectedColor = context.isDark ? accentColor : accentColorDark;
+    Color selectedColor = context.isDark ? accentColorLight : accentColor;
 
     return CupertinoPageScaffold(
         child: CupertinoTabScaffold(
@@ -43,13 +43,16 @@ class _HomePageIOSState extends State<HomePageIOS> {
                 BottomNavigationBarItem(
                   icon: Icon(
                     CupertinoIcons.home,
+                    size: 24,
                   ),
+                  label: 'Home',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(
-                    CupertinoIcons.heart_fill,
-                  ),
-                )
+                    icon: Icon(
+                      CupertinoIcons.heart_fill,
+                      size: 24,
+                    ),
+                    label: 'Favorite')
               ],
               onTap: (int index) {
                 if (index == _currentIndex) {
