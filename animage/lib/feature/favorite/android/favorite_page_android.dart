@@ -60,7 +60,7 @@ class _FavoritePageState extends State<FavoritePage> {
           bool isGrid = mode == GalleryMode.grid;
           return Scaffold(
             appBar: AppBar(
-              backgroundColor: Colors.white,
+              backgroundColor: context.defaultBackgroundColor,
               elevation: 0,
               title: Text(
                 _viewModel.pageTitle,
@@ -68,12 +68,12 @@ class _FavoritePageState extends State<FavoritePage> {
               ),
               actions: [
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
                   height: 32,
                   width: 109,
                   child: Container(
                       margin: const EdgeInsets.only(right: 8.0),
-                      height: 24,
+                      height: 8,
                       child: Row(
                         children: [
                           Expanded(
