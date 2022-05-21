@@ -1,16 +1,13 @@
 import 'dart:async';
 
 import 'package:animage/bloc/data_cubit.dart';
-import 'package:animage/constant.dart';
-import 'package:animage/domain/entity/post.dart';
 import 'package:animage/feature/gallery/gallery_view_model.dart';
-import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/utils/log.dart';
 import 'package:animage/utils/material_context_extension.dart';
-import 'package:animage/widget/favorite_checkbox.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:animage/widget/gallery_grid_item_android.dart';
+import 'package:animage/widget/gallery_list_item_android.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -142,26 +139,14 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                               bloc: _viewModel.setUpFinishCubit,
                               builder: (context, bool setUpFinished) {
                                 return setUpFinished
-                                    ? BlocListener(
-                                        bloc: _viewModel.postDetailsCubit,
-                                        listener: (context, Post? post) async {
-                                          if (post != null) {
-                                            await Navigator.of(context)
-                                                .pushNamed(detailsPageRoute,
-                                                    arguments: post);
-                                            _viewModel
-                                                .clearDetailsPageRequest();
-                                          }
-                                        },
-                                        child: RefreshIndicator(
-                                          onRefresh: () => Future.sync(() =>
-                                              _viewModel.refreshGallery()),
-                                          child: isGrid
-                                              ? _buildPagedGridView(
-                                                  context.secondaryColor)
-                                              : _buildPagedListView(
-                                                  context.secondaryColor),
-                                        ),
+                                    ? RefreshIndicator(
+                                        onRefresh: () => Future.sync(
+                                            () => _viewModel.refreshGallery()),
+                                        child: isGrid
+                                            ? _buildPagedGridView(
+                                                context.secondaryColor)
+                                            : _buildPagedListView(
+                                                context.secondaryColor),
                                       )
                                     : Center(
                                         child: SizedBox(
@@ -318,67 +303,16 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
           newPageProgressIndicatorBuilder: (context) =>
               _loadingWidget(brandColor),
           itemBuilder: (context, postItem, index) {
-            BoxFit boxFit = postItem.previewAspectRatio > cardAspectRatio
-                ? BoxFit.cover
-                : BoxFit.fitWidth;
-            return GestureDetector(
-              onTap: () => _viewModel.requestDetailsPage(postItem.id),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-                child: Stack(
-                  children: [
-                    Container(
-                      color: context.cardViewBackgroundColor,
-                      child: CachedNetworkImage(
-                        imageUrl: postItem.previewThumbnailUrl,
-                        width: double.infinity,
-                        height: double.infinity,
-                        alignment: FractionalOffset.topCenter,
-                        fit: boxFit,
-                        errorWidget: (context, url, error) => Container(
-                          constraints: const BoxConstraints.expand(),
-                          color: context.cardViewBackgroundColor,
-                        ),
-                      ),
-                    ),
-                    Container(
-                        constraints: const BoxConstraints.expand(height: 64),
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                                child: Text(
-                              postItem.author,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText2
-                                  ?.copyWith(color: Colors.white),
-                            )),
-                            FavoriteCheckbox(
-                              size: 20,
-                              color: context.secondaryColor,
-                              isFavorite: postItem.isFavorite,
-                              onFavoriteChanged: (newFavStatus) {
-                                _viewModel.toggleFavorite(postItem);
-                              },
-                            )
-                          ],
-                        ),
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: <Color>[
-                                Color.fromARGB(200, 0, 0, 0),
-                                Color.fromARGB(0, 0, 0, 0)
-                              ]),
-                        ))
-                  ],
-                ),
-              ),
+            return GalleryGridItemAndroid(
+              uiModel: postItem,
+              itemAspectRatio: cardAspectRatio,
+              postDetailsCubit: _viewModel.postDetailsCubit,
+              onOpenDetail: (postUiModel) {
+                _viewModel.requestDetailsPage(postUiModel.id);
+              },
+              onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
+              onFavoriteChanged: (postUiModel) =>
+                  _viewModel.toggleFavorite(postUiModel),
             );
           }),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -413,97 +347,17 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                   ),
                 ),
             itemBuilder: (context, postItem, index) {
-              double cardAspectRatio = 1.5;
-              BoxFit boxFit = postItem.sampleAspectRatio > cardAspectRatio
-                  ? BoxFit.cover
-                  : BoxFit.fitWidth;
-
-              ArtistUiModel? artistUiModel = postItem.artist;
               return Container(
-                child: GestureDetector(
-                  onTap: () => _viewModel.requestDetailsPage(postItem.id),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-                    child: AspectRatio(
-                      aspectRatio: cardAspectRatio,
-                      child: Container(
-                        color: context.cardViewBackgroundColor,
-                        child: Stack(
-                          alignment: AlignmentDirectional.topCenter,
-                          children: [
-                            CachedNetworkImage(
-                              imageUrl: postItem.sampleUrl,
-                              width: double.infinity,
-                              height: double.infinity,
-                              alignment: FractionalOffset.topCenter,
-                              errorWidget: (context, url, error) => Container(
-                                constraints: const BoxConstraints.expand(),
-                                color: context.cardViewBackgroundColor,
-                              ),
-                              fit: boxFit,
-                            ),
-                            Container(
-                                constraints:
-                                    const BoxConstraints.expand(height: 80),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 8.0, horizontal: 16.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                        child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          postItem.author,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyText1
-                                              ?.copyWith(color: Colors.white),
-                                        ),
-                                        Visibility(
-                                          child: Text(
-                                            artistUiModel?.name ?? '',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .headline5
-                                                ?.copyWith(color: Colors.white),
-                                          ),
-                                          visible: artistUiModel != null,
-                                        )
-                                      ],
-                                    )),
-                                    FavoriteCheckbox(
-                                      size: 28,
-                                      color: context.secondaryColor,
-                                      isFavorite: postItem.isFavorite,
-                                      onFavoriteChanged: (newFavStatus) {
-                                        _viewModel.toggleFavorite(postItem);
-                                      },
-                                    )
-                                  ],
-                                ),
-                                decoration: const BoxDecoration(
-                                  gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: <Color>[
-                                        Color.fromARGB(200, 0, 0, 0),
-                                        Color.fromARGB(0, 0, 0, 0)
-                                      ]),
-                                ))
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                child: GalleryListItemAndroid(
+                  uiModel: postItem,
+                  itemAspectRatio: 1.5,
+                  postDetailsCubit: _viewModel.postDetailsCubit,
+                  onOpenDetail: (postUiModel) {
+                    _viewModel.requestDetailsPage(postUiModel.id);
+                  },
+                  onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
+                  onFavoriteChanged: (postUiModel) =>
+                      _viewModel.toggleFavorite(postUiModel),
                 ),
                 margin: const EdgeInsets.only(bottom: 8.0),
               );
