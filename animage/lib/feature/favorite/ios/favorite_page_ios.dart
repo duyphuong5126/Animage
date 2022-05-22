@@ -4,6 +4,7 @@ import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/constant.dart';
 import 'package:animage/feature/favorite/favorite_view_model.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
+import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:animage/utils/log.dart';
@@ -32,6 +33,8 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
   final FavoriteViewModel _viewModel = FavoriteViewModelImpl();
   final RefreshController _refreshController =
       RefreshController(initialRefresh: false);
+  final DataCubit<NavigationBarExpandStatus> _expandStatusCubit =
+      DataCubit(NavigationBarExpandStatus.expanded);
 
   ScrollController? _scrollController;
   StreamSubscription? _scrollToTopSubscription;
@@ -62,6 +65,18 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
   @override
   Widget build(BuildContext context) {
     final ScrollController scrollController = ScrollController();
+    scrollController.addListener(() {
+      ScrollPosition position = scrollController.position;
+      bool expanded = position.pixels == position.minScrollExtent;
+      bool collapsed = position.pixels == position.maxScrollExtent;
+      if (expanded) {
+        Log.d('Test>>>', 'expanded');
+        _expandStatusCubit.push(NavigationBarExpandStatus.expanded);
+      } else if (collapsed) {
+        Log.d('Test>>>', 'collapsed');
+        _expandStatusCubit.push(NavigationBarExpandStatus.collapsed);
+      }
+    });
     Color? unSelectedModeColor =
         context.isDark ? Colors.white : Colors.grey[400];
     return CupertinoPageScaffold(
@@ -108,23 +123,33 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
                       _refreshController.refreshCompleted();
                     }
                   },
-                  child: SmartRefresher(
-                      header: ClassicHeader(
-                        textStyle: context.navTitleTextStyle,
-                        refreshingText: _viewModel.refreshingText,
-                        failedText: _viewModel.failedToRefreshText,
-                        completeText: _viewModel.refreshedSuccessfullyText,
-                        idleText: _viewModel.refresherIdleText,
-                        releaseText: _viewModel.refresherReleaseText,
-                      ),
-                      enablePullDown: true,
-                      controller: _refreshController,
-                      onRefresh: () {
-                        _viewModel.refreshGallery();
-                      },
-                      child: isGrid
-                          ? _buildPagedGridView()
-                          : _buildPagedListView()),
+                  child: BlocBuilder(
+                      bloc: _expandStatusCubit,
+                      builder: (context, expandStatus) {
+                        bool isCollapsed =
+                            expandStatus == NavigationBarExpandStatus.collapsed;
+                        return Container(
+                          margin: EdgeInsets.only(top: isCollapsed ? 100 : 0),
+                          child: SmartRefresher(
+                              header: ClassicHeader(
+                                textStyle: context.navTitleTextStyle,
+                                refreshingText: _viewModel.refreshingText,
+                                failedText: _viewModel.failedToRefreshText,
+                                completeText:
+                                    _viewModel.refreshedSuccessfullyText,
+                                idleText: _viewModel.refresherIdleText,
+                                releaseText: _viewModel.refresherReleaseText,
+                              ),
+                              enablePullDown: true,
+                              controller: _refreshController,
+                              onRefresh: () {
+                                _viewModel.refreshGallery();
+                              },
+                              child: isGrid
+                                  ? _buildPagedGridView()
+                                  : _buildPagedListView()),
+                        );
+                      }),
                 );
               }),
         ),

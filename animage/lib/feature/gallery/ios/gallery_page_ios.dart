@@ -205,29 +205,46 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                                     (hasTag
                                                         ? _defaultTagListHeight
                                                         : 0)),
-                                            child: SmartRefresher(
-                                                header: ClassicHeader(
-                                                  textStyle:
-                                                      context.navTitleTextStyle,
-                                                  refreshingText:
-                                                      _viewModel.refreshingText,
-                                                  failedText: _viewModel
-                                                      .failedToRefreshText,
-                                                  completeText: _viewModel
-                                                      .refreshedSuccessfullyText,
-                                                  idleText: _viewModel
-                                                      .refresherIdleText,
-                                                  releaseText: _viewModel
-                                                      .refresherReleaseText,
-                                                ),
-                                                enablePullDown: true,
-                                                controller: _refreshController,
-                                                onRefresh: () {
-                                                  _viewModel.refreshGallery();
-                                                },
-                                                child: isGrid
-                                                    ? _buildPagedGridView()
-                                                    : _buildPagedListView()),
+                                            child: BlocBuilder(
+                                                bloc: _expandStatusCubit,
+                                                builder:
+                                                    (context, expandStatus) {
+                                                  bool isCollapsed =
+                                                      expandStatus ==
+                                                          NavigationBarExpandStatus
+                                                              .collapsed;
+                                                  return Container(
+                                                      margin: EdgeInsets.only(
+                                                          top: isCollapsed
+                                                              ? 100
+                                                              : 0),
+                                                      child: SmartRefresher(
+                                                          header: ClassicHeader(
+                                                            textStyle: context
+                                                                .navTitleTextStyle,
+                                                            refreshingText:
+                                                                _viewModel
+                                                                    .refreshingText,
+                                                            failedText: _viewModel
+                                                                .failedToRefreshText,
+                                                            completeText: _viewModel
+                                                                .refreshedSuccessfullyText,
+                                                            idleText: _viewModel
+                                                                .refresherIdleText,
+                                                            releaseText: _viewModel
+                                                                .refresherReleaseText,
+                                                          ),
+                                                          enablePullDown: true,
+                                                          controller:
+                                                              _refreshController,
+                                                          onRefresh: () {
+                                                            _viewModel
+                                                                .refreshGallery();
+                                                          },
+                                                          child: isGrid
+                                                              ? _buildPagedGridView()
+                                                              : _buildPagedListView()));
+                                                }),
                                           ),
                                         ),
                                         Column(
