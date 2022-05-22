@@ -30,7 +30,9 @@ class _HomePageIOSState extends State<HomePageIOS> {
         scrollToTopCubit: _scrollToTopCubit,
       ),
       // see the HomeTab class below
-      const FavoritePageIOS()
+      FavoritePageIOS(
+        scrollToTopCubit: _scrollToTopCubit,
+      )
       // see the SettingsTab class below
     ];
     Color selectedColor = context.isDark ? accentColorLight : accentColor;

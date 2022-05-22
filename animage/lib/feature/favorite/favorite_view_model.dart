@@ -36,8 +36,6 @@ abstract class FavoriteViewModel {
   // For iOS only
   DataCubit<int> get galleryRefreshedAtCubit;
 
-  String get cancelSearchButtonLabel;
-
   String get refreshingText;
 
   String get failedToRefreshText;
@@ -71,9 +69,6 @@ class FavoriteViewModelImpl extends FavoriteViewModel {
 
   @override
   DataCubit<Post?> get postDetailsCubit => _postDetailsCubit!;
-
-  @override
-  String get cancelSearchButtonLabel => 'Cancel';
 
   @override
   String get emptyMessage => 'Empty library';

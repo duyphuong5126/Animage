@@ -12,7 +12,6 @@ import 'package:animage/widget/gallery_grid_item_ios.dart';
 import 'package:animage/widget/gallery_list_item_ios.dart';
 import 'package:animage/widget/removable_chip_ios.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
@@ -81,7 +80,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
     });
     TextEditingController searchEditController = TextEditingController();
     Color? unSelectedModeColor =
-        context.isDark ? Colors.white : Colors.grey[400];
+        context.isDark ? CupertinoColors.white : CupertinoColors.inactiveGray;
     return CupertinoPageScaffold(
       child: Stack(
         alignment: Alignment.topRight,
@@ -161,9 +160,8 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                     scrollController.jumpTo(scrollController
                                         .position.minScrollExtent);
                                   }),
-                              visible: showCancelSearchButton &&
-                                  expandStatus ==
-                                      NavigationBarExpandStatus.collapsed,
+                              visible: expandStatus ==
+                                  NavigationBarExpandStatus.collapsed,
                             );
                           },
                         );
@@ -321,7 +319,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                     (hasTag
                                         ? _defaultTagListHeight + 16.0
                                         : 0.0),
-                                color: Colors.white,
+                                color: context.defaultBackgroundColor,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -382,9 +380,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                   ],
                                 ),
                                 margin: const EdgeInsets.only(
-                                    top: kToolbarHeight + 32,
-                                    left: 16.0,
-                                    right: 16.0),
+                                    top: 88, left: 16.0, right: 16.0),
                               );
                             }),
                         visible:

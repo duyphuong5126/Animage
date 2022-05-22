@@ -17,10 +17,8 @@ extension CupertinoContextExtension on BuildContext {
     return isDark ? CupertinoColors.white : CupertinoColors.systemGrey2;
   }
 
-  Color get defaultBackgroundColor {
-    bool isDark = CupertinoTheme.of(this).brightness == Brightness.dark;
-    return isDark ? CupertinoColors.black : CupertinoColors.white;
-  }
+  Color get defaultBackgroundColor =>
+      CupertinoTheme.of(this).scaffoldBackgroundColor;
 
   double get safeAreaHeight {
     double height = MediaQuery.of(this).size.height;
