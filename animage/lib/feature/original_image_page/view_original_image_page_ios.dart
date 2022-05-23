@@ -31,6 +31,7 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
               alignment: Alignment.topLeft,
               children: [
                 PhotoView(
+                  enableRotation: true,
                   minScale: PhotoViewComputedScale.contained * 1.0,
                   imageProvider: CachedNetworkImageProvider(url),
                   loadingBuilder: (context, event) {

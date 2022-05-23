@@ -30,6 +30,14 @@ abstract class GalleryViewModel {
 
   String get emptyMessage;
 
+  String get removeTagTitle;
+
+  String get acceptTagRemoval;
+
+  String get cancelTagRemoval;
+
+  String getTagRemovalMessage(String tag);
+
   void init();
 
   PagingController<int, PostCardUiModel> getPagingController();
@@ -116,6 +124,18 @@ class GalleryViewModelImpl extends GalleryViewModel {
 
   @override
   String get cancelSearchButtonLabel => 'Cancel';
+
+  @override
+  String get acceptTagRemoval => 'Yes';
+
+  @override
+  String get cancelTagRemoval => 'No';
+
+  @override
+  String getTagRemovalMessage(String tag) => 'Remove this tag: $tag?';
+
+  @override
+  String get removeTagTitle => 'Remove Tag';
 
   @override
   String get refreshingText => 'Refreshing gallery';

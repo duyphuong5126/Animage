@@ -241,14 +241,18 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                                           deleteIconColor: Colors.white,
                                           onDeleted: () {
                                             context.showYesNoDialog(
-                                                title: 'REMOVE TAG',
-                                                content: 'Remove tag "$tag"?',
-                                                yesLabel: 'Yes',
-                                                noLabel: 'No',
+                                                title:
+                                                    _viewModel.removeTagTitle,
+                                                content: _viewModel
+                                                    .getTagRemovalMessage(tag),
+                                                yesLabel:
+                                                    _viewModel.acceptTagRemoval,
                                                 yesAction: () {
                                                   _viewModel
                                                       .removeSearchTag(tag);
                                                 },
+                                                noLabel:
+                                                    _viewModel.cancelTagRemoval,
                                                 noAction: () {});
                                           },
                                           label: Text(

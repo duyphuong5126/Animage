@@ -58,12 +58,15 @@ class _GalleryGridItemIOSState extends State<GalleryGridItemIOS> {
             Container(
               color: context.cardViewBackgroundColor,
               child: CachedNetworkImage(
-                imageUrl: uiModel.previewThumbnailUrl,
-                width: double.infinity,
-                height: double.infinity,
-                alignment: FractionalOffset.center,
-                fit: BoxFit.cover,
-              ),
+                  imageUrl: uiModel.previewThumbnailUrl,
+                  width: double.infinity,
+                  height: double.infinity,
+                  alignment: FractionalOffset.center,
+                  fit: BoxFit.cover,
+                  errorWidget: (context, url, error) => Container(
+                        constraints: const BoxConstraints.expand(),
+                        color: context.cardViewBackgroundColor,
+                      )),
             ),
             Container(
                 constraints: const BoxConstraints.expand(height: 64),

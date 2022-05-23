@@ -247,65 +247,79 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                                 }),
                                           ),
                                         ),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          children: [
-                                            _buildSwitchModeButton(
-                                                isGrid, unSelectedModeColor),
-                                            SizedBox(
-                                              height: hasTag ? 10.0 : 0.0,
-                                            ),
-                                            Container(
-                                                child: ListView.separated(
-                                                    scrollDirection:
-                                                        Axis.horizontal,
-                                                    itemBuilder:
-                                                        (context, index) {
-                                                      String tag = tags[index];
-                                                      return RemovableChipIOS(
-                                                          label: tag,
-                                                          bgColor: context
-                                                              .brandColor,
-                                                          textColor:
-                                                              CupertinoColors
-                                                                  .white,
-                                                          allowRemoval: true,
-                                                          onRemove: () {
-                                                            context
-                                                                .showCupertinoYesNoDialog(
-                                                                    title:
-                                                                        'REMOVE TAG',
-                                                                    message:
-                                                                        'Remove tag $tag?',
-                                                                    yesLabel:
-                                                                        'Yes',
-                                                                    yesAction:
-                                                                        () {
-                                                                      _viewModel
-                                                                          .removeSearchTag(
-                                                                              tag);
-                                                                    },
-                                                                    noLabel:
-                                                                        'No',
-                                                                    noAction:
-                                                                        () {});
-                                                          });
-                                                    },
-                                                    separatorBuilder:
-                                                        (context, index) {
-                                                      return const SizedBox(
-                                                        width: 8.0,
-                                                      );
-                                                    },
-                                                    itemCount: tags.length),
-                                                constraints:
-                                                    const BoxConstraints.expand(
-                                                        height: 32)),
-                                          ],
-                                        ),
+                                        BlocBuilder(
+                                            bloc: _expandStatusCubit,
+                                            builder: (context, expandStatus) {
+                                              return Visibility(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.end,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    _buildSwitchModeButton(
+                                                        isGrid,
+                                                        unSelectedModeColor),
+                                                    SizedBox(
+                                                      height:
+                                                          hasTag ? 10.0 : 0.0,
+                                                    ),
+                                                    Container(
+                                                        child:
+                                                            ListView.separated(
+                                                                scrollDirection:
+                                                                    Axis
+                                                                        .horizontal,
+                                                                itemBuilder:
+                                                                    (context,
+                                                                        index) {
+                                                                  String tag =
+                                                                      tags[
+                                                                          index];
+                                                                  return RemovableChipIOS(
+                                                                      label:
+                                                                          tag,
+                                                                      bgColor:
+                                                                          context
+                                                                              .brandColor,
+                                                                      textColor:
+                                                                          CupertinoColors
+                                                                              .white,
+                                                                      allowRemoval:
+                                                                          true,
+                                                                      onRemove:
+                                                                          () {
+                                                                        context.showCupertinoYesNoDialog(
+                                                                            title: _viewModel.removeTagTitle,
+                                                                            message: _viewModel.getTagRemovalMessage(tag),
+                                                                            yesLabel: _viewModel.acceptTagRemoval,
+                                                                            yesAction: () {
+                                                                              _viewModel.removeSearchTag(tag);
+                                                                            },
+                                                                            noLabel: _viewModel.cancelTagRemoval,
+                                                                            noAction: () {});
+                                                                      });
+                                                                },
+                                                                separatorBuilder:
+                                                                    (context,
+                                                                        index) {
+                                                                  return const SizedBox(
+                                                                    width: 8.0,
+                                                                  );
+                                                                },
+                                                                itemCount: tags
+                                                                    .length),
+                                                        constraints:
+                                                            const BoxConstraints
+                                                                    .expand(
+                                                                height: 32)),
+                                                  ],
+                                                ),
+                                                visible: expandStatus ==
+                                                    NavigationBarExpandStatus
+                                                        .expanded,
+                                              );
+                                            }),
                                       ],
                                     );
                                   },
@@ -373,16 +387,20 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                                   onRemove: () {
                                                     context
                                                         .showCupertinoYesNoDialog(
-                                                            title: 'REMOVE TAG',
-                                                            message:
-                                                                'Remove tag $tag?',
-                                                            yesLabel: 'Yes',
+                                                            title: _viewModel
+                                                                .removeTagTitle,
+                                                            message: _viewModel
+                                                                .getTagRemovalMessage(
+                                                                    tag),
+                                                            yesLabel: _viewModel
+                                                                .acceptTagRemoval,
                                                             yesAction: () {
                                                               _viewModel
                                                                   .removeSearchTag(
                                                                       tag);
                                                             },
-                                                            noLabel: 'No',
+                                                            noLabel: _viewModel
+                                                                .cancelTagRemoval,
                                                             noAction: () {});
                                                   });
                                             },

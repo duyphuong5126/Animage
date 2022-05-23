@@ -8,9 +8,11 @@ import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/feature/ui_model/favorite_changed_ui_model.dart';
 import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
+import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/image_downloader.dart';
 import 'package:animage/utils/material_context_extension.dart';
+import 'package:animage/widget/child_post_android.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
 import 'package:animage/widget/text_with_links.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -79,7 +81,8 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
 
     List<String> tagList = post.tagList;
     List<Widget> tagChipList = [];
-    tagChipList.add(_buildTitleChip('Tags: ', context.secondaryColor));
+    tagChipList.add(
+        _buildTitleChip(_viewModel.tagSectionTitle, context.secondaryColor));
     tagChipList
         .addAll(tagList.map((tag) => _buildChip(tag, context.secondaryColor)));
 
@@ -222,8 +225,9 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                                                   ArtistUiModel?
                                                                       artist) {
                                                                 return Text(
-                                                                  artist?.name ??
-                                                                      'Unknown artist',
+                                                                  _viewModel
+                                                                      .getArtistLabel(
+                                                                          artist),
                                                                   maxLines: 1,
                                                                   overflow:
                                                                       TextOverflow
@@ -240,7 +244,9 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                                               height: 4.0,
                                                             ),
                                                             Text(
-                                                              'Score: ${post.score}',
+                                                              _viewModel
+                                                                  .getScoreLabel(
+                                                                      post),
                                                               style: context
                                                                   .bodyText1
                                                                   ?.copyWith(
@@ -308,218 +314,276 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
             body: MediaQuery.removePadding(
               context: context,
               removeTop: true,
-              child: ListView(
-                children: [
-                  BlocListener(
-                    bloc: ImageDownloader.downloadStateCubit,
-                    listener: (context, ImageDownloadState? state) {
-                      _processDownloadState(state, post);
-                    },
-                    child: Visibility(
-                      child: Container(),
-                      visible: false,
+              child: BlocBuilder(
+                bloc: _viewModel.childrenCubit,
+                builder: (context, List<PostCardUiModel> children) {
+                  List<Widget> content = [
+                    BlocListener(
+                      bloc: ImageDownloader.downloadStateCubit,
+                      listener: (context, ImageDownloadState? state) {
+                        _processDownloadState(state, post);
+                      },
+                      child: Visibility(
+                        child: Container(),
+                        visible: false,
+                      ),
                     ),
-                  ),
-                  BlocListener(
-                    bloc: ImageDownloader.pendingListCubit,
-                    listener: (context, String? newPendingUrl) {
-                      if (newPendingUrl != null &&
-                          newPendingUrl == post.fileUrl) {
-                        context.showConfirmationDialog(
-                            title: 'Download On Hold',
-                            message:
-                                'This post is added to pending list. Please wait.',
-                            actionLabel: 'OK',
-                            action: () {});
-                      }
-                    },
-                    child: Visibility(
-                      child: Container(),
-                      visible: false,
+                    BlocListener(
+                      bloc: ImageDownloader.pendingListCubit,
+                      listener: (context, String? newPendingUrl) {
+                        if (newPendingUrl != null &&
+                            newPendingUrl == post.fileUrl) {
+                          context.showConfirmationDialog(
+                              title: _viewModel.downloadOnHoldTitle,
+                              message: _viewModel.downloadOnHoldMessage,
+                              actionLabel: _viewModel.downloadOnHoldAction,
+                              action: () {});
+                        }
+                      },
+                      child: Visibility(
+                        child: Container(),
+                        visible: false,
+                      ),
                     ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: BlocBuilder(
-                        bloc: _showMasterInfo,
-                        builder: (context, bool showMasterInfo) {
-                          return Visibility(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                const SizedBox(
-                                  height: 16.0,
-                                ),
-                                BlocBuilder(
-                                  bloc: _viewModel.artistCubit,
-                                  builder: (context, ArtistUiModel? artist) {
-                                    return Visibility(
-                                      child: Text(
-                                        artist?.name ?? '',
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: context.headline4,
-                                      ),
-                                      visible: artist != null,
-                                    );
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: BlocBuilder(
+                          bloc: _showMasterInfo,
+                          builder: (context, bool showMasterInfo) {
+                            return Visibility(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  const SizedBox(
+                                    height: 16.0,
+                                  ),
+                                  BlocBuilder(
+                                    bloc: _viewModel.artistCubit,
+                                    builder: (context, ArtistUiModel? artist) {
+                                      return Visibility(
+                                        child: Text(
+                                          artist?.name ?? '',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: context.headline4,
+                                        ),
+                                        visible: artist != null,
+                                      );
+                                    },
+                                  )
+                                ],
+                              ),
+                              visible: showMasterInfo,
+                            );
+                          }),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                              child: Text(
+                            post.author ?? '',
+                            style: context.headline6,
+                          )),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              IconButton(
+                                  onPressed: () {
+                                    Share.share(post.shareUrl,
+                                        subject: 'Illustration ${post.id}');
                                   },
-                                )
-                              ],
-                            ),
-                            visible: showMasterInfo,
-                          );
-                        }),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                            child: Text(
-                          post.author ?? '',
-                          style: context.headline6,
-                        )),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            IconButton(
-                                onPressed: () {
-                                  Share.share(post.shareUrl,
-                                      subject: 'Illustration ${post.id}');
-                                },
-                                icon: Icon(
-                                  Icons.share_rounded,
-                                  size: 24,
-                                  color: context.primaryColor,
-                                )),
-                            const SizedBox(
-                              width: 16.0,
-                            ),
-                            BlocBuilder(
-                              bloc: ImageDownloader.downloadStateCubit,
-                              builder: (context, ImageDownloadState? state) {
-                                bool isDownloading =
-                                    state?.state == DownloadState.downloading &&
-                                        state?.url == post.fileUrl;
-                                return Stack(
-                                  alignment: Alignment.bottomCenter,
-                                  children: [
-                                    Visibility(
-                                      child: IconButton(
-                                          onPressed: () => _viewModel
-                                              .startDownloadingOriginalImage(
-                                                  post),
-                                          icon: Icon(
-                                            Icons.download_rounded,
-                                            size: 24,
-                                            color: context.primaryColor,
-                                          )),
-                                      visible: !isDownloading,
-                                    ),
-                                    Visibility(
-                                      child: Container(
-                                        margin: const EdgeInsets.only(
-                                            left: 16.0, top: 8.0, right: 8.0),
-                                        child: SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: CircularProgressIndicator(
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                    context.secondaryColor),
+                                  icon: Icon(
+                                    Icons.share_rounded,
+                                    size: 24,
+                                    color: context.primaryColor,
+                                  )),
+                              const SizedBox(
+                                width: 16.0,
+                              ),
+                              BlocBuilder(
+                                bloc: ImageDownloader.downloadStateCubit,
+                                builder: (context, ImageDownloadState? state) {
+                                  bool isDownloading = state?.state ==
+                                          DownloadState.downloading &&
+                                      state?.url == post.fileUrl;
+                                  return Stack(
+                                    alignment: Alignment.bottomCenter,
+                                    children: [
+                                      Visibility(
+                                        child: IconButton(
+                                            onPressed: () => _viewModel
+                                                .startDownloadingOriginalImage(
+                                                    post),
+                                            icon: Icon(
+                                              Icons.download_rounded,
+                                              size: 24,
+                                              color: context.primaryColor,
+                                            )),
+                                        visible: !isDownloading,
+                                      ),
+                                      Visibility(
+                                        child: Container(
+                                          margin: const EdgeInsets.only(
+                                              left: 16.0, top: 8.0, right: 8.0),
+                                          child: SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      context.secondaryColor),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      visible: isDownloading,
-                                    )
-                                  ],
-                                );
-                              },
-                            )
-                          ],
-                        )
-                      ],
+                                        visible: isDownloading,
+                                      )
+                                    ],
+                                  );
+                                },
+                              )
+                            ],
+                          )
+                        ],
+                      ),
                     ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Wrap(
-                      spacing: 6.0,
-                      runSpacing: 6.0,
-                      children: tagChipList,
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Wrap(
+                        spacing: 6.0,
+                        runSpacing: 6.0,
+                        children: tagChipList,
+                      ),
                     ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Text(
-                      'Rating: ${_viewModel.getRatingLabel(post)}',
-                      style: context.bodyText1,
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Text(
-                      'Created at: ${_viewModel.getCreatedAtTimeStamp(post)}',
-                      style: context.bodyText1,
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Text(
-                      'Updated at: ${_viewModel.getUpdatedAtTimeStamp(post)}',
-                      style: context.bodyText1,
-                    ),
-                  ),
-                  Visibility(
-                    child: Container(
+                    Container(
                       margin: const EdgeInsets.symmetric(
                           vertical: 8.0, horizontal: 16.0),
                       child: Text(
-                        'Status: $status',
+                        _viewModel.getRatingLabel(post),
                         style: context.bodyText1,
                       ),
                     ),
-                    visible: status != null && status.isNotEmpty,
-                  ),
-                  Visibility(
-                    child: Container(
+                    Container(
                       margin: const EdgeInsets.symmetric(
                           vertical: 8.0, horizontal: 16.0),
-                      child: TextWithLinks(
-                          text: 'Source: $source',
-                          textStyle: context.bodyText1,
-                          linkStyle: context.button
-                              ?.copyWith(color: context.secondaryColor)),
+                      child: Text(
+                        _viewModel.getCreatedAtTimeStamp(post),
+                        style: context.bodyText1,
+                      ),
                     ),
-                    visible: source != null && source.isNotEmpty,
-                  ),
-                  BlocBuilder(
-                      bloc: _viewModel.artistCubit,
-                      builder: (context, ArtistUiModel? artist) {
-                        List<String> urls = artist?.urls
-                                .where((url) => url.isNotEmpty)
-                                .toList() ??
-                            [];
-                        return Visibility(
-                          child: Container(
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 8.0, horizontal: 16.0),
-                            child: TextWithLinks(
-                                text: 'Artist info: ${urls.join('\n')}',
-                                textStyle: context.bodyText1,
-                                linkStyle: context.button
-                                    ?.copyWith(color: context.secondaryColor)),
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8.0, horizontal: 16.0),
+                      child: Text(
+                        _viewModel.getUpdatedAtTimeStamp(post),
+                        style: context.bodyText1,
+                      ),
+                    ),
+                    Visibility(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: Text(
+                          _viewModel.getStatusLabel(post),
+                          style: context.bodyText1,
+                        ),
+                      ),
+                      visible: status != null && status.isNotEmpty,
+                    ),
+                    Visibility(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: TextWithLinks(
+                            text: _viewModel.getSourceLabel(post),
+                            textStyle: context.bodyText1,
+                            linkStyle: context.button
+                                ?.copyWith(color: context.secondaryColor)),
+                      ),
+                      visible: source != null && source.isNotEmpty,
+                    ),
+                    BlocBuilder(
+                        bloc: _viewModel.artistCubit,
+                        builder: (context, ArtistUiModel? artist) {
+                          List<String> urls = artist?.urls
+                                  .where((url) => url.isNotEmpty)
+                                  .toList() ??
+                              [];
+                          return Visibility(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 8.0, horizontal: 16.0),
+                              child: TextWithLinks(
+                                  text: _viewModel.getArtistInfo(urls),
+                                  textStyle: context.bodyText1,
+                                  linkStyle: context.button?.copyWith(
+                                      color: context.secondaryColor)),
+                            ),
+                            visible: urls.isNotEmpty,
+                          );
+                        })
+                  ];
+
+                  if (children.isNotEmpty) {
+                    content.add(Container(
+                      margin: const EdgeInsets.only(
+                          left: 16.0, top: 16.0, right: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _viewModel.getChildrenSectionTitle(children.length),
+                            style: context.bodyText1,
                           ),
-                          visible: urls.isNotEmpty,
-                        );
-                      })
-                ],
+                          TextButton(
+                              onPressed: () {
+                                context.showYesNoDialog(
+                                    title: _viewModel.downloadChildrenTitle,
+                                    content:
+                                        _viewModel.getDownloadChildrenMessage(
+                                            children.length),
+                                    yesLabel:
+                                        _viewModel.acceptDownloadChildrenAction,
+                                    noLabel:
+                                        _viewModel.cancelDownloadChildrenAction,
+                                    yesAction: () => _viewModel
+                                        .startDownloadAllChildren(children),
+                                    noAction: () {});
+                              },
+                              child: Text(
+                                _viewModel.downloadChildrenAction,
+                                style: context.button
+                                    ?.copyWith(color: context.secondaryColor),
+                              ))
+                        ],
+                      ),
+                    ));
+                    content.addAll(children.map((postItem) => Container(
+                          margin: const EdgeInsets.only(
+                              left: 16.0, right: 16.0, top: 16.0),
+                          child: ChildPostAndroid(
+                            uiModel: postItem,
+                            itemAspectRatio: 1.5,
+                            postDetailsCubit: _viewModel.postDetailsCubit,
+                            onOpenDetail: (postUiModel) {
+                              _viewModel.requestDetailsPage(postUiModel.id);
+                            },
+                            onCloseDetail: () =>
+                                _viewModel.clearDetailsPageRequest(),
+                          ),
+                        )));
+                    content.add(const SizedBox(
+                      height: 16.0,
+                    ));
+                  }
+                  return ListView(
+                    children: content,
+                  );
+                },
               ),
             ),
           ),
@@ -563,15 +627,15 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
     }
     if (state.state == DownloadState.success) {
       context.showConfirmationDialog(
-          title: 'Download Success',
-          message: 'Original illustration is downloaded.',
-          actionLabel: 'OK',
+          title: _viewModel.downloadSuccessTitle,
+          message: _viewModel.downloadSuccessMessage,
+          actionLabel: _viewModel.downloadResultAction,
           action: () {});
     } else if (state.state == DownloadState.failed) {
       context.showConfirmationDialog(
-          title: 'Download Failed',
-          message: 'Could not download original illustration.',
-          actionLabel: 'OK',
+          title: _viewModel.downloadFailureTitle,
+          message: _viewModel.downloadFailureMessage,
+          actionLabel: _viewModel.downloadResultAction,
           action: () {});
     }
   }
