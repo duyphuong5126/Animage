@@ -38,6 +38,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
     Color selectedColor = context.isDark ? accentColorLight : accentColor;
 
     return CupertinoPageScaffold(
+        resizeToAvoidBottomInset: false,
         child: CupertinoTabScaffold(
             tabBar: CupertinoTabBar(
               activeColor: selectedColor,
