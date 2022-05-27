@@ -19,8 +19,8 @@ class ToggleFavoriteUseCaseImpl extends ToggleFavoriteUseCase {
         .then((bool isFavorite) {
           Log.d(_tag, 'is ${post.id} favorite: $isFavorite');
           return isFavorite
-              ? _repository.removeFavorite(post.id)
-              : _repository.addFavoritePost(post);
+              ? _repository.removeFavorite(post.id).then((value) => !isFavorite)
+              : _repository.addFavoritePost(post).then((value) => !isFavorite);
         });
   }
 }

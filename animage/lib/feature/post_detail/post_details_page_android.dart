@@ -6,14 +6,14 @@ import 'package:animage/domain/entity/post.dart';
 import 'package:animage/feature/post_detail/post_details_view_model.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
-import 'package:animage/feature/ui_model/favorite_changed_ui_model.dart';
+import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/image_downloader.dart';
 import 'package:animage/utils/material_context_extension.dart';
-import 'package:animage/widget/child_post_android.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
+import 'package:animage/widget/gallery_list_item_android.dart';
 import 'package:animage/widget/text_with_links.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -83,8 +83,13 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
     List<Widget> tagChipList = [];
     tagChipList.add(
         _buildTitleChip(_viewModel.tagSectionTitle, context.secondaryColor));
-    tagChipList
-        .addAll(tagList.map((tag) => _buildChip(tag, context.secondaryColor)));
+    tagChipList.addAll(tagList.map((tag) => GestureDetector(
+          onTap: () {
+            Navigator.of(context).pop(_buildResult(
+                post.id, _viewModel.favoriteStateCubit.state, tag));
+          },
+          child: _buildChip(tag, context.secondaryColor),
+        )));
 
     return WillPopScope(
         child: Scaffold(
@@ -134,8 +139,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                             color: context.secondaryColor,
                                             isFavorite: isFavorite,
                                             onFavoriteChanged: (newFavStatus) =>
-                                                _viewModel.toggleFavorite(
-                                                    post, isFavorite),
+                                                _viewModel.toggleFavorite(post),
                                           ),
                                         );
                                       }),
@@ -272,9 +276,8 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                                                     isFavorite,
                                                                 onFavoriteChanged:
                                                                     (newFavStatus) =>
-                                                                        _viewModel.toggleFavorite(
-                                                                            post,
-                                                                            isFavorite),
+                                                                        _viewModel
+                                                                            .toggleFavorite(post),
                                                               );
                                                             }),
                                                       ],
@@ -565,7 +568,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                     content.addAll(children.map((postItem) => Container(
                           margin: const EdgeInsets.only(
                               left: 16.0, right: 16.0, top: 16.0),
-                          child: ChildPostAndroid(
+                          child: GalleryListItemAndroid(
                             uiModel: postItem,
                             itemAspectRatio: 1.5,
                             postDetailsCubit: _viewModel.postDetailsCubit,
@@ -574,6 +577,9 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                             },
                             onCloseDetail: () =>
                                 _viewModel.clearDetailsPageRequest(),
+                            onFavoriteChanged: (post) =>
+                                _viewModel.toggleFavoriteOfPost(post.id),
+                            onTagsSelected: (List<String> selectedTags) {},
                           ),
                         )));
                     content.add(const SizedBox(
@@ -589,9 +595,8 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
           ),
         ),
         onWillPop: () async {
-          Navigator.of(context).pop(FavoriteChangedUiModel(
-              postId: post.id,
-              isFavorite: _viewModel.favoriteStateCubit.state));
+          Navigator.of(context).pop(
+              _buildResult(post.id, _viewModel.favoriteStateCubit.state, ''));
           return true;
         });
   }
@@ -638,5 +643,13 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
           actionLabel: _viewModel.downloadResultAction,
           action: () {});
     }
+  }
+
+  DetailResultUiModel _buildResult(
+      int postId, bool isFavorite, String selectedTag) {
+    return DetailResultBuilder()
+        .putFavoriteEntry(postId, isFavorite)
+        .putSelectedTag(selectedTag)
+        .build();
   }
 }

@@ -83,7 +83,9 @@ abstract class PostDetailsViewModel {
 
   void startDownloadAllChildren(List<PostCardUiModel> children);
 
-  void toggleFavorite(Post post, bool isFavorite);
+  void toggleFavorite(Post post);
+
+  void toggleFavoriteOfPost(int postId);
 
   void startDownloadingOriginalImage(Post post);
 
@@ -201,12 +203,10 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
   }
 
   @override
-  void toggleFavorite(Post post, bool isFavorite) async {
-    bool success = await _toggleFavoriteUseCase.execute(post);
-    Log.d(_tag, 'Toggle favorite success: $success');
-    if (success) {
-      _favoriteInitStateCubit.push(!isFavorite);
-    }
+  void toggleFavorite(Post post) async {
+    bool newFavoriteStatus = await _toggleFavoriteUseCase.execute(post);
+    Log.d(_tag, 'New favorite status of post ${post.id}: $newFavoriteStatus');
+    _favoriteInitStateCubit.push(newFavoriteStatus);
   }
 
   @override
@@ -397,5 +397,15 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
   @override
   String getArtistLabel(ArtistUiModel? artistUiModel) {
     return artistUiModel?.name ?? 'Unknown artist';
+  }
+
+  @override
+  void toggleFavoriteOfPost(int postId) async {
+    Post? post = _postDetailsMap[postId];
+    if (post != null) {
+      bool newFavoriteStatus = await _toggleFavoriteUseCase.execute(post);
+      Log.d(_tag, 'New favorite status of post ${post.id}: $newFavoriteStatus');
+      _favoriteInitStateCubit.push(newFavoriteStatus);
+    }
   }
 }

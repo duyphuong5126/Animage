@@ -6,13 +6,13 @@ import 'package:animage/domain/entity/post.dart';
 import 'package:animage/feature/post_detail/post_details_view_model.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
-import 'package:animage/feature/ui_model/favorite_changed_ui_model.dart';
+import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/image_downloader.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
-import 'package:animage/widget/child_post_ios.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
+import 'package:animage/widget/gallery_list_item_ios.dart';
 import 'package:animage/widget/removable_chip_ios.dart';
 import 'package:animage/widget/text_with_links.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -51,12 +51,18 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
         style: context.textStyle,
       ),
     ));
-    tagChipList.addAll(tagList.map((tag) => RemovableChipIOS(
-          label: tag,
-          bgColor: context.brandColor,
-          textColor: CupertinoColors.white,
-          allowRemoval: false,
-          onRemove: () {},
+    tagChipList.addAll(tagList.map((tag) => GestureDetector(
+          onTap: () {
+            Navigator.of(context).pop(_buildResult(
+                post.id, _viewModel.favoriteStateCubit.state, tag));
+          },
+          child: RemovableChipIOS(
+            label: tag,
+            bgColor: context.brandColor,
+            textColor: CupertinoColors.white,
+            allowRemoval: false,
+            onRemove: () {},
+          ),
         )));
 
     _viewModel.initData(post);
@@ -337,7 +343,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                             content.addAll(children.map((postItem) => Container(
                                   margin: const EdgeInsets.only(
                                       left: 16.0, right: 16.0, top: 16.0),
-                                  child: ChildPostIOS(
+                                  child: GalleryListItemIOS(
                                     uiModel: postItem,
                                     cardAspectRatio: 1.5,
                                     postDetailsCubit:
@@ -348,6 +354,10 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                                     },
                                     onCloseDetail: () =>
                                         _viewModel.clearDetailsPageRequest(),
+                                    onFavoriteChanged: (post) => _viewModel
+                                        .toggleFavoriteOfPost(post.id),
+                                    onTagsSelected:
+                                        (List<String> selectedTags) {},
                                   ),
                                 )));
                             content.add(const SizedBox(
@@ -382,9 +392,8 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
               ),
             )),
         onWillPop: () async {
-          Navigator.of(context).pop(FavoriteChangedUiModel(
-              postId: post.id,
-              isFavorite: _viewModel.favoriteStateCubit.state));
+          Navigator.of(context).pop(
+              _buildResult(post.id, _viewModel.favoriteStateCubit.state, ''));
           return true;
         });
   }
@@ -455,7 +464,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                               color: brandColor,
                               isFavorite: isFavorite,
                               onFavoriteChanged: (newFavStatus) =>
-                                  _viewModel.toggleFavorite(post, isFavorite),
+                                  _viewModel.toggleFavorite(post),
                             ),
                           );
                         })
@@ -487,5 +496,13 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
           actionLabel: 'OK',
           action: () {});
     }
+  }
+
+  DetailResultUiModel _buildResult(
+      int postId, bool isFavorite, String selectedTag) {
+    return DetailResultBuilder()
+        .putFavoriteEntry(postId, isFavorite)
+        .putSelectedTag(selectedTag)
+        .build();
   }
 }

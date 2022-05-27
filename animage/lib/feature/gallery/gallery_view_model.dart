@@ -50,6 +50,8 @@ abstract class GalleryViewModel {
 
   void addSearchTag(String tag);
 
+  void addSearchTags(Iterable<String> tags);
+
   void removeSearchTag(String tag);
 
   void toggleFavorite(PostCardUiModel uiModel);
@@ -221,6 +223,14 @@ class GalleryViewModelImpl extends GalleryViewModel {
     Log.d(_tag, 'Add result of tag $tag: $addResult');
   }
 
+  void _addSearchTags(Iterable<String> tags) async {
+    for (String tag in tags) {
+      bool addResult = await _addSearchTermUseCase.execute(
+          tag, DateTime.now().millisecondsSinceEpoch);
+      Log.d(_tag, 'Add result of tag $tag: $addResult');
+    }
+  }
+
   @override
   void removeSearchTag(String tag) {
     if (tag.isNotEmpty) {
@@ -247,11 +257,9 @@ class GalleryViewModelImpl extends GalleryViewModel {
   void toggleFavorite(PostCardUiModel uiModel) async {
     Post? post = _postDetailsMap[uiModel.id];
     if (post != null) {
-      bool result = await _toggleFavoriteUseCase.execute(post);
-      Log.d(_tag, 'Toggle favorite result: $result');
-      if (result) {
-        uiModel.isFavorite = !uiModel.isFavorite;
-      }
+      bool newFavoriteStatus = await _toggleFavoriteUseCase.execute(post);
+      Log.d(_tag, 'New favorite status of post ${post.id}: $newFavoriteStatus');
+      uiModel.isFavorite = newFavoriteStatus;
     }
   }
 
@@ -348,5 +356,22 @@ class GalleryViewModelImpl extends GalleryViewModel {
           Log.d(_tag, 'failed to get postList with error: $error');
           pagingController.error = error;
         });
+  }
+
+  @override
+  void addSearchTags(Iterable<String> tags) {
+    List<String> currentTagList = _tagListCubit?.state ?? [];
+    Iterable<String> toAddList = tags
+        .where((tag) => tag.isNotEmpty)
+        .map((tag) => tag.trim().toLowerCase())
+        .where((tag) => !currentTagList.contains(tag));
+    if (toAddList.isNotEmpty) {
+      List<String> tagList = [];
+      tagList.addAll(currentTagList);
+      tagList.addAll(toAddList);
+      _tagListCubit?.push(tagList);
+      _pagingController?.refresh();
+      _addSearchTags(toAddList);
+    }
   }
 }

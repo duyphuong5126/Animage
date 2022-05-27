@@ -141,11 +141,9 @@ class FavoriteViewModelImpl extends FavoriteViewModel {
   void toggleFavorite(PostCardUiModel uiModel) async {
     Post? post = _postDetailsMap[uiModel.id];
     if (post != null) {
-      bool result = await _toggleFavoriteUseCase.execute(post);
-      Log.d(_tag, 'Toggle favorite result: $result');
-      if (result) {
-        uiModel.isFavorite = !uiModel.isFavorite;
-      }
+      bool newFavoriteStatus = await _toggleFavoriteUseCase.execute(post);
+      Log.d(_tag, 'New favorite status of post ${post.id}: $newFavoriteStatus');
+      uiModel.isFavorite = newFavoriteStatus;
     }
   }
 

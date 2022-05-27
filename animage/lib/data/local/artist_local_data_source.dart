@@ -2,9 +2,8 @@ import 'package:animage/data/local/database/master_database.dart';
 import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/artist/artist_list_change_log.dart';
 import 'package:animage/domain/entity/post.dart';
-import 'package:flutter/foundation.dart';
+import 'package:animage/utils/utils.dart';
 import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
 
 abstract class ArtistLocalDataSource {
   Future<int> get artistCount;
@@ -30,7 +29,7 @@ class ArtistLocalDataSourceImpl extends ArtistLocalDataSource {
 
   @override
   Future<int?> get localVersionId async {
-    Box changeLogBox = await _openHiveBox(_artistChangeLog);
+    Box changeLogBox = await openHiveBox(_artistChangeLog);
     return changeLogBox.get('currentVersionId');
   }
 
@@ -52,16 +51,8 @@ class ArtistLocalDataSourceImpl extends ArtistLocalDataSource {
 
   @override
   Future saveChangeLog(ArtistListChangeLog changeLog) async {
-    Box changeLogBox = await _openHiveBox(_artistChangeLog);
+    Box changeLogBox = await openHiveBox(_artistChangeLog);
     await changeLogBox.put('currentVersionId', changeLog.currentVersionId);
     await changeLogBox.put('updatedAt', changeLog.updatedAt);
-  }
-
-  Future<Box> _openHiveBox(String boxName) async {
-    if (!kIsWeb && !Hive.isBoxOpen(boxName)) {
-      Hive.init((await getApplicationDocumentsDirectory()).path);
-    }
-
-    return await Hive.openBox(boxName);
   }
 }

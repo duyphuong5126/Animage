@@ -1,7 +1,7 @@
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/constant.dart';
 import 'package:animage/domain/entity/post.dart';
-import 'package:animage/feature/ui_model/favorite_changed_ui_model.dart';
+import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
@@ -15,6 +15,7 @@ class GalleryGridItemIOS extends StatefulWidget {
   final Function(PostCardUiModel) onOpenDetail;
   final Function() onCloseDetail;
   final Function(PostCardUiModel) onFavoriteChanged;
+  final Function(List<String> selectedTags) onTagsSelected;
 
   const GalleryGridItemIOS(
       {Key? key,
@@ -22,7 +23,8 @@ class GalleryGridItemIOS extends StatefulWidget {
       required this.postDetailsCubit,
       required this.onOpenDetail,
       required this.onCloseDetail,
-      required this.onFavoriteChanged})
+      required this.onFavoriteChanged,
+      required this.onTagsSelected})
       : super(key: key);
 
   @override
@@ -80,10 +82,8 @@ class _GalleryGridItemIOSState extends State<GalleryGridItemIOS> {
                         if (post != null && post.id == uiModel.id) {
                           final openResult = await Navigator.of(context)
                               .pushNamed(detailsPageRoute, arguments: post);
-                          if (openResult is FavoriteChangedUiModel &&
-                              openResult.postId == uiModel.id) {
-                            uiModel.isFavorite = openResult.isFavorite;
-                            _favoriteCubit.push(openResult.isFavorite);
+                          if (openResult is DetailResultUiModel) {
+                            _proceedDetailResult(openResult, uiModel);
                           }
                           widget.onCloseDetail();
                         }
@@ -128,5 +128,17 @@ class _GalleryGridItemIOSState extends State<GalleryGridItemIOS> {
         ),
       ),
     );
+  }
+
+  void _proceedDetailResult(
+      DetailResultUiModel resultUiModel, PostCardUiModel uiModel) {
+    bool? favoriteResult = resultUiModel.favoriteMap[uiModel.id];
+    if (favoriteResult != null) {
+      uiModel.isFavorite = favoriteResult;
+      _favoriteCubit.push(favoriteResult);
+    }
+    if (resultUiModel.selectedTags.isNotEmpty) {
+      widget.onTagsSelected(resultUiModel.selectedTags);
+    }
   }
 }

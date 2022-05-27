@@ -218,6 +218,7 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
               onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
               onFavoriteChanged: (postUiModel) =>
                   _viewModel.toggleFavorite(postUiModel),
+              onTagsSelected: (List<String> selectedTags) {},
             );
           }),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -260,6 +261,7 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
                   onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
                   onFavoriteChanged: (postUiModel) =>
                       _viewModel.toggleFavorite(postUiModel),
+                  onTagsSelected: (List<String> selectedTags) {},
                 ),
                 margin: const EdgeInsets.only(bottom: 24.0),
               );

@@ -8,6 +8,7 @@ import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:animage/utils/log.dart';
+import 'package:animage/utils/utils.dart';
 import 'package:animage/widget/gallery_grid_item_ios.dart';
 import 'package:animage/widget/gallery_list_item_ios.dart';
 import 'package:animage/widget/removable_chip_ios.dart';
@@ -41,6 +42,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
 
   ScrollController? _scrollController;
   StreamSubscription? _scrollToTopSubscription;
+  StreamSubscription? _getGallerySubscription;
 
   @override
   void initState() {
@@ -51,6 +53,10 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
       if (time > 0) {
         _scrollController?.jumpTo(0);
       }
+    });
+    _getGallerySubscription =
+        getCurrentGalleryMode().asStream().listen((GalleryMode mode) {
+      _modeCubit.push(mode);
     });
   }
 
@@ -63,6 +69,9 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
     _refreshController.dispose();
     _scrollController?.dispose();
     _scrollToTopSubscription?.cancel();
+    _scrollToTopSubscription = null;
+    _getGallerySubscription?.cancel();
+    _getGallerySubscription = null;
   }
 
   @override
@@ -441,6 +450,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
             child: CupertinoButton(
               onPressed: () {
                 _modeCubit.push(GalleryMode.list);
+                saveGalleryModePref(GalleryMode.list);
               },
               child: Icon(
                 CupertinoIcons.list_bullet,
@@ -458,6 +468,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
             child: CupertinoButton(
               onPressed: () {
                 _modeCubit.push(GalleryMode.grid);
+                saveGalleryModePref(GalleryMode.grid);
               },
               child: Icon(CupertinoIcons.rectangle_grid_2x2,
                   color: isGrid ? context.primaryColor : unSelectedModeColor),
@@ -489,6 +500,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
               onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
               onFavoriteChanged: (postUiModel) =>
                   _viewModel.toggleFavorite(postUiModel),
+              onTagsSelected: _viewModel.addSearchTags,
             );
           }),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -531,6 +543,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                   onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
                   onFavoriteChanged: (postUiModel) =>
                       _viewModel.toggleFavorite(postUiModel),
+                  onTagsSelected: _viewModel.addSearchTags,
                 ),
                 margin: const EdgeInsets.only(bottom: 24.0),
               );
