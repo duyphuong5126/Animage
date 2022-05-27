@@ -11,6 +11,7 @@ import 'package:animage/domain/use_case/search_posts_by_tags_use_case.dart';
 import 'package:animage/domain/use_case/toggle_favorite_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/service/favorite_service.dart';
 import 'package:animage/service/image_downloader.dart';
 import 'package:animage/utils/log.dart';
 import 'package:flutter/material.dart';
@@ -26,8 +27,6 @@ abstract class PostDetailsViewModel {
   DataCubit<Color> get sampleImageDominantColorCubit;
 
   DataCubit<ArtistUiModel?> get artistCubit;
-
-  DataCubit<bool> get favoriteStateCubit;
 
   String get tagSectionTitle;
 
@@ -103,7 +102,6 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
   PagingController<int, PostCardUiModel>? _pagingController;
 
   final DataCubit<ArtistUiModel?> _artistCubit = DataCubit(null);
-  final DataCubit<bool> _favoriteInitStateCubit = DataCubit(false);
 
   final GetArtistUseCase _getArtistUseCase = GetArtistUseCaseImpl();
   final ToggleFavoriteUseCase _toggleFavoriteUseCase =
@@ -132,9 +130,6 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
   @override
   DataCubit<ArtistUiModel?> get artistCubit => _artistCubit;
 
-  @override
-  DataCubit<bool> get favoriteStateCubit => _favoriteInitStateCubit;
-
   final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
 
   @override
@@ -146,7 +141,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
         .execute([post.id])
         .asStream()
         .listen((favoriteList) {
-          _favoriteInitStateCubit.push(favoriteList.isNotEmpty);
+          FavoriteService.addFavorites(favoriteList);
         });
   }
 
@@ -206,7 +201,11 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
   void toggleFavorite(Post post) async {
     bool newFavoriteStatus = await _toggleFavoriteUseCase.execute(post);
     Log.d(_tag, 'New favorite status of post ${post.id}: $newFavoriteStatus');
-    _favoriteInitStateCubit.push(newFavoriteStatus);
+    if (newFavoriteStatus) {
+      FavoriteService.addFavorite(post.id);
+    } else {
+      FavoriteService.removeFavorite(post.id);
+    }
   }
 
   @override
@@ -276,6 +275,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
 
           List<int> favoriteList = await _filterFavoriteListUseCase
               .execute(postList.map((post) => post.id).toList());
+          FavoriteService.addFavorites(favoriteList);
 
           Log.d(_tag, 'postList=${postList.length}');
           List<PostCardUiModel> result = postList.map((post) {
@@ -311,7 +311,6 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
               sampleUrl: post.sampleUrl ?? '',
               sampleAspectRatio: sampleAspectRatio,
               artist: artistUiModel,
-              isFavorite: favoriteList.contains(post.id),
             );
           }).toList();
           if (result.isNotEmpty) {
@@ -405,7 +404,11 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
     if (post != null) {
       bool newFavoriteStatus = await _toggleFavoriteUseCase.execute(post);
       Log.d(_tag, 'New favorite status of post ${post.id}: $newFavoriteStatus');
-      _favoriteInitStateCubit.push(newFavoriteStatus);
+      if (newFavoriteStatus) {
+        FavoriteService.addFavorite(post.id);
+      } else {
+        FavoriteService.removeFavorite(post.id);
+      }
     }
   }
 }

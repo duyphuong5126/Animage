@@ -3,6 +3,7 @@ import 'package:animage/constant.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/service/favorite_service.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:animage/widget/favorite_checkbox.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -32,20 +33,6 @@ class GalleryGridItemIOS extends StatefulWidget {
 }
 
 class _GalleryGridItemIOSState extends State<GalleryGridItemIOS> {
-  final DataCubit<bool> _favoriteCubit = DataCubit(false);
-
-  @override
-  void initState() {
-    super.initState();
-    _favoriteCubit.push(widget.uiModel.isFavorite);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _favoriteCubit.closeAsync();
-  }
-
   @override
   Widget build(BuildContext context) {
     PostCardUiModel uiModel = widget.uiModel;
@@ -82,8 +69,9 @@ class _GalleryGridItemIOSState extends State<GalleryGridItemIOS> {
                         if (post != null && post.id == uiModel.id) {
                           final openResult = await Navigator.of(context)
                               .pushNamed(detailsPageRoute, arguments: post);
-                          if (openResult is DetailResultUiModel) {
-                            _proceedDetailResult(openResult, uiModel);
+                          if (openResult is DetailResultUiModel &&
+                              openResult.selectedTags.isNotEmpty) {
+                            widget.onTagsSelected(openResult.selectedTags);
                           }
                           widget.onCloseDetail();
                         }
@@ -102,8 +90,9 @@ class _GalleryGridItemIOSState extends State<GalleryGridItemIOS> {
                           .copyWith(color: CupertinoColors.white),
                     )),
                     BlocBuilder(
-                        bloc: _favoriteCubit,
-                        builder: (context, bool isFavorite) {
+                        bloc: FavoriteService.favoriteListCubit,
+                        builder: (context, List<int> favoriteList) {
+                          bool isFavorite = favoriteList.contains(uiModel.id);
                           return FavoriteCheckbox(
                             key: ValueKey(DateTime.now()),
                             size: 20,
@@ -128,17 +117,5 @@ class _GalleryGridItemIOSState extends State<GalleryGridItemIOS> {
         ),
       ),
     );
-  }
-
-  void _proceedDetailResult(
-      DetailResultUiModel resultUiModel, PostCardUiModel uiModel) {
-    bool? favoriteResult = resultUiModel.favoriteMap[uiModel.id];
-    if (favoriteResult != null) {
-      uiModel.isFavorite = favoriteResult;
-      _favoriteCubit.push(favoriteResult);
-    }
-    if (resultUiModel.selectedTags.isNotEmpty) {
-      widget.onTagsSelected(resultUiModel.selectedTags);
-    }
   }
 }

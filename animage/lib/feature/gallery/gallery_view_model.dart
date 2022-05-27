@@ -14,6 +14,7 @@ import 'package:animage/domain/use_case/search_posts_by_tags_use_case.dart';
 import 'package:animage/domain/use_case/toggle_favorite_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/service/favorite_service.dart';
 import 'package:animage/utils/log.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
@@ -259,7 +260,11 @@ class GalleryViewModelImpl extends GalleryViewModel {
     if (post != null) {
       bool newFavoriteStatus = await _toggleFavoriteUseCase.execute(post);
       Log.d(_tag, 'New favorite status of post ${post.id}: $newFavoriteStatus');
-      uiModel.isFavorite = newFavoriteStatus;
+      if (newFavoriteStatus) {
+        FavoriteService.addFavorite(uiModel.id);
+      } else {
+        FavoriteService.removeFavorite(uiModel.id);
+      }
     }
   }
 
@@ -309,6 +314,7 @@ class GalleryViewModelImpl extends GalleryViewModel {
 
           List<int> favoriteList = await _filterFavoriteListUseCase
               .execute(postList.map((post) => post.id).toList());
+          FavoriteService.addFavorites(favoriteList);
 
           Log.d(_tag, 'postList=${postList.length}');
           List<PostCardUiModel> result = postList.map((post) {
@@ -344,7 +350,6 @@ class GalleryViewModelImpl extends GalleryViewModel {
               sampleUrl: post.sampleUrl ?? '',
               sampleAspectRatio: sampleAspectRatio,
               artist: artistUiModel,
-              isFavorite: favoriteList.contains(post.id),
             );
           }).toList();
           if (result.isEmpty) {

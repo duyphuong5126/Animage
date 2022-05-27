@@ -7,6 +7,7 @@ import 'package:animage/domain/use_case/get_favorite_list_use_case.dart';
 import 'package:animage/domain/use_case/toggle_favorite_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/service/favorite_service.dart';
 import 'package:animage/utils/log.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
@@ -143,7 +144,11 @@ class FavoriteViewModelImpl extends FavoriteViewModel {
     if (post != null) {
       bool newFavoriteStatus = await _toggleFavoriteUseCase.execute(post);
       Log.d(_tag, 'New favorite status of post ${post.id}: $newFavoriteStatus');
-      uiModel.isFavorite = newFavoriteStatus;
+      if (newFavoriteStatus) {
+        FavoriteService.addFavorite(uiModel.id);
+      } else {
+        FavoriteService.removeFavorite(uiModel.id);
+      }
     }
   }
 
@@ -172,6 +177,8 @@ class FavoriteViewModelImpl extends FavoriteViewModel {
         .listen((Pair<List<Post>, Map<int, Artist>> postsAndArtists) async {
           List<Post> postList = postsAndArtists.first;
           Map<int, Artist> artistMap = postsAndArtists.second;
+
+          FavoriteService.addFavorites(postList.map((post) => post.id));
 
           List<PostCardUiModel> result = postList.map((post) {
             _postDetailsMap[post.id] = post;
@@ -206,7 +213,6 @@ class FavoriteViewModelImpl extends FavoriteViewModel {
               sampleUrl: post.sampleUrl ?? '',
               sampleAspectRatio: sampleAspectRatio,
               artist: artistUiModel,
-              isFavorite: true,
             );
           }).toList();
           Log.d(_tag, 'result=${result.length}');

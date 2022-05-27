@@ -8,6 +8,7 @@ import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/service/favorite_service.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/image_downloader.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
@@ -53,8 +54,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
     ));
     tagChipList.addAll(tagList.map((tag) => GestureDetector(
           onTap: () {
-            Navigator.of(context).pop(_buildResult(
-                post.id, _viewModel.favoriteStateCubit.state, tag));
+            Navigator.of(context).pop(DetailResultUiModel(selectedTags: [tag]));
           },
           child: RemovableChipIOS(
             label: tag,
@@ -392,8 +392,8 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
               ),
             )),
         onWillPop: () async {
-          Navigator.of(context).pop(
-              _buildResult(post.id, _viewModel.favoriteStateCubit.state, ''));
+          Navigator.of(context)
+              .pop(const DetailResultUiModel(selectedTags: []));
           return true;
         });
   }
@@ -453,8 +453,9 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                       ],
                     )),
                     BlocBuilder(
-                        bloc: _viewModel.favoriteStateCubit,
-                        builder: (context, bool isFavorite) {
+                        bloc: FavoriteService.favoriteListCubit,
+                        builder: (context, List<int> favoriteList) {
+                          bool isFavorite = favoriteList.contains(post.id);
                           return Container(
                             margin: const EdgeInsets.only(right: 16.0),
                             child: FavoriteCheckbox(
@@ -496,13 +497,5 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
           actionLabel: 'OK',
           action: () {});
     }
-  }
-
-  DetailResultUiModel _buildResult(
-      int postId, bool isFavorite, String selectedTag) {
-    return DetailResultBuilder()
-        .putFavoriteEntry(postId, isFavorite)
-        .putSelectedTag(selectedTag)
-        .build();
   }
 }

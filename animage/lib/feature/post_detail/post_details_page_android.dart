@@ -9,6 +9,7 @@ import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/service/favorite_service.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/image_downloader.dart';
 import 'package:animage/utils/material_context_extension.dart';
@@ -85,8 +86,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
         _buildTitleChip(_viewModel.tagSectionTitle, context.secondaryColor));
     tagChipList.addAll(tagList.map((tag) => GestureDetector(
           onTap: () {
-            Navigator.of(context).pop(_buildResult(
-                post.id, _viewModel.favoriteStateCubit.state, tag));
+            Navigator.of(context).pop(DetailResultUiModel(selectedTags: [tag]));
           },
           child: _buildChip(tag, context.secondaryColor),
         )));
@@ -129,8 +129,11 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                     NavigationBarExpandStatus.expanded;
                                 return Visibility(
                                   child: BlocBuilder(
-                                      bloc: _viewModel.favoriteStateCubit,
-                                      builder: (context, bool isFavorite) {
+                                      bloc: FavoriteService.favoriteListCubit,
+                                      builder:
+                                          (context, List<int> favoriteList) {
+                                        bool isFavorite =
+                                            favoriteList.contains(post.id);
                                         return Container(
                                           margin: const EdgeInsets.only(
                                               right: 16.0),
@@ -260,11 +263,15 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                                           ],
                                                         )),
                                                         BlocBuilder(
-                                                            bloc: _viewModel
-                                                                .favoriteStateCubit,
+                                                            bloc: FavoriteService
+                                                                .favoriteListCubit,
                                                             builder: (context,
-                                                                bool
-                                                                    isFavorite) {
+                                                                List<int>
+                                                                    favoriteList) {
+                                                              bool isFavorite =
+                                                                  favoriteList
+                                                                      .contains(
+                                                                          post.id);
                                                               return FavoriteCheckbox(
                                                                 key: ValueKey(
                                                                     DateTime.now()
@@ -595,8 +602,8 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
           ),
         ),
         onWillPop: () async {
-          Navigator.of(context).pop(
-              _buildResult(post.id, _viewModel.favoriteStateCubit.state, ''));
+          Navigator.of(context)
+              .pop(const DetailResultUiModel(selectedTags: []));
           return true;
         });
   }
@@ -643,13 +650,5 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
           actionLabel: _viewModel.downloadResultAction,
           action: () {});
     }
-  }
-
-  DetailResultUiModel _buildResult(
-      int postId, bool isFavorite, String selectedTag) {
-    return DetailResultBuilder()
-        .putFavoriteEntry(postId, isFavorite)
-        .putSelectedTag(selectedTag)
-        .build();
   }
 }
