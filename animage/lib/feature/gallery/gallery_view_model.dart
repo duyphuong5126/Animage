@@ -4,10 +4,10 @@ import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/general/pair.dart';
 import 'package:animage/domain/entity/post.dart';
-import 'package:animage/domain/use_case/add_search_term_use_case.dart';
-import 'package:animage/domain/use_case/delete_search_term_use_case.dart';
+import 'package:animage/domain/use_case/add_search_filter_use_case.dart';
+import 'package:animage/domain/use_case/delete_search_filter_use_case.dart';
 import 'package:animage/domain/use_case/filter_favorite_list_use_case.dart';
-import 'package:animage/domain/use_case/get_all_search_history_use_case.dart';
+import 'package:animage/domain/use_case/get_all_search_filters_use_case.dart';
 import 'package:animage/domain/use_case/get_artists_use_case.dart';
 import 'package:animage/domain/use_case/get_post_list_use_case.dart';
 import 'package:animage/domain/use_case/search_posts_by_tags_use_case.dart';
@@ -80,12 +80,12 @@ class GalleryViewModelImpl extends GalleryViewModel {
   late final GetArtistsUseCase _getArtistsUseCase = GetArtistListUseCaseImpl();
   late final SearchPostsByTagsUseCase _searchPostsByTagsUseCase =
       SearchPostsByTagsUseCaseImpl();
-  late final GetAllSearchHistoryUseCase _getAllSearchHistoryUseCase =
-      GetAllSearchHistoryUseCaseImpl();
-  late final AddSearchTermUseCase _addSearchTermUseCase =
-      AddSearchTermUseCaseImpl();
-  late final DeleteSearchTermUseCase _deleteSearchTermUseCase =
-      DeleteSearchTermUseCaseImpl();
+  late final GetAllSearchFiltersUseCase _getAllSearchHistoryUseCase =
+      GetAllSearchFiltersUseCaseImpl();
+  late final AddSearchFilterUseCase _addSearchTermUseCase =
+      AddSearchFilterUseCaseImpl();
+  late final DeleteSearchFilterUseCase _deleteSearchTermUseCase =
+      DeleteSearchFilterUseCaseImpl();
   late final ToggleFavoriteUseCase _toggleFavoriteUseCase =
       ToggleFavoriteUseCaseImpl();
   late final FilterFavoriteListUseCase _filterFavoriteListUseCase =
