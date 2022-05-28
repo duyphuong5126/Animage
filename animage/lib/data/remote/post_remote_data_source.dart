@@ -13,10 +13,7 @@ abstract class PostRemoteDataSource {
 
 class PostRemoteDataSourceImpl implements PostRemoteDataSource {
   static const String basePostUrl =
-      '${ApiConstant.baseUrl}/${ApiConstant.post}?${ApiConstant.apiVersionParam}=${ApiConstant.apiVersion}';
-
-  /*static const String baseSafePostUrl =
-      '${ApiConstant.baseUrl}/${ApiConstant.post}?${ApiConstant.apiVersionParam}=${ApiConstant.apiVersion}&tags=rating:safe';*/
+      '${ApiConstant.baseUrl}/${ApiConstant.post}?${ApiConstant.apiVersionParam}=${ApiConstant.apiVersion}&${ApiConstant.tags}=rating:safe';
 
   static const int requestTimeOut = 60;
 
@@ -49,8 +46,7 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
       return fragments.join('_');
     }).join('+');
 
-    String url =
-        '$basePostUrl&${ApiConstant.tags}=$normalizedTags&${ApiConstant.page}=$page';
+    String url = '$basePostUrl+$normalizedTags&${ApiConstant.page}=$page';
     Future<List<Post>> result;
     try {
       Response response = await get(Uri.parse(url))
