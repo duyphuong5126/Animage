@@ -6,6 +6,12 @@ abstract class SearchLocalDataSource {
   Future<bool> deleteFilter(String filter);
 
   Future<List<String>> getAllFilters();
+
+  Future<bool> addSearchHistory(String searchTerm, int searchTime);
+
+  Future<bool> deleteSearchHistory(String searchTerm);
+
+  Future<List<String>> getSearchHistory();
 }
 
 class SearchLocalDataSourceImpl extends SearchLocalDataSource {
@@ -25,4 +31,15 @@ class SearchLocalDataSourceImpl extends SearchLocalDataSource {
   Future<List<String>> getAllFilters() {
     return _database.getCurrentFilter();
   }
+
+  @override
+  Future<bool> addSearchHistory(String searchTerm, int searchTime) =>
+      _database.addSearchHistory(searchTerm, searchTime);
+
+  @override
+  Future<bool> deleteSearchHistory(String searchTerm) =>
+      _database.deleteSearchHistory(searchTerm);
+
+  @override
+  Future<List<String>> getSearchHistory() => _database.getSearchHistory();
 }

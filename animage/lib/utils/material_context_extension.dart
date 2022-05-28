@@ -6,6 +6,12 @@ import 'package:flutter/material.dart';
 extension MaterialContextExtension on BuildContext {
   double get screenWidth => MediaQuery.of(this).size.width;
 
+  double get safeAreaHeight {
+    double height = MediaQuery.of(this).size.height;
+    EdgeInsets padding = MediaQuery.of(this).padding;
+    return height - padding.top - padding.bottom;
+  }
+
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
 
   Color get defaultSecondaryColor {
@@ -14,6 +20,11 @@ extension MaterialContextExtension on BuildContext {
 
   Color get defaultBackgroundColor {
     return Theme.of(this).backgroundColor;
+  }
+
+  Color get defaultDividerColor {
+    bool isDark = Theme.of(this).brightness == Brightness.dark;
+    return isDark ? Colors.white : Colors.grey[300]!;
   }
 
   Color get defaultShadowColor {

@@ -14,4 +14,16 @@ class SearchRepositoryImpl extends SearchRepository {
 
   @override
   Future<List<String>> getAllFilters() => _localDataSource.getAllFilters();
+
+  @override
+  Future<bool> addSearchHistory(String searchTerm, int searchTime) =>
+      _localDataSource.addSearchHistory(searchTerm, searchTime);
+
+  @override
+  Future<bool> deleteSearchHistory(String searchTerm) =>
+      _localDataSource.deleteSearchHistory(searchTerm);
+
+  @override
+  Future<List<String>> getSearchHistory() =>
+      _localDataSource.getSearchHistory();
 }

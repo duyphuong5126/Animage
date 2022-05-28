@@ -66,15 +66,9 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController searchEditingController = TextEditingController();
-    searchEditingController.addListener(() {
-      _showClearSearchButtonCubit.push(searchEditingController.text.isNotEmpty);
-    });
     bool isDark = context.isDark;
 
     Color? searchBackgroundColor = isDark ? Colors.grey[900] : Colors.grey[200];
-    Color? searchTextColor = isDark ? Colors.white : Colors.grey[900];
-    Color? searchHintColor = isDark ? Colors.white : Colors.grey[700];
     Color? unSelectedModeColor = isDark ? Colors.white : Colors.grey[400];
 
     return Scaffold(
@@ -92,39 +86,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
           decoration: BoxDecoration(
               color: searchBackgroundColor,
               borderRadius: const BorderRadius.all(Radius.circular(20))),
-          child: TextField(
-            autofocus: false,
-            controller: searchEditingController,
-            style: context.bodyText2?.copyWith(color: searchTextColor),
-            textInputAction: TextInputAction.search,
-            decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(vertical: 8.0),
-                prefixIcon: Icon(
-                  Icons.search,
-                  color: context.secondaryColor,
-                ),
-                suffixIcon: BlocBuilder(
-                  bloc: _showClearSearchButtonCubit,
-                  builder: (context, bool showClearButton) {
-                    return Visibility(
-                      child: IconButton(
-                        icon: Icon(Icons.clear, color: context.secondaryColor),
-                        onPressed: () {
-                          searchEditingController.clear();
-                        },
-                      ),
-                      visible: showClearButton,
-                    );
-                  },
-                ),
-                hintText: 'Type something...',
-                hintStyle: context.bodyText2?.copyWith(color: searchHintColor),
-                border: InputBorder.none),
-            onSubmitted: (String searchTerm) {
-              searchEditingController.clear();
-              _viewModel.addSearchTag(searchTerm);
-            },
-          ),
+          child: _buildSearchView(context),
         ),
       ),
       body: SafeArea(
@@ -395,5 +357,133 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
         ),
       ),
     );
+  }
+
+  Widget _buildSearchView(BuildContext context) {
+    Color? searchTextColor = context.isDark ? Colors.white : Colors.grey[900];
+    Color? searchHintColor = context.isDark ? Colors.white : Colors.grey[700];
+
+    return BlocBuilder(
+        bloc: _viewModel.searchHistoryCubit,
+        builder: (context, List<String> history) {
+          Log.d('Test>>>', 'history=$history');
+          return RawAutocomplete<String>(
+              optionsBuilder: (TextEditingValue text) {
+            String searchTerm = text.text.trim().toLowerCase();
+            if (searchTerm.isEmpty) {
+              return const [];
+            }
+            return history.where((historyItem) {
+              return historyItem.startsWith(searchTerm);
+            });
+          }, onSelected: (historyItem) {
+            _viewModel.addSearchTag(historyItem);
+          }, optionsViewBuilder:
+                  (context, onSelected, Iterable<String> history) {
+            double maxHeight = (context.safeAreaHeight * 2) / 3;
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Container(
+                margin: const EdgeInsets.only(right: 32.0),
+                color: context.defaultBackgroundColor,
+                constraints: BoxConstraints(maxHeight: maxHeight),
+                child: ListView.separated(
+                    shrinkWrap: true,
+                    separatorBuilder: (context, int index) => Divider(
+                          color: context.defaultDividerColor,
+                          height: 1,
+                        ),
+                    padding: EdgeInsets.zero,
+                    itemCount: history.length,
+                    itemBuilder: (context, int index) {
+                      String historyItem = history.elementAt(index);
+                      return Container(
+                        color: context.defaultBackgroundColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                                child: GestureDetector(
+                              child: RichText(
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                text: TextSpan(
+                                    style: context.bodyText2,
+                                    children: [TextSpan(text: historyItem)]),
+                              ),
+                              onTap: () => onSelected(historyItem),
+                            )),
+                            GestureDetector(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 16, horizontal: 8),
+                                child: Icon(Icons.close,
+                                    size: 24, color: context.secondaryColor),
+                              ),
+                              onTap: () => _removeSearchHistory(historyItem),
+                            )
+                          ],
+                        ),
+                      );
+                    }),
+              ),
+            );
+          }, fieldViewBuilder: (BuildContext context,
+                  TextEditingController textEditingController,
+                  FocusNode focusNode,
+                  VoidCallback onFieldSubmitted) {
+            textEditingController.addListener(() {
+              _showClearSearchButtonCubit
+                  .push(textEditingController.text.isNotEmpty);
+            });
+            return TextField(
+              autofocus: false,
+              focusNode: focusNode,
+              controller: textEditingController,
+              style: context.bodyText2?.copyWith(color: searchTextColor),
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(vertical: 8.0),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: context.secondaryColor,
+                  ),
+                  suffixIcon: BlocBuilder(
+                    bloc: _showClearSearchButtonCubit,
+                    builder: (context, bool showClearButton) {
+                      return Visibility(
+                        child: IconButton(
+                          icon:
+                              Icon(Icons.clear, color: context.secondaryColor),
+                          onPressed: () {
+                            textEditingController.clear();
+                          },
+                        ),
+                        visible: showClearButton,
+                      );
+                    },
+                  ),
+                  hintText: 'Type something...',
+                  hintStyle:
+                      context.bodyText2?.copyWith(color: searchHintColor),
+                  border: InputBorder.none),
+              onSubmitted: (String searchTerm) {
+                textEditingController.clear();
+                _viewModel.addSearchTag(searchTerm);
+              },
+            );
+          });
+        });
+  }
+
+  void _removeSearchHistory(String historyItem) {
+    context.showYesNoDialog(
+        title: _viewModel.removeSearchHistoryTitle,
+        content: _viewModel.getSearchHistoryRemovalMessage(historyItem),
+        yesLabel: _viewModel.acceptTagRemoval,
+        noLabel: _viewModel.cancelTagRemoval,
+        yesAction: () => _viewModel.removeSearchHistory(historyItem),
+        noAction: () {});
   }
 }

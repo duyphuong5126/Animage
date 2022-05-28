@@ -10,5 +10,6 @@ class AddSearchFilterUseCaseImpl extends AddSearchFilterUseCase {
 
   @override
   Future<bool> execute(String filter, int applyingTime) =>
-      _repository.addFilter(filter, applyingTime);
+      _repository.addFilter(filter, applyingTime).then((value) => _repository
+          .addSearchHistory(filter.replaceAll('_', ' '), applyingTime));
 }

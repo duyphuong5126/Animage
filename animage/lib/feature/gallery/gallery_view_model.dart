@@ -6,10 +6,12 @@ import 'package:animage/domain/entity/general/pair.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/domain/use_case/add_search_filter_use_case.dart';
 import 'package:animage/domain/use_case/delete_search_filter_use_case.dart';
+import 'package:animage/domain/use_case/delete_search_history_use_case.dart';
 import 'package:animage/domain/use_case/filter_favorite_list_use_case.dart';
 import 'package:animage/domain/use_case/get_all_search_filters_use_case.dart';
 import 'package:animage/domain/use_case/get_artists_use_case.dart';
 import 'package:animage/domain/use_case/get_post_list_use_case.dart';
+import 'package:animage/domain/use_case/get_search_history_use_case.dart';
 import 'package:animage/domain/use_case/search_posts_by_tags_use_case.dart';
 import 'package:animage/domain/use_case/toggle_favorite_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
@@ -22,6 +24,8 @@ abstract class GalleryViewModel {
   DataCubit<Post?> get postDetailsCubit;
 
   DataCubit<List<String>> get tagListCubit;
+
+  DataCubit<List<String>> get searchHistoryCubit;
 
   DataCubit<bool> get setUpFinishCubit;
 
@@ -37,7 +41,11 @@ abstract class GalleryViewModel {
 
   String get cancelTagRemoval;
 
+  String get removeSearchHistoryTitle;
+
   String getTagRemovalMessage(String tag);
+
+  String getSearchHistoryRemovalMessage(String searchTerm);
 
   void init();
 
@@ -54,6 +62,8 @@ abstract class GalleryViewModel {
   void addSearchTags(Iterable<String> tags);
 
   void removeSearchTag(String tag);
+
+  void removeSearchHistory(String tag);
 
   void toggleFavorite(PostCardUiModel uiModel);
 
@@ -80,7 +90,7 @@ class GalleryViewModelImpl extends GalleryViewModel {
   late final GetArtistsUseCase _getArtistsUseCase = GetArtistListUseCaseImpl();
   late final SearchPostsByTagsUseCase _searchPostsByTagsUseCase =
       SearchPostsByTagsUseCaseImpl();
-  late final GetAllSearchFiltersUseCase _getAllSearchHistoryUseCase =
+  late final GetAllSearchFiltersUseCase _getAllSearchFiltersUseCase =
       GetAllSearchFiltersUseCaseImpl();
   late final AddSearchFilterUseCase _addSearchTermUseCase =
       AddSearchFilterUseCaseImpl();
@@ -90,7 +100,12 @@ class GalleryViewModelImpl extends GalleryViewModel {
       ToggleFavoriteUseCaseImpl();
   late final FilterFavoriteListUseCase _filterFavoriteListUseCase =
       FilterFavoriteListUseCaseImpl();
+  late final GetSearchHistoryUseCase _getSearchHistoryUseCase =
+      GetSearchHistoryUseCaseImpl();
+  late final DeleteSearchHistoryUseCase _deleteSearchHistoryUseCase =
+      DeleteSearchHistoryUseCaseImpl();
 
+  late final StreamSubscription? _getAllSearchFilterSubscription;
   late final StreamSubscription? _getAllSearchHistorySubscription;
 
   PagingController<int, PostCardUiModel>? _pagingController;
@@ -98,6 +113,7 @@ class GalleryViewModelImpl extends GalleryViewModel {
   DataCubit<Post?>? _postDetailsCubit;
   DataCubit<int>? _galleryRefreshedAtCubit;
   DataCubit<List<String>>? _tagListCubit;
+  DataCubit<List<String>>? _searchHistoryCubit;
   DataCubit<bool>? _setUpFinishCubit;
 
   final Map<int, Post> _postDetailsMap = {};
@@ -112,6 +128,9 @@ class GalleryViewModelImpl extends GalleryViewModel {
 
   @override
   DataCubit<List<String>> get tagListCubit => _tagListCubit!;
+
+  @override
+  DataCubit<List<String>> get searchHistoryCubit => _searchHistoryCubit!;
 
   @override
   DataCubit<bool> get setUpFinishCubit => _setUpFinishCubit!;
@@ -161,14 +180,18 @@ class GalleryViewModelImpl extends GalleryViewModel {
     _postDetailsCubit = DataCubit(null);
     _galleryRefreshedAtCubit = DataCubit(-1);
     _tagListCubit = DataCubit([]);
+    _searchHistoryCubit = DataCubit([]);
     _setUpFinishCubit = DataCubit(false);
 
-    _getAllSearchHistorySubscription = _getAllSearchHistoryUseCase
-        .execute()
-        .asStream()
-        .listen((searchHistory) {
-      _tagListCubit?.push(searchHistory);
+    _getAllSearchFilterSubscription =
+        _getAllSearchFiltersUseCase.execute().asStream().listen((filters) {
+      _tagListCubit?.push(filters);
       _setUpFinishCubit?.push(true);
+    });
+
+    _getAllSearchHistorySubscription =
+        _getSearchHistoryUseCase.execute().asStream().listen((history) {
+      _searchHistoryCubit?.push(history);
     });
   }
 
@@ -219,16 +242,40 @@ class GalleryViewModelImpl extends GalleryViewModel {
   }
 
   void _addSearchTag(String tag) async {
-    bool addResult = await _addSearchTermUseCase.execute(
+    bool success = await _addSearchTermUseCase.execute(
         tag, DateTime.now().millisecondsSinceEpoch);
-    Log.d(_tag, 'Add result of tag $tag: $addResult');
+    String suggestion = tag.trim().replaceAll('_', ' ');
+    Log.d(_tag, 'Add result of tag $tag: $success');
+    if (success) {
+      List<String> newHistoryList = [];
+      List<String>? currentHistoryList = _searchHistoryCubit?.state;
+      if (currentHistoryList != null) {
+        newHistoryList.addAll(currentHistoryList);
+      }
+      if (!newHistoryList.contains(suggestion)) {
+        newHistoryList.add(suggestion);
+      }
+      _searchHistoryCubit?.push(newHistoryList);
+    }
   }
 
   void _addSearchTags(Iterable<String> tags) async {
     for (String tag in tags) {
-      bool addResult = await _addSearchTermUseCase.execute(
+      bool success = await _addSearchTermUseCase.execute(
           tag, DateTime.now().millisecondsSinceEpoch);
-      Log.d(_tag, 'Add result of tag $tag: $addResult');
+      Log.d(_tag, 'Add result of tag $tag: $success');
+      String suggestion = tag.trim().replaceAll('_', ' ');
+      if (success) {
+        List<String> newHistoryList = [];
+        List<String>? currentHistoryList = _searchHistoryCubit?.state;
+        if (currentHistoryList != null) {
+          newHistoryList.addAll(currentHistoryList);
+        }
+        if (!newHistoryList.contains(suggestion)) {
+          newHistoryList.add(suggestion);
+        }
+        _searchHistoryCubit?.push(newHistoryList);
+      }
     }
   }
 
@@ -279,6 +326,8 @@ class GalleryViewModelImpl extends GalleryViewModel {
     _galleryRefreshedAtCubit = null;
     _tagListCubit?.closeAsync();
     _tagListCubit = null;
+    _getAllSearchFilterSubscription?.cancel();
+    _getAllSearchFilterSubscription = null;
     _getAllSearchHistorySubscription?.cancel();
     _getAllSearchHistorySubscription = null;
   }
@@ -379,4 +428,26 @@ class GalleryViewModelImpl extends GalleryViewModel {
       _addSearchTags(toAddList);
     }
   }
+
+  @override
+  void removeSearchHistory(String tag) async {
+    String normalizedTag = tag.trim().toLowerCase();
+    bool success = await _deleteSearchHistoryUseCase.execute(normalizedTag);
+    if (success) {
+      List<String> newHistoryList = [];
+      List<String>? currentHistoryList = _searchHistoryCubit?.state;
+      if (currentHistoryList != null && currentHistoryList.isNotEmpty) {
+        newHistoryList.addAll(
+            currentHistoryList.where((historyItem) => historyItem != tag));
+      }
+      _searchHistoryCubit?.push(newHistoryList);
+    }
+  }
+
+  @override
+  String getSearchHistoryRemovalMessage(String searchTerm) =>
+      'Remove this suggestion: $searchTerm?';
+
+  @override
+  String get removeSearchHistoryTitle => 'Remove Suggestion';
 }

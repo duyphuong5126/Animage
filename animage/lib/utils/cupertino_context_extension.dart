@@ -20,6 +20,11 @@ extension CupertinoContextExtension on BuildContext {
   Color get defaultBackgroundColor =>
       CupertinoTheme.of(this).scaffoldBackgroundColor;
 
+  Color get defaultDividerColor {
+    bool isDark = CupertinoTheme.of(this).brightness == Brightness.dark;
+    return isDark ? CupertinoColors.white : CupertinoColors.inactiveGray;
+  }
+
   double get safeAreaHeight {
     double height = MediaQuery.of(this).size.height;
     EdgeInsets padding = MediaQuery.of(this).padding;

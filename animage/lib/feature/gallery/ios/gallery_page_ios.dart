@@ -131,20 +131,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                     builder: (context, expandStatus) {
                       return Visibility(
                         child: Container(
-                          child: CupertinoSearchTextField(
-                            controller: searchEditController,
-                            autofocus: false,
-                            suffixIcon: const Icon(
-                              CupertinoIcons.clear_circled_solid,
-                            ),
-                            onChanged: (value) {
-                              _showCancelSearchCubit.push(value.isNotEmpty);
-                            },
-                            onSubmitted: (String searchTerm) {
-                              searchEditController.clear();
-                              _viewModel.addSearchTag(searchTerm);
-                            },
-                          ),
+                          child: _buildSearchView(context),
                           margin: const EdgeInsets.only(left: 8, right: 8),
                         ),
                         visible:
@@ -555,5 +542,105 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
       radius: 16,
       color: context.primaryColor,
     );
+  }
+
+  Widget _buildSearchView(BuildContext context) {
+    return BlocBuilder(
+        bloc: _viewModel.searchHistoryCubit,
+        builder: (context, List<String> history) {
+          Log.d('Test>>>', 'history=$history');
+          return RawAutocomplete<String>(
+              optionsBuilder: (TextEditingValue text) {
+            String searchTerm = text.text.trim().toLowerCase();
+            if (searchTerm.isEmpty) {
+              return const [];
+            }
+            return history.where((historyItem) {
+              return historyItem.startsWith(searchTerm);
+            });
+          }, onSelected: (historyItem) {
+            _viewModel.addSearchTag(historyItem);
+          }, optionsViewBuilder:
+                  (context, onSelected, Iterable<String> history) {
+            double maxHeight = (context.safeAreaHeight * 2) / 3;
+            return Align(
+              alignment: Alignment.topLeft,
+              child: Container(
+                padding: const EdgeInsets.only(right: 40.0),
+                constraints: BoxConstraints(maxHeight: maxHeight),
+                child: ListView.separated(
+                    shrinkWrap: true,
+                    separatorBuilder: (context, int index) => Container(
+                          color: context.defaultDividerColor,
+                          height: 1,
+                        ),
+                    padding: EdgeInsets.zero,
+                    itemCount: history.length,
+                    itemBuilder: (context, int index) {
+                      String historyItem = history.elementAt(index);
+                      return Container(
+                        color: context.defaultBackgroundColor,
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                                child: GestureDetector(
+                              child: RichText(
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                                text: TextSpan(
+                                    style: context.textStyle,
+                                    children: [TextSpan(text: historyItem)]),
+                              ),
+                              onTap: () => onSelected(historyItem),
+                            )),
+                            GestureDetector(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 16, horizontal: 8),
+                                child: Icon(CupertinoIcons.clear,
+                                    size: 24,
+                                    color: context.brandColorDayNight),
+                              ),
+                              onTap: () => _removeSearchHistory(historyItem),
+                            )
+                          ],
+                        ),
+                      );
+                    }),
+              ),
+            );
+          }, fieldViewBuilder: (BuildContext context,
+                  TextEditingController textEditingController,
+                  FocusNode focusNode,
+                  VoidCallback onFieldSubmitted) {
+            return CupertinoSearchTextField(
+              controller: textEditingController,
+              focusNode: focusNode,
+              autofocus: false,
+              suffixIcon: const Icon(
+                CupertinoIcons.clear_circled_solid,
+              ),
+              onChanged: (value) {
+                _showCancelSearchCubit.push(value.isNotEmpty);
+              },
+              onSubmitted: (String searchTerm) {
+                textEditingController.clear();
+                _viewModel.addSearchTag(searchTerm);
+              },
+            );
+          });
+        });
+  }
+
+  void _removeSearchHistory(String historyItem) {
+    context.showCupertinoYesNoDialog(
+        title: _viewModel.removeSearchHistoryTitle,
+        message: _viewModel.getSearchHistoryRemovalMessage(historyItem),
+        yesLabel: _viewModel.acceptTagRemoval,
+        noLabel: _viewModel.cancelTagRemoval,
+        yesAction: () => _viewModel.removeSearchHistory(historyItem),
+        noAction: () {});
   }
 }
