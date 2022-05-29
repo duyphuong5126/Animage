@@ -4,6 +4,7 @@ import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/feature/gallery/gallery_view_model.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/service/ad_service.dart';
 import 'package:animage/utils/log.dart';
 import 'package:animage/utils/material_context_extension.dart';
 import 'package:animage/utils/utils.dart';
@@ -13,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 class GalleryPageAndroid extends StatefulWidget {
@@ -26,6 +28,7 @@ class GalleryPageAndroid extends StatefulWidget {
 }
 
 class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
+  static const String _tag = '_GalleryPageAndroidState';
   final GalleryViewModel _viewModel = GalleryViewModelImpl();
   final DataCubit<GalleryMode> _modeCubit = DataCubit(GalleryMode.list);
   final DataCubit<bool> _showClearSearchButtonCubit = DataCubit(false);
@@ -33,6 +36,9 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
   ScrollController? _scrollController;
   StreamSubscription? _scrollToTopSubscription;
   StreamSubscription? _getGallerySubscription;
+
+  late BannerAd _bannerAd;
+  bool _isAdReady = false;
 
   @override
   void initState() {
@@ -48,6 +54,27 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
         getCurrentGalleryMode().asStream().listen((GalleryMode mode) {
       _modeCubit.push(mode);
     });
+    _bannerAd = BannerAd(
+      adUnitId: AdService.bannerAdId,
+      request: const AdRequest(),
+      size: AdSize.banner,
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          setState(() {
+            _isAdReady = true;
+          });
+        },
+        onAdFailedToLoad: (ad, err) {
+          Log.d(_tag, 'Failed to load a banner ad: ${err.message}');
+          setState(() {
+            _isAdReady = false;
+          });
+          ad.dispose();
+        },
+      ),
+    );
+
+    _bannerAd.load();
   }
 
   @override
@@ -62,6 +89,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
     _getGallerySubscription = null;
     _scrollController?.dispose();
     _scrollController = null;
+    _bannerAd.dispose();
   }
 
   @override
@@ -101,10 +129,10 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                   builder: (context, List<String> tags) {
                     bool hasTag = tags.isNotEmpty;
                     Log.d('Test>>>', 'tags=$tags');
-                    return Stack(
-                      alignment: AlignmentDirectional.topCenter,
-                      children: [
-                        Container(
+                    List<Widget> bodyWidgets = [
+                      Positioned.fill(
+                          child: Align(
+                        child: Container(
                           child: BlocBuilder(
                               bloc: _viewModel.setUpFinishCubit,
                               builder: (context, bool setUpFinished) {
@@ -133,7 +161,11 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                           margin: EdgeInsets.only(top: hasTag ? 80.0 : 32.0),
                           padding: const EdgeInsets.only(top: 16.0),
                         ),
-                        Container(
+                        alignment: AlignmentDirectional.topCenter,
+                      )),
+                      Positioned.fill(
+                          child: Align(
+                        child: Container(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -256,8 +288,29 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                             ],
                           ),
                           margin: const EdgeInsets.symmetric(vertical: 8.0),
-                        )
-                      ],
+                        ),
+                        alignment: Alignment.topCenter,
+                      )),
+                    ];
+                    if (_isAdReady) {
+                      bodyWidgets.add(Positioned.fill(
+                          child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Container(
+                          constraints: BoxConstraints.expand(
+                              width: double.infinity,
+                              height: _bannerAd.size.height.toDouble()),
+                          color: context.defaultBackgroundColor,
+                          child: SizedBox(
+                            width: _bannerAd.size.width.toDouble(),
+                            height: _bannerAd.size.height.toDouble(),
+                            child: AdWidget(ad: _bannerAd),
+                          ),
+                        ),
+                      )));
+                    }
+                    return Stack(
+                      children: bodyWidgets,
                     );
                   },
                 );
