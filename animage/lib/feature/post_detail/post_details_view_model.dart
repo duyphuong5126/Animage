@@ -11,6 +11,7 @@ import 'package:animage/domain/use_case/search_posts_by_tags_use_case.dart';
 import 'package:animage/domain/use_case/toggle_favorite_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/feature/ui_model/view_original_ui_model.dart';
 import 'package:animage/service/favorite_service.dart';
 import 'package:animage/service/image_downloader.dart';
 import 'package:animage/utils/log.dart';
@@ -21,6 +22,8 @@ import 'package:palette_generator/palette_generator.dart';
 
 abstract class PostDetailsViewModel {
   DataCubit<Post?> get postDetailsCubit;
+
+  DataCubit<ViewOriginalUiModel?> get vieOriginalPostsCubit;
 
   DataCubit<List<PostCardUiModel>> get childrenCubit;
 
@@ -78,6 +81,10 @@ abstract class PostDetailsViewModel {
 
   void requestDetailsPage(int postId);
 
+  void requestViewOriginal(Post post);
+
+  void clearViewOriginalRequest();
+
   void clearDetailsPageRequest();
 
   void startDownloadAllChildren(List<PostCardUiModel> children);
@@ -97,6 +104,8 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
   final DataCubit<Color> _sampleImageDominantColorCubit =
       DataCubit(Colors.white);
   final DataCubit<Post?>? _postDetailsCubit = DataCubit(null);
+  final DataCubit<ViewOriginalUiModel?>? _viewOriginalUiModelCubit =
+      DataCubit(null);
   final DataCubit<List<PostCardUiModel>>? _childrenCubit = DataCubit([]);
 
   PagingController<int, PostCardUiModel>? _pagingController;
@@ -119,6 +128,10 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
 
   @override
   DataCubit<Post?> get postDetailsCubit => _postDetailsCubit!;
+
+  @override
+  DataCubit<ViewOriginalUiModel?> get vieOriginalPostsCubit =>
+      _viewOriginalUiModelCubit!;
 
   @override
   DataCubit<List<PostCardUiModel>> get childrenCubit => _childrenCubit!;
@@ -314,7 +327,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
             );
           }).toList();
           if (result.isNotEmpty) {
-            childrenCubit.push(result);
+            _childrenCubit?.push(result);
           }
         }, onError: (error, stackTrace) {
           Log.d(_tag,
@@ -410,5 +423,25 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
         FavoriteService.removeFavorite(post.id);
       }
     }
+  }
+
+  @override
+  void requestViewOriginal(Post post) {
+    List<Post> viewOriginalList = [];
+    viewOriginalList.add(post);
+    List<PostCardUiModel> children = _childrenCubit?.state ?? [];
+    for (PostCardUiModel child in children) {
+      Post? childPost = _postDetailsMap[child.id];
+      if (childPost != null) {
+        viewOriginalList.add(childPost);
+      }
+    }
+    _viewOriginalUiModelCubit
+        ?.push(ViewOriginalUiModel(posts: viewOriginalList));
+  }
+
+  @override
+  void clearViewOriginalRequest() {
+    _viewOriginalUiModelCubit?.push(null);
   }
 }
