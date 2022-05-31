@@ -9,6 +9,7 @@ import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/feature/ui_model/view_original_ui_model.dart';
 import 'package:animage/service/favorite_service.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/image_downloader.dart';
@@ -168,11 +169,8 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                 alignment: Alignment.bottomCenter,
                                 children: [
                                   GestureDetector(
-                                    onTap: () {
-                                      Navigator.of(context).pushNamed(
-                                          viewOriginalPage,
-                                          arguments: post);
-                                    },
+                                    onTap: () =>
+                                        _viewModel.requestViewOriginal(post),
                                     child: CachedNetworkImage(
                                       imageUrl: post.sampleUrl ?? '',
                                       alignment: Alignment.topCenter,
@@ -332,6 +330,20 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                       bloc: ImageDownloader.downloadStateCubit,
                       listener: (context, ImageDownloadState? state) {
                         _processDownloadState(state, post);
+                      },
+                      child: Visibility(
+                        child: Container(),
+                        visible: false,
+                      ),
+                    ),
+                    BlocListener(
+                      bloc: _viewModel.vieOriginalPostsCubit,
+                      listener: (context, ViewOriginalUiModel? uiModel) {
+                        if (uiModel != null) {
+                          Navigator.of(context)
+                              .pushNamed(viewOriginalPage, arguments: uiModel);
+                          _viewModel.clearViewOriginalRequest();
+                        }
                       },
                       child: Visibility(
                         child: Container(),

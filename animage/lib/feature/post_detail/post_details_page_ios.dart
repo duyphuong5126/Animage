@@ -8,6 +8,7 @@ import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/feature/ui_model/view_original_ui_model.dart';
 import 'package:animage/service/favorite_service.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/image_downloader.dart';
@@ -155,6 +156,20 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                       ),
                     ),
                     BlocListener(
+                      bloc: _viewModel.vieOriginalPostsCubit,
+                      listener: (context, ViewOriginalUiModel? uiModel) {
+                        if (uiModel != null) {
+                          Navigator.of(context)
+                              .pushNamed(viewOriginalPage, arguments: uiModel);
+                          _viewModel.clearViewOriginalRequest();
+                        }
+                      },
+                      child: Visibility(
+                        child: Container(),
+                        visible: false,
+                      ),
+                    ),
+                    BlocListener(
                       bloc: ImageDownloader.pendingListCubit,
                       listener: (context, String? newPendingUrl) {
                         if (newPendingUrl != null &&
@@ -185,11 +200,8 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                                     alignment: Alignment.topCenter,
                                     fit: BoxFit.fitWidth,
                                   ),
-                                  onTap: () {
-                                    Navigator.of(context).pushNamed(
-                                        viewOriginalPage,
-                                        arguments: post);
-                                  },
+                                  onTap: () =>
+                                      _viewModel.requestViewOriginal(post),
                                 ),
                                 _getMasterInfoSection(post)
                               ],

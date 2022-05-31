@@ -1,10 +1,11 @@
-import 'package:animage/domain/entity/post.dart';
+import 'package:animage/feature/ui_model/view_original_ui_model.dart';
 import 'package:animage/utils/material_context_extension.dart';
 import 'package:animage/widget/fading_app_bar_android.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 
 class ViewOriginalImagePageAndroid extends StatefulWidget {
   const ViewOriginalImagePageAndroid({Key? key}) : super(key: key);
@@ -22,9 +23,13 @@ class _ViewOriginalImagePageAndroidState
 
   @override
   Widget build(BuildContext context) {
-    Post post = ModalRoute.of(context)?.settings.arguments as Post;
+    ViewOriginalUiModel uiModel =
+        ModalRoute.of(context)?.settings.arguments as ViewOriginalUiModel;
 
-    String? url = post.fileUrl;
+    Iterable<String> urls = uiModel.posts
+        .map((post) => post.fileUrl ?? '')
+        .where((fileUrl) => fileUrl.isNotEmpty);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.black,
@@ -37,25 +42,15 @@ class _ViewOriginalImagePageAndroidState
             backgroundColor: const Color.fromARGB(100, 0, 0, 0),
           ),
           controller: _animationController),
-      body: url != null && url.isNotEmpty
-          ? Stack(
-              children: [
-                PhotoView(
-                  enableRotation: true,
+      body: urls.isNotEmpty
+          ? PhotoViewGallery.builder(
+              scrollPhysics: const BouncingScrollPhysics(),
+              itemCount: urls.length,
+              builder: (context, int index) {
+                String url = urls.elementAt(index);
+                return PhotoViewGalleryPageOptions(
                   minScale: PhotoViewComputedScale.contained * 1.0,
                   imageProvider: CachedNetworkImageProvider(url),
-                  loadingBuilder: (context, event) {
-                    return Center(
-                      child: SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              context.secondaryColor),
-                        ),
-                      ),
-                    );
-                  },
                   onTapUp: (context, details, value) {
                     switch (_animationController.status) {
                       case AnimationStatus.completed:
@@ -73,9 +68,20 @@ class _ViewOriginalImagePageAndroidState
                         break;
                     }
                   },
-                )
-              ],
-            )
+                );
+              },
+              loadingBuilder: (context, event) {
+                return Center(
+                  child: SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: CircularProgressIndicator(
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(context.secondaryColor),
+                    ),
+                  ),
+                );
+              })
           : Container(),
     );
   }
