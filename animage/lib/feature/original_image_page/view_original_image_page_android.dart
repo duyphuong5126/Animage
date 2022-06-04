@@ -1,3 +1,4 @@
+import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/feature/original_image_page/view_original_image_view_model.dart';
 import 'package:animage/feature/ui_model/view_original_ui_model.dart';
 import 'package:animage/utils/material_context_extension.dart';
@@ -24,6 +25,8 @@ class _ViewOriginalImagePageAndroidState
 
   late final ViewOriginalViewModel _viewModel = ViewOriginalViewModelImpl();
 
+  late final DataCubit<bool> _isSwipeEnabled = DataCubit(false);
+
   @override
   Widget build(BuildContext context) {
     ViewOriginalUiModel uiModel =
@@ -36,6 +39,7 @@ class _ViewOriginalImagePageAndroidState
     if (urls.isNotEmpty) {
       _viewModel.onGalleryItemSelected(0, urls.length);
     }
+    _isSwipeEnabled.push(urls.isNotEmpty);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -58,46 +62,56 @@ class _ViewOriginalImagePageAndroidState
           ),
           controller: _animationController),
       body: urls.isNotEmpty
-          ? PageView.builder(
-              itemCount: urls.length,
-              onPageChanged: (int pageIndex) =>
-                  _viewModel.onGalleryItemSelected(pageIndex, urls.length),
-              itemBuilder: (context, int index) {
-                String url = urls.elementAt(index);
-                return PhotoView(
-                  enableRotation: true,
-                  minScale: PhotoViewComputedScale.contained * 1.0,
-                  imageProvider: CachedNetworkImageProvider(url),
-                  loadingBuilder: (context, event) {
-                    return Center(
-                      child: SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              context.secondaryColor),
-                        ),
-                      ),
-                    );
-                  },
-                  onTapUp: (context, details, value) {
-                    switch (_animationController.status) {
-                      case AnimationStatus.completed:
-                        {
-                          _animationController.reverse();
-                          break;
-                        }
+          ? BlocBuilder(
+              bloc: _isSwipeEnabled,
+              builder: (context, bool isSwipeEnabled) {
+                return PageView.builder(
+                    physics: isSwipeEnabled
+                        ? const ScrollPhysics()
+                        : const NeverScrollableScrollPhysics(),
+                    itemCount: urls.length,
+                    onPageChanged: (int pageIndex) => _viewModel
+                        .onGalleryItemSelected(pageIndex, urls.length),
+                    itemBuilder: (context, int index) {
+                      String url = urls.elementAt(index);
+                      return PhotoView(
+                        enableRotation: false,
+                        minScale: PhotoViewComputedScale.contained * 1.0,
+                        imageProvider: CachedNetworkImageProvider(url),
+                        scaleStateChangedCallback: (PhotoViewScaleState state) {
+                          _isSwipeEnabled.push(state.index == 0);
+                        },
+                        loadingBuilder: (context, event) {
+                          return Center(
+                            child: SizedBox(
+                              width: 32,
+                              height: 32,
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    context.secondaryColor),
+                              ),
+                            ),
+                          );
+                        },
+                        onTapUp: (context, details, value) {
+                          switch (_animationController.status) {
+                            case AnimationStatus.completed:
+                              {
+                                _animationController.reverse();
+                                break;
+                              }
 
-                      case AnimationStatus.dismissed:
-                        {
-                          _animationController.forward();
-                          break;
-                        }
-                      default:
-                        break;
-                    }
-                  },
-                );
+                            case AnimationStatus.dismissed:
+                              {
+                                _animationController.forward();
+                                break;
+                              }
+                            default:
+                              break;
+                          }
+                        },
+                      );
+                    });
               })
           : Container(),
     );
@@ -107,5 +121,6 @@ class _ViewOriginalImagePageAndroidState
   void dispose() {
     super.dispose();
     _animationController.dispose();
+    _isSwipeEnabled.closeAsync();
   }
 }

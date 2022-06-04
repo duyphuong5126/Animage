@@ -1,3 +1,4 @@
+import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/constant.dart';
 import 'package:animage/feature/original_image_page/view_original_image_view_model.dart';
 import 'package:animage/feature/ui_model/view_original_ui_model.dart';
@@ -20,6 +21,8 @@ class ViewOriginalImagePageIOS extends StatefulWidget {
 class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
   late final ViewOriginalViewModel _viewModel = ViewOriginalViewModelImpl();
 
+  late final DataCubit<bool> _isSwipeEnabled = DataCubit(false);
+
   @override
   Widget build(BuildContext context) {
     Future.delayed(
@@ -37,6 +40,7 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
     if (urls.isNotEmpty) {
       _viewModel.onGalleryItemSelected(0, urls.length);
     }
+    _isSwipeEnabled.push(urls.isNotEmpty);
 
     return CupertinoPageScaffold(
       backgroundColor: CupertinoColors.black,
@@ -44,25 +48,36 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
           ? Stack(
               alignment: Alignment.topLeft,
               children: [
-                PhotoViewGallery.builder(
-                    scrollPhysics: const BouncingScrollPhysics(),
-                    itemCount: urls.length,
-                    onPageChanged: (int index) =>
-                        _viewModel.onGalleryItemSelected(index, urls.length),
-                    builder: (context, int index) {
-                      String url = urls.elementAt(index);
-                      return PhotoViewGalleryPageOptions(
-                        minScale: PhotoViewComputedScale.contained * 1.0,
-                        imageProvider: CachedNetworkImageProvider(url),
-                      );
-                    },
-                    loadingBuilder: (context, event) {
-                      return Center(
-                        child: CupertinoActivityIndicator(
-                          radius: 16,
-                          color: context.primaryColor,
-                        ),
-                      );
+                BlocBuilder(
+                    bloc: _isSwipeEnabled,
+                    builder: (context, bool isSwipeEnabled) {
+                      return PhotoViewGallery.builder(
+                          scrollPhysics: isSwipeEnabled
+                              ? const BouncingScrollPhysics()
+                              : const NeverScrollableScrollPhysics(),
+                          enableRotation: false,
+                          itemCount: urls.length,
+                          scaleStateChangedCallback:
+                              (PhotoViewScaleState state) {
+                            _isSwipeEnabled.push(state.index == 0);
+                          },
+                          onPageChanged: (int index) => _viewModel
+                              .onGalleryItemSelected(index, urls.length),
+                          builder: (context, int index) {
+                            String url = urls.elementAt(index);
+                            return PhotoViewGalleryPageOptions(
+                              minScale: PhotoViewComputedScale.contained * 1.0,
+                              imageProvider: CachedNetworkImageProvider(url),
+                            );
+                          },
+                          loadingBuilder: (context, event) {
+                            return Center(
+                              child: CupertinoActivityIndicator(
+                                radius: 16,
+                                color: context.primaryColor,
+                              ),
+                            );
+                          });
                     }),
                 Container(
                   height: 150,
@@ -102,5 +117,11 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
             )
           : Container(),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _isSwipeEnabled.closeAsync();
   }
 }
