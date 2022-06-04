@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:photo_view/photo_view.dart';
-import 'package:photo_view/photo_view_gallery.dart';
 
 class ViewOriginalImagePageAndroid extends StatefulWidget {
   const ViewOriginalImagePageAndroid({Key? key}) : super(key: key);
@@ -59,17 +58,26 @@ class _ViewOriginalImagePageAndroidState
           ),
           controller: _animationController),
       body: urls.isNotEmpty
-          ? PhotoViewGallery.builder(
-              scrollPhysics: const BouncingScrollPhysics(),
+          ? PageView.builder(
               itemCount: urls.length,
-              onPageChanged: (int index) {
-                _viewModel.onGalleryItemSelected(index, urls.length);
-              },
-              builder: (context, int index) {
+              itemBuilder: (context, int index) {
                 String url = urls.elementAt(index);
-                return PhotoViewGalleryPageOptions(
+                return PhotoView(
+                  enableRotation: true,
                   minScale: PhotoViewComputedScale.contained * 1.0,
                   imageProvider: CachedNetworkImageProvider(url),
+                  loadingBuilder: (context, event) {
+                    return Center(
+                      child: SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              context.secondaryColor),
+                        ),
+                      ),
+                    );
+                  },
                   onTapUp: (context, details, value) {
                     switch (_animationController.status) {
                       case AnimationStatus.completed:
@@ -87,18 +95,6 @@ class _ViewOriginalImagePageAndroidState
                         break;
                     }
                   },
-                );
-              },
-              loadingBuilder: (context, event) {
-                return Center(
-                  child: SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: CircularProgressIndicator(
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(context.secondaryColor),
-                    ),
-                  ),
                 );
               })
           : Container(),
