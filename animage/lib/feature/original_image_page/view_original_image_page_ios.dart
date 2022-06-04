@@ -47,9 +47,8 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
                 PhotoViewGallery.builder(
                     scrollPhysics: const BouncingScrollPhysics(),
                     itemCount: urls.length,
-                    onPageChanged: (int index) {
-                      _viewModel.onGalleryItemSelected(index, urls.length);
-                    },
+                    onPageChanged: (int index) =>
+                        _viewModel.onGalleryItemSelected(index, urls.length),
                     builder: (context, int index) {
                       String url = urls.elementAt(index);
                       return PhotoViewGalleryPageOptions(

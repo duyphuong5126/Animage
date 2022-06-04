@@ -60,6 +60,8 @@ class _ViewOriginalImagePageAndroidState
       body: urls.isNotEmpty
           ? PageView.builder(
               itemCount: urls.length,
+              onPageChanged: (int pageIndex) =>
+                  _viewModel.onGalleryItemSelected(pageIndex, urls.length),
               itemBuilder: (context, int index) {
                 String url = urls.elementAt(index);
                 return PhotoView(
