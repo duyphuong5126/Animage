@@ -5,6 +5,7 @@ import 'package:animage/feature/gallery/gallery_view_model.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/ad_service.dart';
+import 'package:animage/service/analytics_helper.dart';
 import 'package:animage/utils/log.dart';
 import 'package:animage/utils/material_context_extension.dart';
 import 'package:animage/utils/utils.dart';
@@ -197,6 +198,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                                               _modeCubit.push(GalleryMode.list);
                                               saveGalleryModePref(
                                                   GalleryMode.list);
+                                              AnalyticsHelper.viewListGallery();
                                             },
                                             icon: Icon(
                                               Icons.list,
@@ -220,6 +222,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                                               _modeCubit.push(GalleryMode.grid);
                                               saveGalleryModePref(
                                                   GalleryMode.grid);
+                                              AnalyticsHelper.viewGridGallery();
                                             },
                                             icon: Icon(Icons.grid_view,
                                                 color: isGrid
@@ -431,6 +434,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
             });
           }, onSelected: (historyItem) {
             _viewModel.addSearchTag(historyItem);
+            AnalyticsHelper.search(historyItem);
           }, optionsViewBuilder:
                   (context, onSelected, Iterable<String> history) {
             double maxHeight = (context.safeAreaHeight * 2) / 3;
@@ -524,6 +528,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
               onSubmitted: (String searchTerm) {
                 textEditingController.clear();
                 _viewModel.addSearchTag(searchTerm);
+                AnalyticsHelper.search(searchTerm);
               },
             );
           });

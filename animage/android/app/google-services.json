@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "209115863525",
+    "project_id": "animage-1b6be",
+    "storage_bucket": "animage-1b6be.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:209115863525:android:6a95bfc6029bf1f08cb70c",
+        "android_client_info": {
+          "package_name": "com.nonoka.animage"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "209115863525-t14afj9q05l76iu3rt7kfqs0aaalrslr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkxHgVUlQAaVppV42liclMmmkTxZY3mrc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "209115863525-t14afj9q05l76iu3rt7kfqs0aaalrslr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -160,7 +160,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                       listener: (context, ViewOriginalUiModel? uiModel) {
                         if (uiModel != null) {
                           Navigator.of(context)
-                              .pushNamed(viewOriginalPage, arguments: uiModel);
+                              .pushNamed(viewOriginalPageRoute, arguments: uiModel);
                           _viewModel.clearViewOriginalRequest();
                         }
                       },

@@ -10,6 +10,7 @@ import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/feature/ui_model/view_original_ui_model.dart';
+import 'package:animage/service/analytics_helper.dart';
 import 'package:animage/service/favorite_service.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/image_downloader.dart';
@@ -340,8 +341,8 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                       bloc: _viewModel.vieOriginalPostsCubit,
                       listener: (context, ViewOriginalUiModel? uiModel) {
                         if (uiModel != null) {
-                          Navigator.of(context)
-                              .pushNamed(viewOriginalPage, arguments: uiModel);
+                          Navigator.of(context).pushNamed(viewOriginalPageRoute,
+                              arguments: uiModel);
                           _viewModel.clearViewOriginalRequest();
                         }
                       },
@@ -438,9 +439,12 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                     children: [
                                       Visibility(
                                         child: IconButton(
-                                            onPressed: () => _viewModel
-                                                .startDownloadingOriginalImage(
-                                                    post),
+                                            onPressed: () {
+                                              _viewModel
+                                                  .startDownloadingOriginalImage(
+                                                      post);
+                                              AnalyticsHelper.download(post.id);
+                                            },
                                             icon: Icon(
                                               Icons.download_rounded,
                                               size: 24,
@@ -572,8 +576,11 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                         _viewModel.acceptDownloadChildrenAction,
                                     noLabel:
                                         _viewModel.cancelDownloadChildrenAction,
-                                    yesAction: () => _viewModel
-                                        .startDownloadAllChildren(children),
+                                    yesAction: () {
+                                      _viewModel
+                                          .startDownloadAllChildren(children);
+                                      AnalyticsHelper.downloadChildren(post.id);
+                                    },
                                     noAction: () {});
                               },
                               child: Text(

@@ -2,6 +2,7 @@ import 'package:animage/constant.dart';
 import 'package:animage/feature/home/android/home_page_android.dart';
 import 'package:animage/feature/original_image_page/view_original_image_page_android.dart';
 import 'package:animage/feature/post_detail/post_details_page_android.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -22,27 +23,48 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-          brightness: Brightness.light,
-          backgroundColor: Colors.white,
-          shadowColor: Colors.grey[400],
-          primaryColor: Colors.grey[900],
-          // grey[400]
-          textTheme: _getTextTheme(context, false)),
-      darkTheme: ThemeData(
-          brightness: Brightness.dark,
-          backgroundColor: Colors.black,
-          shadowColor: Colors.white,
-          primaryColor: Colors.white,
-          textTheme: _getTextTheme(context, true)),
-      themeMode: ThemeMode.system,
-      routes: {
-        '/': (context) => const HomePageAndroid(),
-        detailsPageRoute: (context) => const PostDetailsPageAndroid(),
-        viewOriginalPage: (context) => const ViewOriginalImagePageAndroid()
-      },
-    );
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+            brightness: Brightness.light,
+            backgroundColor: Colors.white,
+            shadowColor: Colors.grey[400],
+            primaryColor: Colors.grey[900],
+            // grey[400]
+            textTheme: _getTextTheme(context, false)),
+        darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            backgroundColor: Colors.black,
+            shadowColor: Colors.white,
+            primaryColor: Colors.white,
+            textTheme: _getTextTheme(context, true)),
+        themeMode: ThemeMode.system,
+        routes: {
+          '/': (context) => const HomePageAndroid(),
+          detailsPageRoute: (context) => const PostDetailsPageAndroid(),
+          viewOriginalPageRoute: (context) =>
+              const ViewOriginalImagePageAndroid()
+        },
+        navigatorObservers: [
+          FirebaseAnalyticsObserver(
+              analytics: FirebaseAnalytics.instance,
+              nameExtractor: (RouteSettings settings) {
+                String? routeName = settings.name;
+                switch (settings.name) {
+                  case detailsPageRoute:
+                    routeName = postDetailsPage;
+                    break;
+
+                  case viewOriginalPageRoute:
+                    routeName = viewOriginalPage;
+                    break;
+
+                  case '/':
+                    routeName = home;
+                    break;
+                }
+                return routeName;
+              }),
+        ]);
   }
 
   TextTheme _getTextTheme(BuildContext context, bool isDark) {
