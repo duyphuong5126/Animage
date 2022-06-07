@@ -236,8 +236,10 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
 
   @override
   void startDownloadAllChildren(List<PostCardUiModel> children) async {
-    for (PostCardUiModel child in children) {
-      Post? childPost = _postDetailsMap[child.id];
+    List<int> childIds = children.map((child) => child.id).toList();
+    childIds.sort((int idA, int idB) => idA.compareTo(idB));
+    for (int childId in childIds) {
+      Post? childPost = _postDetailsMap[childId];
       if (childPost != null) {
         ImageDownloader.startDownloadingOriginalFile(childPost);
       }
@@ -436,6 +438,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
         viewOriginalList.add(childPost);
       }
     }
+    viewOriginalList.sort((Post a, Post b) => a.id.compareTo(b.id));
     _viewOriginalUiModelCubit
         ?.push(ViewOriginalUiModel(posts: viewOriginalList));
   }
