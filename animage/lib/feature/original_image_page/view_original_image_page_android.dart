@@ -66,6 +66,7 @@ class _ViewOriginalImagePageAndroidState
               bloc: _isSwipeEnabled,
               builder: (context, bool isSwipeEnabled) {
                 return PageView.builder(
+                    allowImplicitScrolling: true,
                     physics: isSwipeEnabled
                         ? const ScrollPhysics()
                         : const NeverScrollableScrollPhysics(),

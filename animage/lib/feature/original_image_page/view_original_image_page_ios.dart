@@ -52,6 +52,7 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
                     bloc: _isSwipeEnabled,
                     builder: (context, bool isSwipeEnabled) {
                       return PhotoViewGallery.builder(
+                          allowImplicitScrolling: true,
                           scrollPhysics: isSwipeEnabled
                               ? const BouncingScrollPhysics()
                               : const NeverScrollableScrollPhysics(),
