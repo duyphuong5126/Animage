@@ -464,7 +464,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                       );
                     },
                   ),
-                  hintText: 'Type something...',
+                  hintText: _viewModel.searchHint,
                   hintStyle:
                       context.bodyText2?.copyWith(color: searchHintColor),
                   border: InputBorder.none),
