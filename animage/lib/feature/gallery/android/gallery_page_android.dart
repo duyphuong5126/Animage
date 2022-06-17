@@ -525,7 +525,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                   ),
                   hintText: _viewModel.searchHint,
                   hintStyle:
-                      context.bodyText2?.copyWith(color: searchHintColor),
+                      context.bodyText2?.copyWith(color: searchHintColor, overflow: TextOverflow.ellipsis),
                   border: InputBorder.none),
               onSubmitted: (String searchTerm) {
                 textEditingController.clear();
