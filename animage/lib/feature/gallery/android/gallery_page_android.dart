@@ -329,6 +329,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
     _scrollController?.dispose();
     _scrollController = ScrollController();
     return PagedGridView<int, PostCardUiModel>(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       scrollController: _scrollController,
       pagingController: _viewModel.getPagingController(),
       builderDelegate: PagedChildBuilderDelegate(
@@ -362,6 +363,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
     _scrollController?.dispose();
     _scrollController = ScrollController();
     return PagedListView<int, PostCardUiModel>(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         scrollController: _scrollController,
         pagingController: _viewModel.getPagingController(),
         builderDelegate: PagedChildBuilderDelegate<PostCardUiModel>(
