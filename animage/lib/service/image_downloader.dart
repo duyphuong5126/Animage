@@ -1,6 +1,8 @@
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/constant.dart';
+import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/post.dart';
+import 'package:animage/domain/use_case/get_artist_use_case.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/notification_helper.dart';
@@ -17,6 +19,7 @@ class ImageDownloader {
 
   static final NotificationHelper notificationHelper =
       NotificationHelperFactory.illustrationDownloadNotificationHelper;
+  static final GetArtistUseCase _getArtistUseCase = GetArtistUseCaseImpl();
 
   static void startDownloadingOriginalFile(Post post) async {
     ImageDownloadState? currentState = downloadStateCubit.state;
@@ -30,9 +33,12 @@ class ImageDownloader {
       downloadStateCubit.push(
           ImageDownloadState(url: fileUrl, state: DownloadState.downloading));
       _sendDownloadInProgressNotification(post);
+      Artist? artist = await _getArtistUseCase.execute(post);
+      String albumName = artist != null
+          ? '$appDirectoryName/${artist.name.trim().toLowerCase()}'
+          : appDirectoryName;
       bool downloaded =
-          await GallerySaver.saveImage(fileUrl, albumName: appDirectoryName) ??
-              false;
+          await GallerySaver.saveImage(fileUrl, albumName: albumName) ?? false;
       downloadStateCubit.push(ImageDownloadState(
           url: fileUrl,
           state: downloaded ? DownloadState.success : DownloadState.failed));

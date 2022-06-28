@@ -6,6 +6,7 @@ import 'package:animage/feature/favorite/favorite_view_model.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/service/favorite_service.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:animage/utils/log.dart';
 import 'package:animage/widget/gallery_grid_item_ios.dart';
@@ -202,58 +203,24 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
   Widget _buildPagedGridView() {
     _scrollController?.dispose();
     _scrollController = ScrollController();
-    return PagedGridView<int, PostCardUiModel>(
-      scrollController: _scrollController,
-      pagingController: _viewModel.getPagingController(),
-      builderDelegate: PagedChildBuilderDelegate(
-          firstPageProgressIndicatorBuilder: (context) => _loadingWidget(),
-          newPageProgressIndicatorBuilder: (context) => _loadingWidget(),
-          itemBuilder: (context, postItem, index) {
-            return GalleryGridItemIOS(
-              uiModel: postItem,
-              postDetailsCubit: _viewModel.postDetailsCubit,
-              onOpenDetail: (postUiModel) {
-                _viewModel.requestDetailsPage(postUiModel.id);
-              },
-              onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
-              onFavoriteChanged: (postUiModel) =>
-                  _viewModel.toggleFavorite(postUiModel),
-              onTagsSelected: (List<String> selectedTags) {},
-            );
-          }),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, mainAxisSpacing: 8.0, crossAxisSpacing: 8.0),
-    );
-  }
-
-  Widget _buildPagedListView() {
-    _scrollController?.dispose();
-    _scrollController = ScrollController();
-    return PagedListView<int, PostCardUiModel>(
-        scrollController: _scrollController,
-        pagingController: _viewModel.getPagingController(),
-        builderDelegate: PagedChildBuilderDelegate<PostCardUiModel>(
-            newPageProgressIndicatorBuilder: (context) => _loadingWidget(),
-            firstPageProgressIndicatorBuilder: (context) => _loadingWidget(),
-            firstPageErrorIndicatorBuilder: (context) => Center(
-                  child: PlatformText(
-                    _viewModel.firstPageErrorMessage,
-                    style:
-                        CupertinoTheme.of(context).textTheme.navTitleTextStyle,
-                  ),
-                ),
-            noItemsFoundIndicatorBuilder: (context) => Center(
-                  child: PlatformText(
-                    _viewModel.emptyMessage,
-                    style:
-                        CupertinoTheme.of(context).textTheme.navTitleTextStyle,
-                  ),
-                ),
-            itemBuilder: (context, postItem, index) {
-              return Container(
-                child: GalleryListItemIOS(
+    PagingController<int, PostCardUiModel> pagingController =
+        _viewModel.getPagingController();
+    return BlocListener(
+        bloc: FavoriteService.favoriteUpdatedTimeCubit,
+        listener: (context, int updatedAt) {
+          if (updatedAt > 0) {
+            pagingController.refresh();
+          }
+        },
+        child: PagedGridView<int, PostCardUiModel>(
+          scrollController: _scrollController,
+          pagingController: pagingController,
+          builderDelegate: PagedChildBuilderDelegate(
+              firstPageProgressIndicatorBuilder: (context) => _loadingWidget(),
+              newPageProgressIndicatorBuilder: (context) => _loadingWidget(),
+              itemBuilder: (context, postItem, index) {
+                return GalleryGridItemIOS(
                   uiModel: postItem,
-                  cardAspectRatio: 1.5,
                   postDetailsCubit: _viewModel.postDetailsCubit,
                   onOpenDetail: (postUiModel) {
                     _viewModel.requestDetailsPage(postUiModel.id);
@@ -262,10 +229,65 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
                   onFavoriteChanged: (postUiModel) =>
                       _viewModel.toggleFavorite(postUiModel),
                   onTagsSelected: (List<String> selectedTags) {},
-                ),
-                margin: const EdgeInsets.only(bottom: 24.0),
-              );
-            }));
+                );
+              }),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, mainAxisSpacing: 8.0, crossAxisSpacing: 8.0),
+        ));
+  }
+
+  Widget _buildPagedListView() {
+    _scrollController?.dispose();
+    _scrollController = ScrollController();
+    PagingController<int, PostCardUiModel> pagingController =
+        _viewModel.getPagingController();
+    return BlocListener(
+        bloc: FavoriteService.favoriteUpdatedTimeCubit,
+        listener: (context, int updatedAt) {
+          if (updatedAt > 0) {
+            pagingController.refresh();
+          }
+        },
+        child: PagedListView<int, PostCardUiModel>(
+            scrollController: _scrollController,
+            pagingController: pagingController,
+            builderDelegate: PagedChildBuilderDelegate<PostCardUiModel>(
+                newPageProgressIndicatorBuilder: (context) => _loadingWidget(),
+                firstPageProgressIndicatorBuilder: (context) =>
+                    _loadingWidget(),
+                firstPageErrorIndicatorBuilder: (context) => Center(
+                      child: PlatformText(
+                        _viewModel.firstPageErrorMessage,
+                        style: CupertinoTheme.of(context)
+                            .textTheme
+                            .navTitleTextStyle,
+                      ),
+                    ),
+                noItemsFoundIndicatorBuilder: (context) => Center(
+                      child: PlatformText(
+                        _viewModel.emptyMessage,
+                        style: CupertinoTheme.of(context)
+                            .textTheme
+                            .navTitleTextStyle,
+                      ),
+                    ),
+                itemBuilder: (context, postItem, index) {
+                  return Container(
+                    child: GalleryListItemIOS(
+                      uiModel: postItem,
+                      cardAspectRatio: 1.5,
+                      postDetailsCubit: _viewModel.postDetailsCubit,
+                      onOpenDetail: (postUiModel) {
+                        _viewModel.requestDetailsPage(postUiModel.id);
+                      },
+                      onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
+                      onFavoriteChanged: (postUiModel) =>
+                          _viewModel.toggleFavorite(postUiModel),
+                      onTagsSelected: (List<String> selectedTags) {},
+                    ),
+                    margin: const EdgeInsets.only(bottom: 24.0),
+                  );
+                })));
   }
 
   Widget _loadingWidget() {

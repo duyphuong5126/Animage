@@ -32,7 +32,7 @@ class _AnimageAppIOSState extends State<AnimageAppIOS> {
       routes: {
         '/': (context) => const HomePageIOS(),
         detailsPageRoute: (context) => const PostDetailsPageIOS(),
-        viewOriginalPage: (context) => const ViewOriginalImagePageIOS()
+        viewOriginalPageRoute: (context) => const ViewOriginalImagePageIOS()
       },
     );
   }

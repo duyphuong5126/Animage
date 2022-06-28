@@ -43,6 +43,8 @@ abstract class GalleryViewModel {
 
   String get removeSearchHistoryTitle;
 
+  String get searchHint;
+
   String getTagRemovalMessage(String tag);
 
   String getSearchHistoryRemovalMessage(String searchTerm);
@@ -450,4 +452,7 @@ class GalleryViewModelImpl extends GalleryViewModel {
 
   @override
   String get removeSearchHistoryTitle => 'Remove Suggestion';
+
+  @override
+  String get searchHint => 'Search by artist name or tag';
 }

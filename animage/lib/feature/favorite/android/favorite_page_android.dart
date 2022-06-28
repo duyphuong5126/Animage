@@ -4,6 +4,8 @@ import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/feature/favorite/favorite_view_model.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/service/analytics_helper.dart';
+import 'package:animage/service/favorite_service.dart';
 import 'package:animage/utils/material_context_extension.dart';
 import 'package:animage/widget/gallery_grid_item_android.dart';
 import 'package:animage/widget/gallery_list_item_android.dart';
@@ -80,6 +82,7 @@ class _FavoritePageState extends State<FavoritePage> {
                             child: IconButton(
                               onPressed: () {
                                 _modeCubit.push(GalleryMode.list);
+                                AnalyticsHelper.viewListFavorite();
                               },
                               icon: Icon(
                                 Icons.list,
@@ -99,6 +102,7 @@ class _FavoritePageState extends State<FavoritePage> {
                             child: IconButton(
                               onPressed: () {
                                 _modeCubit.push(GalleryMode.grid);
+                                AnalyticsHelper.viewGridFavorite();
                               },
                               icon: Icon(Icons.grid_view,
                                   color: isGrid
@@ -138,76 +142,95 @@ class _FavoritePageState extends State<FavoritePage> {
     double cardAspectRatio = 1.0;
     _scrollController?.dispose();
     _scrollController = ScrollController();
-    return PagedGridView<int, PostCardUiModel>(
-      scrollController: _scrollController,
-      pagingController: _viewModel.getPagingController(),
-      builderDelegate: PagedChildBuilderDelegate(
-          firstPageProgressIndicatorBuilder: (context) =>
-              _loadingWidget(brandColor),
-          newPageProgressIndicatorBuilder: (context) =>
-              _loadingWidget(brandColor),
-          itemBuilder: (context, postItem, index) {
-            return GalleryGridItemAndroid(
-              uiModel: postItem,
-              itemAspectRatio: cardAspectRatio,
-              postDetailsCubit: _viewModel.postDetailsCubit,
-              onOpenDetail: (postUiModel) {
-                _viewModel.requestDetailsPage(postUiModel.id);
-              },
-              onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
-              onFavoriteChanged: (postUiModel) =>
-                  _viewModel.toggleFavorite(postUiModel),
-              onTagsSelected: (List<String> selectedTags) {},
-            );
-          }),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          childAspectRatio: cardAspectRatio,
-          crossAxisCount: 2,
-          mainAxisSpacing: 8.0,
-          crossAxisSpacing: 8.0),
+    PagingController<int, PostCardUiModel> pagingController =
+        _viewModel.getPagingController();
+    return BlocListener(
+      bloc: FavoriteService.favoriteUpdatedTimeCubit,
+      listener: (context, int updatedAt) {
+        if (updatedAt > 0) {
+          pagingController.refresh();
+        }
+      },
+      child: PagedGridView<int, PostCardUiModel>(
+        scrollController: _scrollController,
+        pagingController: pagingController,
+        builderDelegate: PagedChildBuilderDelegate(
+            firstPageProgressIndicatorBuilder: (context) =>
+                _loadingWidget(brandColor),
+            newPageProgressIndicatorBuilder: (context) =>
+                _loadingWidget(brandColor),
+            itemBuilder: (context, postItem, index) {
+              return GalleryGridItemAndroid(
+                uiModel: postItem,
+                itemAspectRatio: cardAspectRatio,
+                postDetailsCubit: _viewModel.postDetailsCubit,
+                onOpenDetail: (postUiModel) {
+                  _viewModel.requestDetailsPage(postUiModel.id);
+                },
+                onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
+                onFavoriteChanged: (postUiModel) =>
+                    _viewModel.toggleFavorite(postUiModel),
+                onTagsSelected: (List<String> selectedTags) {},
+              );
+            }),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            childAspectRatio: cardAspectRatio,
+            crossAxisCount: 2,
+            mainAxisSpacing: 8.0,
+            crossAxisSpacing: 8.0),
+      ),
     );
   }
 
   Widget _buildPagedListView(Color brandColor) {
     _scrollController?.dispose();
     _scrollController = ScrollController();
-    return PagedListView<int, PostCardUiModel>(
-        scrollController: _scrollController,
-        pagingController: _viewModel.getPagingController(),
-        builderDelegate: PagedChildBuilderDelegate<PostCardUiModel>(
-            newPageProgressIndicatorBuilder: (context) =>
-                _loadingWidget(brandColor),
-            firstPageProgressIndicatorBuilder: (context) =>
-                _loadingWidget(brandColor),
-            firstPageErrorIndicatorBuilder: (context) => Center(
-                  child: PlatformText(
-                    _viewModel.firstPageErrorMessage,
-                    style: context.bodyText1,
-                  ),
-                ),
-            noItemsFoundIndicatorBuilder: (context) => Center(
-                  child: PlatformText(
-                    _viewModel.emptyMessage,
-                    style: context.bodyText1,
-                  ),
-                ),
-            itemBuilder: (context, postItem, index) {
-              return Container(
-                child: GalleryListItemAndroid(
-                  uiModel: postItem,
-                  itemAspectRatio: 1.5,
-                  postDetailsCubit: _viewModel.postDetailsCubit,
-                  onOpenDetail: (postUiModel) {
-                    _viewModel.requestDetailsPage(postUiModel.id);
-                  },
-                  onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
-                  onFavoriteChanged: (postUiModel) =>
-                      _viewModel.toggleFavorite(postUiModel),
-                  onTagsSelected: (List<String> selectedTags) {},
-                ),
-                margin: const EdgeInsets.only(bottom: 8.0),
-              );
-            }));
+    PagingController<int, PostCardUiModel> pagingController =
+        _viewModel.getPagingController();
+    return BlocListener(
+        bloc: FavoriteService.favoriteUpdatedTimeCubit,
+        listener: (context, int updatedAt) {
+          if (updatedAt > 0) {
+            pagingController.refresh();
+          }
+        },
+        child: PagedListView<int, PostCardUiModel>(
+            scrollController: _scrollController,
+            pagingController: pagingController,
+            builderDelegate: PagedChildBuilderDelegate<PostCardUiModel>(
+                newPageProgressIndicatorBuilder: (context) =>
+                    _loadingWidget(brandColor),
+                firstPageProgressIndicatorBuilder: (context) =>
+                    _loadingWidget(brandColor),
+                firstPageErrorIndicatorBuilder: (context) => Center(
+                      child: PlatformText(
+                        _viewModel.firstPageErrorMessage,
+                        style: context.bodyText1,
+                      ),
+                    ),
+                noItemsFoundIndicatorBuilder: (context) => Center(
+                      child: PlatformText(
+                        _viewModel.emptyMessage,
+                        style: context.bodyText1,
+                      ),
+                    ),
+                itemBuilder: (context, postItem, index) {
+                  return Container(
+                    child: GalleryListItemAndroid(
+                      uiModel: postItem,
+                      itemAspectRatio: 1.5,
+                      postDetailsCubit: _viewModel.postDetailsCubit,
+                      onOpenDetail: (postUiModel) {
+                        _viewModel.requestDetailsPage(postUiModel.id);
+                      },
+                      onCloseDetail: () => _viewModel.clearDetailsPageRequest(),
+                      onFavoriteChanged: (postUiModel) =>
+                          _viewModel.toggleFavorite(postUiModel),
+                      onTagsSelected: (List<String> selectedTags) {},
+                    ),
+                    margin: const EdgeInsets.only(bottom: 8.0),
+                  );
+                })));
   }
 
   Widget _loadingWidget(Color color) {
