@@ -95,7 +95,8 @@ class MasterDatabase {
       List<Map<String, dynamic>> artistDbList = await _database!.query(
         _artistTable,
         columns: [id, _artistName, _aliasId, _groupId, _urls],
-        where: '$_artistName in (${tagList.map((tag) => '"$tag"').join(',')})',
+        where:
+            '$_artistName in (${tagList.map((tag) => '"${tag.replaceAll('"', '')}"').join(',')})',
       );
 
       if (artistDbList.isNotEmpty) {
