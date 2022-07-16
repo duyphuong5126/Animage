@@ -13,7 +13,7 @@ abstract class PostRemoteDataSource {
 
 class PostRemoteDataSourceImpl implements PostRemoteDataSource {
   static const String basePostUrl =
-      '${ApiConstant.baseUrl}/${ApiConstant.post}?${ApiConstant.apiVersionParam}=${ApiConstant.apiVersion}&${ApiConstant.tags}=-rating:explicit';
+      '${ApiConstant.baseUrl}/${ApiConstant.post}?${ApiConstant.apiVersionParam}=${ApiConstant.apiVersion}&${ApiConstant.tags}=rating:safe';
 
   static const int requestTimeOut = 60;
 
