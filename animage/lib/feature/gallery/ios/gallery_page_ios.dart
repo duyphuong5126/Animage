@@ -179,6 +179,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                   child:
                                       Text(_viewModel.cancelSearchButtonLabel),
                                   onPressed: () {
+                                    Log.d('Test>>>', 'Cancel search');
                                     searchEditController.clear();
                                     scrollController.jumpTo(scrollController
                                         .position.minScrollExtent);
@@ -211,6 +212,8 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                     child: BlocListener(
                                       bloc: _viewModel.galleryRefreshedAtCubit,
                                       listener: (context, int refreshedAt) {
+                                        Log.d('Test>>>',
+                                            'refreshedAt=$refreshedAt');
                                         if (refreshedAt > 0 &&
                                             _refreshController.isRefresh) {
                                           _refreshController.refreshCompleted();
@@ -601,6 +604,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
     return BlocBuilder(
         bloc: _viewModel.searchHistoryCubit,
         builder: (context, List<String> history) {
+          Log.d('Test>>>', 'history=$history');
           return RawAutocomplete<String>(
               optionsBuilder: (TextEditingValue text) {
             String searchTerm = text.text.trim().toLowerCase();
