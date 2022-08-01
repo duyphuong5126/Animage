@@ -4,6 +4,7 @@ import 'package:animage/feature/original_image_page/view_original_image_view_mod
 import 'package:animage/feature/ui_model/view_original_ui_model.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dismissible_page/dismissible_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -42,82 +43,87 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
     }
     _isSwipeEnabled.push(urls.isNotEmpty);
 
-    return CupertinoPageScaffold(
-      backgroundColor: CupertinoColors.black,
-      child: urls.isNotEmpty
-          ? Stack(
-              alignment: Alignment.topLeft,
-              children: [
-                BlocBuilder(
-                    bloc: _isSwipeEnabled,
-                    builder: (context, bool isSwipeEnabled) {
-                      return PhotoViewGallery.builder(
-                          allowImplicitScrolling: true,
-                          scrollPhysics: isSwipeEnabled
-                              ? const BouncingScrollPhysics()
-                              : const NeverScrollableScrollPhysics(),
-                          enableRotation: false,
-                          itemCount: urls.length,
-                          scaleStateChangedCallback:
-                              (PhotoViewScaleState state) {
-                            _isSwipeEnabled.push(state.index == 0);
-                          },
-                          onPageChanged: (int index) => _viewModel
-                              .onGalleryItemSelected(index, urls.length),
-                          builder: (context, int index) {
-                            String url = urls.elementAt(index);
-                            return PhotoViewGalleryPageOptions(
-                              minScale: PhotoViewComputedScale.contained * 1.0,
-                              imageProvider: CachedNetworkImageProvider(url),
-                            );
-                          },
-                          loadingBuilder: (context, event) {
-                            return Center(
-                              child: CupertinoActivityIndicator(
-                                radius: 16,
-                                color: context.primaryColor,
-                              ),
-                            );
-                          });
-                    }),
-                Container(
-                  height: 150,
-                  alignment: Alignment.centerLeft,
-                  decoration: const BoxDecoration(
-                    color: transparency,
-                  ),
-                  child: Row(
-                    children: [
-                      CupertinoButton(
-                        padding: EdgeInsetsDirectional.zero,
-                        child: const Icon(
-                          CupertinoIcons.back,
-                          size: 32,
-                        ),
-                        onPressed: () => Navigator.pop(context),
+    return DismissiblePage(
+        direction: DismissiblePageDismissDirection.multi,
+        child: CupertinoPageScaffold(
+          backgroundColor: CupertinoColors.black,
+          child: urls.isNotEmpty
+              ? Stack(
+                  alignment: Alignment.topLeft,
+                  children: [
+                    BlocBuilder(
+                        bloc: _isSwipeEnabled,
+                        builder: (context, bool isSwipeEnabled) {
+                          return PhotoViewGallery.builder(
+                              allowImplicitScrolling: true,
+                              scrollPhysics: isSwipeEnabled
+                                  ? const BouncingScrollPhysics()
+                                  : const NeverScrollableScrollPhysics(),
+                              enableRotation: false,
+                              itemCount: urls.length,
+                              scaleStateChangedCallback:
+                                  (PhotoViewScaleState state) {
+                                _isSwipeEnabled.push(state.index == 0);
+                              },
+                              onPageChanged: (int index) => _viewModel
+                                  .onGalleryItemSelected(index, urls.length),
+                              builder: (context, int index) {
+                                String url = urls.elementAt(index);
+                                return PhotoViewGalleryPageOptions(
+                                  minScale:
+                                      PhotoViewComputedScale.contained * 1.0,
+                                  imageProvider:
+                                      CachedNetworkImageProvider(url),
+                                );
+                              },
+                              loadingBuilder: (context, event) {
+                                return Center(
+                                  child: CupertinoActivityIndicator(
+                                    radius: 16,
+                                    color: context.primaryColor,
+                                  ),
+                                );
+                              });
+                        }),
+                    Container(
+                      height: 150,
+                      alignment: Alignment.centerLeft,
+                      decoration: const BoxDecoration(
+                        color: transparency,
                       ),
-                      const SizedBox(
-                        width: 16.0,
+                      child: Row(
+                        children: [
+                          CupertinoButton(
+                            padding: EdgeInsetsDirectional.zero,
+                            child: const Icon(
+                              CupertinoIcons.back,
+                              size: 32,
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const SizedBox(
+                            width: 16.0,
+                          ),
+                          BlocBuilder(
+                              bloc: _viewModel.galleryTitle,
+                              builder: (context, String title) {
+                                return Visibility(
+                                  child: Text(
+                                    title,
+                                    style: context.navTitleTextStyle.copyWith(
+                                        color: context.brandColorDayNight),
+                                  ),
+                                  visible: title.isNotEmpty,
+                                );
+                              })
+                        ],
                       ),
-                      BlocBuilder(
-                          bloc: _viewModel.galleryTitle,
-                          builder: (context, String title) {
-                            return Visibility(
-                              child: Text(
-                                title,
-                                style: context.navTitleTextStyle.copyWith(
-                                    color: context.brandColorDayNight),
-                              ),
-                              visible: title.isNotEmpty,
-                            );
-                          })
-                    ],
-                  ),
-                ),
-              ],
-            )
-          : Container(),
-    );
+                    ),
+                  ],
+                )
+              : Container(),
+        ),
+        onDismissed: () => Navigator.of(context).pop());
   }
 
   @override
