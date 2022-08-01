@@ -71,10 +71,8 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
       bool expanded = position.pixels == position.minScrollExtent;
       bool collapsed = position.pixels == position.maxScrollExtent;
       if (expanded) {
-        Log.d('Test>>>', 'expanded');
         _expandStatusCubit.push(NavigationBarExpandStatus.expanded);
       } else if (collapsed) {
-        Log.d('Test>>>', 'collapsed');
         _expandStatusCubit.push(NavigationBarExpandStatus.collapsed);
       }
     });
@@ -119,7 +117,6 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
                 return BlocListener(
                   bloc: _viewModel.galleryRefreshedAtCubit,
                   listener: (context, int refreshedAt) {
-                    Log.d('Test>>>', 'refreshedAt=$refreshedAt');
                     if (refreshedAt > 0 && _refreshController.isRefresh) {
                       _refreshController.refreshCompleted();
                     }
