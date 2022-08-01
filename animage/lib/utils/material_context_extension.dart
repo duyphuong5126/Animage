@@ -2,6 +2,7 @@ import 'package:animage/constant.dart';
 import 'package:animage/widget/android_confirmation_alert_dialog.dart';
 import 'package:animage/widget/android_yes_no_alert_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 extension MaterialContextExtension on BuildContext {
   double get screenWidth => MediaQuery.of(this).size.width;
@@ -105,5 +106,9 @@ extension MaterialContextExtension on BuildContext {
             noAction: noAction,
           );
         });
+  }
+
+  T bloc<T extends Cubit>() {
+    return BlocProvider.of<T>(this);
   }
 }
