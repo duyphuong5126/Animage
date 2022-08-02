@@ -8,7 +8,6 @@ import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/favorite_service.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
-import 'package:animage/utils/log.dart';
 import 'package:animage/widget/gallery_grid_item_ios.dart';
 import 'package:animage/widget/gallery_list_item_ios.dart';
 import 'package:flutter/cupertino.dart';
@@ -210,6 +209,7 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
           }
         },
         child: PagedGridView<int, PostCardUiModel>(
+          padding: EdgeInsets.zero,
           scrollController: _scrollController,
           pagingController: pagingController,
           builderDelegate: PagedChildBuilderDelegate(
@@ -246,6 +246,7 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
           }
         },
         child: PagedListView<int, PostCardUiModel>(
+            padding: EdgeInsets.zero,
             scrollController: _scrollController,
             pagingController: pagingController,
             builderDelegate: PagedChildBuilderDelegate<PostCardUiModel>(

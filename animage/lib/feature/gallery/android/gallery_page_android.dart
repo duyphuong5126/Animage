@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/feature/gallery/gallery_view_model.dart';
-import 'package:animage/feature/gallery/new_post_cubit.dart';
+import 'package:animage/feature/gallery/new_posts_cubit.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/ad_service.dart';
@@ -122,7 +122,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
       ),
       body: MultiBlocProvider(
           providers: [
-            BlocProvider(create: (context) => NewPostCubit()),
+            BlocProvider(create: (context) => NewPostsCubit()),
           ],
           child: SafeArea(
             child: Container(
@@ -157,13 +157,11 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                                                     : _buildPagedListView(
                                                         context.secondaryColor),
                                               ),
-                                              BlocBuilder<NewPostCubit,
+                                              BlocBuilder<NewPostsCubit,
                                                       Iterable<String>>(
                                                   builder: (context,
                                                       Iterable<String>
                                                           sampleList) {
-                                                Log.d('Test>>>',
-                                                    'new posts=${sampleList.length}');
                                                 return sampleList.isNotEmpty
                                                     ? Container(
                                                         margin: const EdgeInsets
@@ -171,8 +169,8 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                                                         child: GestureDetector(
                                                           onTap: () {
                                                             context
-                                                                .bloc<
-                                                                    NewPostCubit>()
+                                                                .read<
+                                                                    NewPostsCubit>()
                                                                 .reset();
                                                             _viewModel
                                                                 .refreshGallery();
@@ -394,7 +392,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
               _loadingWidget(brandColor),
           itemBuilder: (context, postItem, index) {
             if (index == 0) {
-              BlocProvider.of<NewPostCubit>(context).init(postItem.id);
+              context.read<NewPostsCubit>().init(postItem.id);
             }
             return GalleryGridItemAndroid(
               uiModel: postItem,
@@ -443,7 +441,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                 ),
             itemBuilder: (context, postItem, index) {
               if (index == 0) {
-                BlocProvider.of<NewPostCubit>(context).init(postItem.id);
+                context.read<NewPostsCubit>().init(postItem.id);
               }
               return Container(
                 child: GalleryListItemAndroid(
