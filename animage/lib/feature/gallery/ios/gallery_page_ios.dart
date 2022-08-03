@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/constant.dart';
 import 'package:animage/feature/gallery/gallery_view_model.dart';
+import 'package:animage/feature/gallery/new_posts_cubit.dart';
 import 'package:animage/feature/ui_model/navigation_bar_expand_status.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
@@ -11,6 +12,7 @@ import 'package:animage/utils/log.dart';
 import 'package:animage/utils/utils.dart';
 import 'package:animage/widget/gallery_grid_item_ios.dart';
 import 'package:animage/widget/gallery_list_item_ios.dart';
+import 'package:animage/widget/list_update_notification_ios.dart';
 import 'package:animage/widget/removable_chip_ios.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -165,167 +167,219 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                 )
               ];
             },
-            body: BlocBuilder(
-                bloc: _viewModel.setUpFinishCubit,
-                builder: (context, bool setUpFinished) {
-                  return setUpFinished
-                      ? Container(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 0.0, horizontal: 16.0),
-                          child: BlocBuilder(
-                              bloc: _modeCubit,
-                              builder: (context, GalleryMode mode) {
-                                bool isGrid = mode == GalleryMode.grid;
-                                return BlocBuilder(
-                                  bloc: _viewModel.tagListCubit,
-                                  builder: (context, List<String> tags) {
-                                    bool hasTag = tags.isNotEmpty;
-                                    return Stack(
-                                      alignment: AlignmentDirectional.topEnd,
-                                      children: [
-                                        BlocListener(
-                                          bloc: _viewModel
-                                              .galleryRefreshedAtCubit,
-                                          listener: (context, int refreshedAt) {
-                                            Log.d('Test>>>',
-                                                'refreshedAt=$refreshedAt');
-                                            if (refreshedAt > 0 &&
-                                                _refreshController.isRefresh) {
-                                              _refreshController
-                                                  .refreshCompleted();
-                                            }
-                                          },
-                                          child: Container(
-                                            margin: EdgeInsets.only(
-                                                top: _switchModeSectionHeight +
-                                                    (hasTag
-                                                        ? _defaultTagListHeight
-                                                        : 0)),
-                                            child: BlocBuilder(
+            body: MultiBlocProvider(
+                providers: [BlocProvider(create: (context) => NewPostsCubit())],
+                child: BlocBuilder(
+                    bloc: _viewModel.setUpFinishCubit,
+                    builder: (context, bool setUpFinished) {
+                      return setUpFinished
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 0.0, horizontal: 16.0),
+                              child: BlocBuilder(
+                                  bloc: _modeCubit,
+                                  builder: (context, GalleryMode mode) {
+                                    bool isGrid = mode == GalleryMode.grid;
+                                    return BlocBuilder(
+                                      bloc: _viewModel.tagListCubit,
+                                      builder: (context, List<String> tags) {
+                                        bool hasTag = tags.isNotEmpty;
+                                        return Stack(
+                                          alignment:
+                                              AlignmentDirectional.topEnd,
+                                          children: [
+                                            BlocListener(
+                                              bloc: _viewModel
+                                                  .galleryRefreshedAtCubit,
+                                              listener:
+                                                  (context, int refreshedAt) {
+                                                Log.d('Test>>>',
+                                                    'refreshedAt=$refreshedAt');
+                                                if (refreshedAt > 0 &&
+                                                    _refreshController
+                                                        .isRefresh) {
+                                                  _refreshController
+                                                      .refreshCompleted();
+                                                }
+                                              },
+                                              child: Container(
+                                                margin: EdgeInsets.only(
+                                                    top: _switchModeSectionHeight +
+                                                        (hasTag
+                                                            ? _defaultTagListHeight
+                                                            : 0)),
+                                                child: BlocBuilder(
+                                                    bloc: _expandStatusCubit,
+                                                    builder: (context,
+                                                        expandStatus) {
+                                                      bool isCollapsed =
+                                                          expandStatus ==
+                                                              NavigationBarExpandStatus
+                                                                  .collapsed;
+                                                      return Container(
+                                                          margin:
+                                                              EdgeInsets.only(
+                                                                  top:
+                                                                      isCollapsed
+                                                                          ? 100
+                                                                          : 0),
+                                                          child: SmartRefresher(
+                                                              header:
+                                                                  ClassicHeader(
+                                                                textStyle: context
+                                                                    .navTitleTextStyle,
+                                                                refreshingText:
+                                                                    _viewModel
+                                                                        .refreshingText,
+                                                                failedText:
+                                                                    _viewModel
+                                                                        .failedToRefreshText,
+                                                                completeText:
+                                                                    _viewModel
+                                                                        .refreshedSuccessfullyText,
+                                                                idleText: _viewModel
+                                                                    .refresherIdleText,
+                                                                releaseText:
+                                                                    _viewModel
+                                                                        .refresherReleaseText,
+                                                              ),
+                                                              enablePullDown:
+                                                                  true,
+                                                              controller:
+                                                                  _refreshController,
+                                                              onRefresh: () {
+                                                                _viewModel
+                                                                    .refreshGallery();
+                                                              },
+                                                              child: Stack(
+                                                                alignment:
+                                                                    Alignment
+                                                                        .topCenter,
+                                                                children: [
+                                                                  isGrid
+                                                                      ? _buildPagedGridView()
+                                                                      : _buildPagedListView(),
+                                                                  BlocBuilder<
+                                                                      NewPostsCubit,
+                                                                      Iterable<
+                                                                          String>>(builder:
+                                                                      (context,
+                                                                          Iterable<String>
+                                                                              sampleList) {
+                                                                    return sampleList
+                                                                            .isNotEmpty
+                                                                        ? Container(
+                                                                            margin:
+                                                                                const EdgeInsets.only(top: 8.0),
+                                                                            child:
+                                                                                GestureDetector(
+                                                                              onTap: () {
+                                                                                context.read<NewPostsCubit>().reset();
+                                                                                _viewModel.refreshGallery();
+                                                                              },
+                                                                              child: ListUpdateNotificationIOS(message: 'New posts', images: sampleList),
+                                                                            ),
+                                                                          )
+                                                                        : Visibility(
+                                                                            child:
+                                                                                Container(),
+                                                                            visible:
+                                                                                false,
+                                                                          );
+                                                                  })
+                                                                ],
+                                                              )));
+                                                    }),
+                                              ),
+                                            ),
+                                            BlocBuilder(
                                                 bloc: _expandStatusCubit,
                                                 builder:
                                                     (context, expandStatus) {
-                                                  bool isCollapsed =
-                                                      expandStatus ==
-                                                          NavigationBarExpandStatus
-                                                              .collapsed;
-                                                  return Container(
-                                                      margin: EdgeInsets.only(
-                                                          top: isCollapsed
-                                                              ? 100
-                                                              : 0),
-                                                      child: SmartRefresher(
-                                                          header: ClassicHeader(
-                                                            textStyle: context
-                                                                .navTitleTextStyle,
-                                                            refreshingText:
-                                                                _viewModel
-                                                                    .refreshingText,
-                                                            failedText: _viewModel
-                                                                .failedToRefreshText,
-                                                            completeText: _viewModel
-                                                                .refreshedSuccessfullyText,
-                                                            idleText: _viewModel
-                                                                .refresherIdleText,
-                                                            releaseText: _viewModel
-                                                                .refresherReleaseText,
-                                                          ),
-                                                          enablePullDown: true,
-                                                          controller:
-                                                              _refreshController,
-                                                          onRefresh: () {
-                                                            _viewModel
-                                                                .refreshGallery();
-                                                          },
-                                                          child: isGrid
-                                                              ? _buildPagedGridView()
-                                                              : _buildPagedListView()));
-                                                }),
-                                          ),
-                                        ),
-                                        BlocBuilder(
-                                            bloc: _expandStatusCubit,
-                                            builder: (context, expandStatus) {
-                                              return Visibility(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.end,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  children: [
-                                                    _buildSwitchModeButton(
-                                                        isGrid,
-                                                        unSelectedModeColor),
-                                                    SizedBox(
-                                                      height:
-                                                          hasTag ? 10.0 : 0.0,
-                                                    ),
-                                                    Container(
-                                                        child:
-                                                            ListView.separated(
-                                                                scrollDirection:
-                                                                    Axis
-                                                                        .horizontal,
-                                                                itemBuilder:
-                                                                    (context,
-                                                                        index) {
-                                                                  String tag =
-                                                                      tags[
-                                                                          index];
-                                                                  return RemovableChipIOS(
-                                                                      label:
-                                                                          tag,
-                                                                      bgColor:
-                                                                          context
+                                                  return Visibility(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .end,
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        _buildSwitchModeButton(
+                                                            isGrid,
+                                                            unSelectedModeColor),
+                                                        SizedBox(
+                                                          height: hasTag
+                                                              ? 10.0
+                                                              : 0.0,
+                                                        ),
+                                                        Container(
+                                                            child: ListView
+                                                                .separated(
+                                                                    scrollDirection:
+                                                                        Axis
+                                                                            .horizontal,
+                                                                    itemBuilder:
+                                                                        (context,
+                                                                            index) {
+                                                                      String
+                                                                          tag =
+                                                                          tags[
+                                                                              index];
+                                                                      return RemovableChipIOS(
+                                                                          label:
+                                                                              tag,
+                                                                          bgColor: context
                                                                               .brandColor,
-                                                                      textColor:
-                                                                          CupertinoColors
+                                                                          textColor: CupertinoColors
                                                                               .white,
-                                                                      allowRemoval:
-                                                                          true,
-                                                                      onRemove:
-                                                                          () {
-                                                                        context.showCupertinoYesNoDialog(
-                                                                            title: _viewModel.removeTagTitle,
-                                                                            message: _viewModel.getTagRemovalMessage(tag),
-                                                                            yesLabel: _viewModel.acceptTagRemoval,
-                                                                            yesAction: () {
-                                                                              _viewModel.removeSearchTag(tag);
-                                                                            },
-                                                                            noLabel: _viewModel.cancelTagRemoval,
-                                                                            noAction: () {});
-                                                                      });
-                                                                },
-                                                                separatorBuilder:
-                                                                    (context,
-                                                                        index) {
-                                                                  return const SizedBox(
-                                                                    width: 8.0,
-                                                                  );
-                                                                },
-                                                                itemCount: tags
-                                                                    .length),
-                                                        constraints:
-                                                            const BoxConstraints
-                                                                    .expand(
-                                                                height: 32)),
-                                                  ],
-                                                ),
-                                                visible: expandStatus ==
-                                                    NavigationBarExpandStatus
-                                                        .expanded,
-                                              );
-                                            }),
-                                      ],
+                                                                          allowRemoval:
+                                                                              true,
+                                                                          onRemove:
+                                                                              () {
+                                                                            context.showCupertinoYesNoDialog(
+                                                                                title: _viewModel.removeTagTitle,
+                                                                                message: _viewModel.getTagRemovalMessage(tag),
+                                                                                yesLabel: _viewModel.acceptTagRemoval,
+                                                                                yesAction: () {
+                                                                                  _viewModel.removeSearchTag(tag);
+                                                                                },
+                                                                                noLabel: _viewModel.cancelTagRemoval,
+                                                                                noAction: () {});
+                                                                          });
+                                                                    },
+                                                                    separatorBuilder:
+                                                                        (context,
+                                                                            index) {
+                                                                      return const SizedBox(
+                                                                        width:
+                                                                            8.0,
+                                                                      );
+                                                                    },
+                                                                    itemCount: tags
+                                                                        .length),
+                                                            constraints:
+                                                                const BoxConstraints
+                                                                        .expand(
+                                                                    height:
+                                                                        32)),
+                                                      ],
+                                                    ),
+                                                    visible: expandStatus ==
+                                                        NavigationBarExpandStatus
+                                                            .expanded,
+                                                  );
+                                                }),
+                                          ],
+                                        );
+                                      },
                                     );
-                                  },
-                                );
-                              }),
-                        )
-                      : Center(
-                          child: _loadingWidget(),
-                        );
-                }),
+                                  }),
+                            )
+                          : Center(
+                              child: _loadingWidget(),
+                            );
+                    })),
           ),
           BlocBuilder(
               bloc: _modeCubit,
@@ -472,6 +526,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
     _scrollController?.dispose();
     _scrollController = ScrollController();
     return PagedGridView<int, PostCardUiModel>(
+      padding: EdgeInsets.zero,
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       scrollController: _scrollController,
       pagingController: _viewModel.getPagingController(),
@@ -479,6 +534,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
           firstPageProgressIndicatorBuilder: (context) => _loadingWidget(),
           newPageProgressIndicatorBuilder: (context) => _loadingWidget(),
           itemBuilder: (context, postItem, index) {
+            context.read<NewPostsCubit>().init(postItem.id);
             return GalleryGridItemIOS(
               uiModel: postItem,
               postDetailsCubit: _viewModel.postDetailsCubit,
@@ -500,6 +556,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
     _scrollController?.dispose();
     _scrollController = ScrollController();
     return PagedListView<int, PostCardUiModel>(
+        padding: EdgeInsets.zero,
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         scrollController: _scrollController,
         pagingController: _viewModel.getPagingController(),
@@ -521,6 +578,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                   ),
                 ),
             itemBuilder: (context, postItem, index) {
+              context.read<NewPostsCubit>().init(postItem.id);
               return Container(
                 child: GalleryListItemIOS(
                   uiModel: postItem,

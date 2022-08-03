@@ -213,6 +213,7 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
           }
         },
         child: PagedGridView<int, PostCardUiModel>(
+          padding: EdgeInsets.zero,
           scrollController: _scrollController,
           pagingController: pagingController,
           builderDelegate: PagedChildBuilderDelegate(
@@ -249,6 +250,7 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
           }
         },
         child: PagedListView<int, PostCardUiModel>(
+            padding: EdgeInsets.zero,
             scrollController: _scrollController,
             pagingController: pagingController,
             builderDelegate: PagedChildBuilderDelegate<PostCardUiModel>(
