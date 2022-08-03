@@ -30,7 +30,8 @@ class GalleryPageIOS extends StatefulWidget {
   State<GalleryPageIOS> createState() => _GalleryPageIOSState();
 }
 
-class _GalleryPageIOSState extends State<GalleryPageIOS> {
+class _GalleryPageIOSState extends State<GalleryPageIOS>
+    with SingleTickerProviderStateMixin {
   static const double _switchModeSectionHeight = 52;
   static const double _defaultTagListHeight = 32;
 
@@ -46,6 +47,9 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
   StreamSubscription? _scrollToTopSubscription;
   StreamSubscription? _getGallerySubscription;
 
+  late AnimationController _notificationAnimationController;
+  late Animation<Offset> _notificationSlideInAnimation;
+
   @override
   void initState() {
     super.initState();
@@ -60,6 +64,11 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
         getCurrentGalleryMode().asStream().listen((GalleryMode mode) {
       _modeCubit.push(mode);
     });
+    _notificationAnimationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500));
+    _notificationSlideInAnimation =
+        Tween<Offset>(begin: const Offset(0.0, -5.0), end: Offset.zero)
+            .animate(_notificationAnimationController);
   }
 
   @override
@@ -182,7 +191,9 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                     bool isGrid = mode == GalleryMode.grid;
                                     return BlocConsumer(
                                       listener: (context, List<String> tags) {
-                                        context.read<NewPostsCubit>().updateTagsList(tags);
+                                        context
+                                            .read<NewPostsCubit>()
+                                            .updateTagsList(tags);
                                       },
                                       bloc: _viewModel.tagListCubit,
                                       builder: (context, List<String> tags) {
@@ -262,25 +273,39 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                                                   isGrid
                                                                       ? _buildPagedGridView()
                                                                       : _buildPagedListView(),
-                                                                  BlocBuilder<
+                                                                  BlocConsumer<
                                                                       NewPostsCubit,
                                                                       Iterable<
-                                                                          String>>(builder:
+                                                                          String>>(listener:
                                                                       (context,
                                                                           Iterable<String>
                                                                               sampleList) {
+                                                                    if (sampleList
+                                                                        .isNotEmpty) {
+                                                                      _notificationAnimationController
+                                                                          .forward();
+                                                                    }
+                                                                  }, builder: (context,
+                                                                      Iterable<
+                                                                              String>
+                                                                          sampleList) {
                                                                     return sampleList
                                                                             .isNotEmpty
-                                                                        ? Container(
-                                                                            margin:
-                                                                                const EdgeInsets.only(top: 8.0),
+                                                                        ? SlideTransition(
+                                                                            position:
+                                                                                _notificationSlideInAnimation,
                                                                             child:
-                                                                                GestureDetector(
-                                                                              onTap: () {
-                                                                                context.read<NewPostsCubit>().reset();
-                                                                                _viewModel.refreshGallery();
-                                                                              },
-                                                                              child: ListUpdateNotificationIOS(message: 'New posts', images: sampleList),
+                                                                                Container(
+                                                                              margin: const EdgeInsets.only(top: 8.0),
+                                                                              child: GestureDetector(
+                                                                                onTap: () {
+                                                                                  _notificationAnimationController
+                                                                                      .reverse();
+                                                                                  context.read<NewPostsCubit>().reset();
+                                                                                  _viewModel.refreshGallery();
+                                                                                },
+                                                                                child: ListUpdateNotificationIOS(message: 'New posts', images: sampleList),
+                                                                              ),
                                                                             ),
                                                                           )
                                                                         : Visibility(
