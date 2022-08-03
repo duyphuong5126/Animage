@@ -180,7 +180,10 @@ class _GalleryPageIOSState extends State<GalleryPageIOS> {
                                   bloc: _modeCubit,
                                   builder: (context, GalleryMode mode) {
                                     bool isGrid = mode == GalleryMode.grid;
-                                    return BlocBuilder(
+                                    return BlocConsumer(
+                                      listener: (context, List<String> tags) {
+                                        context.read<NewPostsCubit>().updateTagsList(tags);
+                                      },
                                       bloc: _viewModel.tagListCubit,
                                       builder: (context, List<String> tags) {
                                         bool hasTag = tags.isNotEmpty;
