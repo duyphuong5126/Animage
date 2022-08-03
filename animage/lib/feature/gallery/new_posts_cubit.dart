@@ -20,11 +20,13 @@ class NewPostsCubit extends Cubit<Iterable<String>> {
   final List<String> _tagList = [];
 
   void init(int maxPostId) {
-    _maxPostId = maxPostId;
-    updatePostTimer?.cancel();
-    updatePostTimer = Timer.periodic(const Duration(minutes: 2), (timer) {
-      _updateNewPost();
-    });
+    if (maxPostId > _maxPostId) {
+      _maxPostId = maxPostId;
+      updatePostTimer?.cancel();
+      updatePostTimer = Timer.periodic(const Duration(minutes: 2), (timer) {
+        _updateNewPost();
+      });
+    }
   }
 
   void updateTagsList(List<String> newTagList) async {
