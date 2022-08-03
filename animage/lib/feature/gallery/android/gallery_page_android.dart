@@ -30,7 +30,8 @@ class GalleryPageAndroid extends StatefulWidget {
   State<GalleryPageAndroid> createState() => _GalleryPageAndroidState();
 }
 
-class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
+class _GalleryPageAndroidState extends State<GalleryPageAndroid>
+    with SingleTickerProviderStateMixin {
   static const String _tag = '_GalleryPageAndroidState';
   final GalleryViewModel _viewModel = GalleryViewModelImpl();
   final DataCubit<GalleryMode> _modeCubit = DataCubit(GalleryMode.list);
@@ -39,6 +40,9 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
   ScrollController? _scrollController;
   StreamSubscription? _scrollToTopSubscription;
   StreamSubscription? _getGallerySubscription;
+
+  late AnimationController _notificationAnimationController;
+  late Animation<Offset> _notificationSlideInAnimation;
 
   late BannerAd _bannerAd;
   bool _isAdReady = false;
@@ -57,6 +61,11 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
         getCurrentGalleryMode().asStream().listen((GalleryMode mode) {
       _modeCubit.push(mode);
     });
+    _notificationAnimationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 500));
+    _notificationSlideInAnimation =
+        Tween<Offset>(begin: const Offset(0.0, -5.0), end: Offset.zero)
+            .animate(_notificationAnimationController);
     _bannerAd = BannerAd(
       adUnitId: AdService.bannerAdId,
       request: const AdRequest(),
@@ -160,29 +169,45 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                                                     : _buildPagedListView(
                                                         context.secondaryColor),
                                               ),
-                                              BlocBuilder<NewPostsCubit,
+                                              BlocConsumer<NewPostsCubit,
                                                       Iterable<String>>(
-                                                  builder: (context,
+                                                  listener: (context,
+                                                      Iterable<String>
+                                                          sampleList) {
+                                                if (sampleList.isNotEmpty) {
+                                                  _notificationAnimationController
+                                                      .forward();
+                                                }
+                                              }, builder: (context,
                                                       Iterable<String>
                                                           sampleList) {
                                                 return sampleList.isNotEmpty
-                                                    ? Container(
-                                                        margin: const EdgeInsets
-                                                            .only(top: 8.0),
-                                                        child: GestureDetector(
-                                                          onTap: () {
-                                                            context
-                                                                .read<
-                                                                    NewPostsCubit>()
-                                                                .reset();
-                                                            _viewModel
-                                                                .refreshGallery();
-                                                          },
-                                                          child: ListUpdateNotificationAndroid(
-                                                              message:
-                                                                  'New posts',
-                                                              images:
-                                                                  sampleList),
+                                                    ? SlideTransition(
+                                                        position:
+                                                            _notificationSlideInAnimation,
+                                                        child: Container(
+                                                          margin:
+                                                              const EdgeInsets
+                                                                      .only(
+                                                                  top: 8.0),
+                                                          child:
+                                                              GestureDetector(
+                                                            onTap: () {
+                                                              _notificationAnimationController
+                                                                  .reverse();
+                                                              context
+                                                                  .read<
+                                                                      NewPostsCubit>()
+                                                                  .reset();
+                                                              _viewModel
+                                                                  .refreshGallery();
+                                                            },
+                                                            child: ListUpdateNotificationAndroid(
+                                                                message:
+                                                                    'New posts',
+                                                                images:
+                                                                    sampleList),
+                                                          ),
                                                         ),
                                                       )
                                                     : Visibility(
