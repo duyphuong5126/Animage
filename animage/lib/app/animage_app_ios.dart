@@ -1,6 +1,6 @@
 import 'package:animage/constant.dart';
 import 'package:animage/feature/home/ios/home_page_ios.dart';
-import 'package:animage/feature/original_image_page/view_original_image_page_ios.dart';
+import 'package:animage/feature/original_image_page/ios/view_original_image_page_ios.dart';
 import 'package:animage/feature/post_detail/post_details_page_ios.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
