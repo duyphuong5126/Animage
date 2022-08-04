@@ -28,6 +28,8 @@ class _ViewOriginalImagePageAndroidState
 
   late final DataCubit<bool> _isSwipeEnabled = DataCubit(false);
 
+  late final DataCubit<bool> _isDismissible = DataCubit(false);
+
   @override
   Widget build(BuildContext context) {
     ViewOriginalUiModel uiModel =
@@ -42,84 +44,94 @@ class _ViewOriginalImagePageAndroidState
     }
     _isSwipeEnabled.push(urls.isNotEmpty);
 
-    return DismissiblePage(
-        direction: DismissiblePageDismissDirection.multi,
-        child: Scaffold(
-          extendBodyBehindAppBar: true,
-          backgroundColor: Colors.black,
-          appBar: FadingAppBarAndroid(
-              appBar: AppBar(
-                elevation: 0,
-                systemOverlayStyle: const SystemUiOverlayStyle(
-                    systemStatusBarContrastEnforced: true,
-                    statusBarColor: Color.fromARGB(0, 0, 0, 0)),
-                backgroundColor: const Color.fromARGB(100, 0, 0, 0),
-                title: BlocBuilder(
-                    bloc: _viewModel.galleryTitle,
-                    builder: (context, String title) {
-                      return Visibility(
-                        child: Text(title),
-                        visible: title.isNotEmpty,
-                      );
-                    }),
-              ),
-              controller: _animationController),
-          body: urls.isNotEmpty
-              ? BlocBuilder(
-                  bloc: _isSwipeEnabled,
-                  builder: (context, bool isSwipeEnabled) {
-                    return PageView.builder(
-                        physics: isSwipeEnabled
-                            ? const ScrollPhysics()
-                            : const NeverScrollableScrollPhysics(),
-                        itemCount: urls.length,
-                        onPageChanged: (int pageIndex) => _viewModel
-                            .onGalleryItemSelected(pageIndex, urls.length),
-                        itemBuilder: (context, int index) {
-                          String url = urls.elementAt(index);
-                          return PhotoView(
-                            enableRotation: false,
-                            minScale: PhotoViewComputedScale.contained * 1.0,
-                            imageProvider: CachedNetworkImageProvider(url),
-                            scaleStateChangedCallback:
-                                (PhotoViewScaleState state) {
-                              _isSwipeEnabled.push(state.index == 0);
-                            },
-                            loadingBuilder: (context, event) {
-                              return Center(
-                                child: SizedBox(
-                                  width: 32,
-                                  height: 32,
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        context.secondaryColor),
-                                  ),
-                                ),
-                              );
-                            },
-                            onTapUp: (context, details, value) {
-                              switch (_animationController.status) {
-                                case AnimationStatus.completed:
-                                  {
-                                    _animationController.reverse();
-                                    break;
-                                  }
+    return BlocBuilder(
+        bloc: _isDismissible,
+        builder: (context, bool isDismissible) {
+          return DismissiblePage(
+              disabled: !isDismissible,
+              direction: DismissiblePageDismissDirection.multi,
+              child: Scaffold(
+                extendBodyBehindAppBar: true,
+                backgroundColor: Colors.black,
+                appBar: FadingAppBarAndroid(
+                    appBar: AppBar(
+                      elevation: 0,
+                      systemOverlayStyle: const SystemUiOverlayStyle(
+                          systemStatusBarContrastEnforced: true,
+                          statusBarColor: Color.fromARGB(0, 0, 0, 0)),
+                      backgroundColor: const Color.fromARGB(100, 0, 0, 0),
+                      title: BlocBuilder(
+                          bloc: _viewModel.galleryTitle,
+                          builder: (context, String title) {
+                            return Visibility(
+                              child: Text(title),
+                              visible: title.isNotEmpty,
+                            );
+                          }),
+                    ),
+                    controller: _animationController),
+                body: urls.isNotEmpty
+                    ? BlocBuilder(
+                        bloc: _isSwipeEnabled,
+                        builder: (context, bool isSwipeEnabled) {
+                          return PageView.builder(
+                              physics: isSwipeEnabled
+                                  ? const ScrollPhysics()
+                                  : const NeverScrollableScrollPhysics(),
+                              itemCount: urls.length,
+                              onPageChanged: (int pageIndex) =>
+                                  _viewModel.onGalleryItemSelected(
+                                      pageIndex, urls.length),
+                              itemBuilder: (context, int index) {
+                                String url = urls.elementAt(index);
+                                return PhotoView(
+                                  enableRotation: false,
+                                  minScale:
+                                      PhotoViewComputedScale.contained * 1.0,
+                                  imageProvider:
+                                      CachedNetworkImageProvider(url),
+                                  scaleStateChangedCallback:
+                                      (PhotoViewScaleState state) {
+                                    _isSwipeEnabled.push(state.index == 0);
+                                    _isDismissible.push(state.index == 0);
+                                  },
+                                  loadingBuilder: (context, event) {
+                                    return Center(
+                                      child: SizedBox(
+                                        width: 32,
+                                        height: 32,
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  context.secondaryColor),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  onTapUp: (context, details, value) {
+                                    switch (_animationController.status) {
+                                      case AnimationStatus.completed:
+                                        {
+                                          _animationController.reverse();
+                                          break;
+                                        }
 
-                                case AnimationStatus.dismissed:
-                                  {
-                                    _animationController.forward();
-                                    break;
-                                  }
-                                default:
-                                  break;
-                              }
-                            },
-                          );
-                        });
-                  })
-              : Container(),
-        ),
-        onDismissed: () => Navigator.of(context).pop());
+                                      case AnimationStatus.dismissed:
+                                        {
+                                          _animationController.forward();
+                                          break;
+                                        }
+                                      default:
+                                        break;
+                                    }
+                                  },
+                                );
+                              });
+                        })
+                    : Container(),
+              ),
+              onDismissed: () => Navigator.of(context).pop());
+        });
   }
 
   @override
@@ -127,5 +139,6 @@ class _ViewOriginalImagePageAndroidState
     super.dispose();
     _animationController.dispose();
     _isSwipeEnabled.closeAsync();
+    _isDismissible.closeAsync();
   }
 }
