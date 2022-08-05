@@ -68,7 +68,7 @@ class _ViewOriginalImagePageAndroidState
                 return PageView.builder(
                     allowImplicitScrolling: true,
                     physics: isSwipeEnabled
-                        ? const ScrollPhysics()
+                        ? const AlwaysScrollableScrollPhysics()
                         : const NeverScrollableScrollPhysics(),
                     itemCount: urls.length,
                     onPageChanged: (int pageIndex) => _viewModel
