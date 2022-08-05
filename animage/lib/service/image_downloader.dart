@@ -25,6 +25,8 @@ class ImageDownloader {
   static final DataCubit<Map<int, bool>>? areChildrenDownloadableCubit =
       DataCubit({});
 
+  static final DataCubit<Set<int>> pendingIdList = DataCubit({});
+
   static void startDownloadingOriginalFile(Post post) async {
     ImageDownloadState? currentState = downloadStateCubit.state;
     String? fileUrl = post.fileUrl;
@@ -35,7 +37,7 @@ class ImageDownloader {
         currentState.state == DownloadState.success ||
         currentState.state == DownloadState.failed) {
       downloadStateCubit.push(ImageDownloadState(
-          postId: post.id, url: fileUrl, state: DownloadState.downloading));
+          postId: post.id, state: DownloadState.downloading));
       _sendDownloadInProgressNotification(post);
       Artist? artist = await _getArtistUseCase.execute(post);
       String albumName = artist != null
@@ -45,22 +47,30 @@ class ImageDownloader {
           await GallerySaver.saveImage(fileUrl, albumName: albumName) ?? false;
       downloadStateCubit.push(ImageDownloadState(
           postId: post.id,
-          url: fileUrl,
           state: downloaded ? DownloadState.success : DownloadState.failed));
       _sendFinishDownloadNotification(post, downloaded);
       if (_pendingList.isNotEmpty) {
-        startDownloadingOriginalFile(_pendingList.removeAt(0));
+        Post pendingPost = _pendingList.removeAt(0);
+        Set<int> newPendingList = {};
+        newPendingList.addAll(pendingIdList.state);
+        newPendingList.remove(pendingPost.id);
+        pendingIdList.push(newPendingList);
+        startDownloadingOriginalFile(pendingPost);
       }
-    } else if (currentState.url != fileUrl) {
+    } else if (currentState.postId != post.id) {
       if (_pendingList
           .where((pendingPost) => pendingPost.id == post.id)
           .isEmpty) {
         _pendingList.add(post);
       }
       pendingUrlCubit.push(fileUrl);
+      Set<int> newPendingList = {};
+      newPendingList.addAll(pendingIdList.state);
+      newPendingList.add(post.id);
+      pendingIdList.push(newPendingList);
     } else {
       downloadStateCubit.push(ImageDownloadState(
-          postId: post.id, url: fileUrl, state: DownloadState.downloading));
+          postId: post.id, state: DownloadState.downloading));
     }
   }
 

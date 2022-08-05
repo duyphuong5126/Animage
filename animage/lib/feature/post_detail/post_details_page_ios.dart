@@ -90,54 +90,60 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
               trailing: SizedBox(
                 width: 100,
                 child: BlocBuilder(
-                  bloc: ImageDownloader.downloadStateCubit,
-                  builder: (context, ImageDownloadState? state) {
-                    bool isDownloading =
-                        state?.state == DownloadState.downloading &&
-                            state?.postId == post.id;
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        CupertinoButton(
-                            padding: EdgeInsetsDirectional.zero,
-                            onPressed: () {
-                              Share.share(post.shareUrl,
-                                  subject: 'Illustration ${post.id}');
-                            },
-                            child: Icon(
-                              CupertinoIcons.share,
-                              color: context.primaryColor,
-                            )),
-                        const SizedBox(
-                          width: 4.0,
-                        ),
-                        isDownloading
-                            ? Container(
-                                child: CupertinoActivityIndicator(
-                                  radius: 12,
-                                  color: context.primaryColor,
-                                ),
-                                margin: const EdgeInsets.only(
-                                    left: 12.0, right: 8.0),
-                              )
-                            : CupertinoButton(
-                                padding: EdgeInsetsDirectional.zero,
-                                onPressed: () async {
-                                  _viewModel
-                                      .startDownloadingOriginalImage(post);
-                                },
-                                child: Icon(
-                                  CupertinoIcons.cloud_download,
-                                  color: context.primaryColor,
-                                )),
-                        const SizedBox(
-                          width: 4.0,
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                    bloc: ImageDownloader.pendingIdList,
+                    builder: (context, Set<int> pendingList) {
+                      bool isPending = pendingList.contains(post.id);
+                      return BlocBuilder(
+                        bloc: ImageDownloader.downloadStateCubit,
+                        builder: (context, ImageDownloadState? state) {
+                          bool isDownloading =
+                              state?.state == DownloadState.downloading &&
+                                  state?.postId == post.id;
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              CupertinoButton(
+                                  padding: EdgeInsetsDirectional.zero,
+                                  onPressed: () {
+                                    Share.share(post.shareUrl,
+                                        subject: 'Illustration ${post.id}');
+                                  },
+                                  child: Icon(
+                                    CupertinoIcons.share,
+                                    color: context.primaryColor,
+                                  )),
+                              const SizedBox(
+                                width: 4.0,
+                              ),
+                              isDownloading || isPending
+                                  ? Container(
+                                      child: CupertinoActivityIndicator(
+                                        radius: 12,
+                                        color: context.primaryColor,
+                                      ),
+                                      margin: const EdgeInsets.only(
+                                          left: 12.0, right: 8.0),
+                                    )
+                                  : CupertinoButton(
+                                      padding: EdgeInsetsDirectional.zero,
+                                      onPressed: () async {
+                                        _viewModel
+                                            .startDownloadingOriginalImage(
+                                                post);
+                                      },
+                                      child: Icon(
+                                        CupertinoIcons.cloud_download,
+                                        color: context.primaryColor,
+                                      )),
+                              const SizedBox(
+                                width: 4.0,
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }),
               ),
             ),
             child: SafeArea(
@@ -516,8 +522,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
   }
 
   void _processDownloadState(ImageDownloadState? state, Post currentPost) {
-    String? fileUrl = currentPost.fileUrl;
-    if (state == null || state.url != fileUrl) {
+    if (state == null || state.postId != currentPost.id) {
       return;
     }
     if (state.state == DownloadState.success) {

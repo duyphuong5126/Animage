@@ -428,36 +428,48 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                 width: 16.0,
                               ),
                               BlocBuilder(
-                                bloc: ImageDownloader.downloadStateCubit,
-                                builder: (context, ImageDownloadState? state) {
-                                  bool isDownloading = state?.state ==
-                                          DownloadState.downloading &&
-                                      state?.postId == post.id;
-                                  return !isDownloading
-                                      ? IconButton(
-                                          onPressed: () => _viewModel
-                                              .startDownloadingOriginalImage(
-                                                  post),
-                                          icon: Icon(
-                                            Icons.download_rounded,
-                                            size: 24,
-                                            color: context.primaryColor,
-                                          ))
-                                      : Container(
-                                          margin: const EdgeInsets.only(
-                                              left: 16.0, top: 8.0, right: 8.0),
-                                          child: SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: CircularProgressIndicator(
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                      context.secondaryColor),
-                                            ),
-                                          ),
-                                        );
-                                },
-                              )
+                                  bloc: ImageDownloader.pendingIdList,
+                                  builder: (context, Set<int> pendingList) {
+                                    bool isPending =
+                                        pendingList.contains(post.id);
+                                    return BlocBuilder(
+                                      bloc: ImageDownloader.downloadStateCubit,
+                                      builder:
+                                          (context, ImageDownloadState? state) {
+                                        bool isDownloading = state?.state ==
+                                                DownloadState.downloading &&
+                                            state?.postId == post.id;
+                                        return !isDownloading && !isPending
+                                            ? IconButton(
+                                                onPressed: () => _viewModel
+                                                    .startDownloadingOriginalImage(
+                                                        post),
+                                                icon: Icon(
+                                                  Icons.download_rounded,
+                                                  size: 24,
+                                                  color: context.primaryColor,
+                                                ))
+                                            : Container(
+                                                margin: const EdgeInsets.only(
+                                                    left: 16.0,
+                                                    top: 8.0,
+                                                    right: 8.0),
+                                                child: SizedBox(
+                                                  width: 24,
+                                                  height: 24,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                                Color>(
+                                                            context
+                                                                .secondaryColor),
+                                                  ),
+                                                ),
+                                              );
+                                      },
+                                    );
+                                  })
                             ],
                           )
                         ],
@@ -657,8 +669,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
   }
 
   void _processDownloadState(ImageDownloadState? state, Post currentPost) {
-    String? fileUrl = currentPost.fileUrl;
-    if (state == null || state.url != fileUrl) {
+    if (state == null || state.postId != currentPost.id) {
       return;
     }
     if (state.state == DownloadState.success) {
