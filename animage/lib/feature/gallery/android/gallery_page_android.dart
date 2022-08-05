@@ -416,8 +416,11 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
       builderDelegate: PagedChildBuilderDelegate(
           firstPageProgressIndicatorBuilder: (context) =>
               _loadingWidget(brandColor),
-          newPageProgressIndicatorBuilder: (context) =>
-              _loadingWidget(brandColor),
+          newPageProgressIndicatorBuilder: (context) => Container(
+                child: _loadingWidget(brandColor),
+                padding: EdgeInsets.only(
+                    bottom: _isAdReady ? AdSize.banner.height.toDouble() : 0),
+              ),
           itemBuilder: (context, postItem, index) {
             if (index == 0) {
               context.read<NewPostsCubit>().init(postItem.id);
@@ -451,8 +454,11 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
         scrollController: _scrollController,
         pagingController: _viewModel.getPagingController(),
         builderDelegate: PagedChildBuilderDelegate<PostCardUiModel>(
-            newPageProgressIndicatorBuilder: (context) =>
-                _loadingWidget(brandColor),
+            newPageProgressIndicatorBuilder: (context) => Container(
+                  child: _loadingWidget(brandColor),
+                  padding: EdgeInsets.only(
+                      bottom: _isAdReady ? AdSize.banner.height.toDouble() : 0),
+                ),
             firstPageProgressIndicatorBuilder: (context) =>
                 _loadingWidget(brandColor),
             firstPageErrorIndicatorBuilder: (context) => Center(

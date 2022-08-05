@@ -596,7 +596,11 @@ class _GalleryPageIOSState extends State<GalleryPageIOS>
       pagingController: _viewModel.getPagingController(),
       builderDelegate: PagedChildBuilderDelegate(
           firstPageProgressIndicatorBuilder: (context) => _loadingWidget(),
-          newPageProgressIndicatorBuilder: (context) => _loadingWidget(),
+          newPageProgressIndicatorBuilder: (context) => Container(
+                child: _loadingWidget(),
+                padding: EdgeInsets.only(
+                    bottom: _isAdReady ? AdSize.banner.height.toDouble() : 0),
+              ),
           itemBuilder: (context, postItem, index) {
             if (index == 0) {
               context.read<NewPostsCubit>().init(postItem.id);
@@ -627,7 +631,11 @@ class _GalleryPageIOSState extends State<GalleryPageIOS>
         scrollController: _scrollController,
         pagingController: _viewModel.getPagingController(),
         builderDelegate: PagedChildBuilderDelegate<PostCardUiModel>(
-            newPageProgressIndicatorBuilder: (context) => _loadingWidget(),
+            newPageProgressIndicatorBuilder: (context) => Container(
+                  child: _loadingWidget(),
+                  padding: EdgeInsets.only(
+                      bottom: _isAdReady ? AdSize.banner.height.toDouble() : 0),
+                ),
             firstPageProgressIndicatorBuilder: (context) => _loadingWidget(),
             firstPageErrorIndicatorBuilder: (context) => Center(
                   child: PlatformText(
