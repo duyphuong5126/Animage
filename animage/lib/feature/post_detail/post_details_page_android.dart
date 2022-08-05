@@ -351,7 +351,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                       ),
                     ),
                     BlocListener(
-                      bloc: ImageDownloader.pendingListCubit,
+                      bloc: ImageDownloader.pendingUrlCubit,
                       listener: (context, String? newPendingUrl) {
                         if (newPendingUrl != null &&
                             newPendingUrl == post.fileUrl) {
@@ -432,24 +432,18 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                 builder: (context, ImageDownloadState? state) {
                                   bool isDownloading = state?.state ==
                                           DownloadState.downloading &&
-                                      state?.url == post.fileUrl;
-                                  return Stack(
-                                    alignment: Alignment.bottomCenter,
-                                    children: [
-                                      Visibility(
-                                        child: IconButton(
-                                            onPressed: () => _viewModel
-                                                .startDownloadingOriginalImage(
-                                                    post),
-                                            icon: Icon(
-                                              Icons.download_rounded,
-                                              size: 24,
-                                              color: context.primaryColor,
-                                            )),
-                                        visible: !isDownloading,
-                                      ),
-                                      Visibility(
-                                        child: Container(
+                                      state?.postId == post.id;
+                                  return !isDownloading
+                                      ? IconButton(
+                                          onPressed: () => _viewModel
+                                              .startDownloadingOriginalImage(
+                                                  post),
+                                          icon: Icon(
+                                            Icons.download_rounded,
+                                            size: 24,
+                                            color: context.primaryColor,
+                                          ))
+                                      : Container(
                                           margin: const EdgeInsets.only(
                                               left: 16.0, top: 8.0, right: 8.0),
                                           child: SizedBox(
@@ -461,11 +455,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                                       context.secondaryColor),
                                             ),
                                           ),
-                                        ),
-                                        visible: isDownloading,
-                                      )
-                                    ],
-                                  );
+                                        );
                                 },
                               )
                             ],

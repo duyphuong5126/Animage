@@ -94,7 +94,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                   builder: (context, ImageDownloadState? state) {
                     bool isDownloading =
                         state?.state == DownloadState.downloading &&
-                            state?.url == post.fileUrl;
+                            state?.postId == post.id;
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -170,7 +170,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                       ),
                     ),
                     BlocListener(
-                      bloc: ImageDownloader.pendingListCubit,
+                      bloc: ImageDownloader.pendingUrlCubit,
                       listener: (context, String? newPendingUrl) {
                         if (newPendingUrl != null &&
                             newPendingUrl == post.fileUrl) {
