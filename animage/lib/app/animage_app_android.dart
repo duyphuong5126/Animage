@@ -1,6 +1,6 @@
 import 'package:animage/constant.dart';
 import 'package:animage/feature/home/android/home_page_android.dart';
-import 'package:animage/feature/original_image_page/view_original_image_page_android.dart';
+import 'package:animage/feature/original_image_page/android/view_original_image_page_android.dart';
 import 'package:animage/feature/post_detail/post_details_page_android.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
