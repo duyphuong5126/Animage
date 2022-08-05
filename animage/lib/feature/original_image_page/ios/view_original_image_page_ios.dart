@@ -23,6 +23,8 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
 
   late final DataCubit<bool> _isSwipeEnabled = DataCubit(false);
 
+  late final DataCubit<bool> _isNavigationEnabled = DataCubit(true);
+
   @override
   Widget build(BuildContext context) {
     Future.delayed(
@@ -69,9 +71,13 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
                           builder: (context, int index) {
                             String url = urls.elementAt(index);
                             return PhotoViewGalleryPageOptions(
-                              minScale: PhotoViewComputedScale.contained * 1.0,
-                              imageProvider: CachedNetworkImageProvider(url),
-                            );
+                                minScale:
+                                    PhotoViewComputedScale.contained * 1.0,
+                                imageProvider: CachedNetworkImageProvider(url),
+                                onTapUp: (context, details, value) {
+                                  _isNavigationEnabled
+                                      .push(!_isNavigationEnabled.state);
+                                });
                           },
                           loadingBuilder: (context, event) {
                             return Center(
@@ -82,40 +88,49 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
                             );
                           });
                     }),
-                Container(
-                  height: 150,
-                  alignment: Alignment.centerLeft,
-                  decoration: const BoxDecoration(
-                    color: transparency,
-                  ),
-                  child: Row(
-                    children: [
-                      CupertinoButton(
-                        padding: EdgeInsetsDirectional.zero,
-                        child: const Icon(
-                          CupertinoIcons.back,
-                          size: 32,
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(
-                        width: 16.0,
-                      ),
-                      BlocBuilder(
-                          bloc: _viewModel.galleryTitle,
-                          builder: (context, String title) {
-                            return Visibility(
-                              child: Text(
-                                title,
-                                style: context.navTitleTextStyle.copyWith(
-                                    color: context.brandColorDayNight),
+                BlocBuilder(
+                    bloc: _isNavigationEnabled,
+                    builder: (context, bool isNavigationEnabled) {
+                      return Visibility(
+                        child: Container(
+                          height: 150,
+                          alignment: Alignment.centerLeft,
+                          decoration: const BoxDecoration(
+                            color: transparency,
+                          ),
+                          child: Row(
+                            children: [
+                              CupertinoButton(
+                                padding: EdgeInsetsDirectional.zero,
+                                child: const Icon(
+                                  CupertinoIcons.back,
+                                  size: 32,
+                                ),
+                                onPressed: () => Navigator.pop(context),
                               ),
-                              visible: title.isNotEmpty,
-                            );
-                          })
-                    ],
-                  ),
-                ),
+                              const SizedBox(
+                                width: 16.0,
+                              ),
+                              BlocBuilder(
+                                  bloc: _viewModel.galleryTitle,
+                                  builder: (context, String title) {
+                                    return Visibility(
+                                      child: Text(
+                                        title,
+                                        style: context.navTitleTextStyle
+                                            .copyWith(
+                                                color:
+                                                    context.brandColorDayNight),
+                                      ),
+                                      visible: title.isNotEmpty,
+                                    );
+                                  })
+                            ],
+                          ),
+                        ),
+                        visible: isNavigationEnabled,
+                      );
+                    }),
               ],
             )
           : Container(),
