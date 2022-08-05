@@ -4,6 +4,7 @@ import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/domain/use_case/get_artist_use_case.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
+import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/notification_helper.dart';
 import 'package:animage/service/notification_helper_factory.dart';
@@ -21,6 +22,9 @@ class ImageDownloader {
       NotificationHelperFactory.illustrationDownloadNotificationHelper;
   static final GetArtistUseCase _getArtistUseCase = GetArtistUseCaseImpl();
 
+  static final DataCubit<Map<int, bool>>? areChildrenDownloadableCubit =
+      DataCubit({});
+
   static void startDownloadingOriginalFile(Post post) async {
     ImageDownloadState? currentState = downloadStateCubit.state;
     String? fileUrl = post.fileUrl;
@@ -30,8 +34,8 @@ class ImageDownloader {
     if (currentState == null ||
         currentState.state == DownloadState.success ||
         currentState.state == DownloadState.failed) {
-      downloadStateCubit.push(
-          ImageDownloadState(url: fileUrl, state: DownloadState.downloading));
+      downloadStateCubit.push(ImageDownloadState(
+          postId: post.id, url: fileUrl, state: DownloadState.downloading));
       _sendDownloadInProgressNotification(post);
       Artist? artist = await _getArtistUseCase.execute(post);
       String albumName = artist != null
@@ -40,6 +44,7 @@ class ImageDownloader {
       bool downloaded =
           await GallerySaver.saveImage(fileUrl, albumName: albumName) ?? false;
       downloadStateCubit.push(ImageDownloadState(
+          postId: post.id,
           url: fileUrl,
           state: downloaded ? DownloadState.success : DownloadState.failed));
       _sendFinishDownloadNotification(post, downloaded);
@@ -54,9 +59,26 @@ class ImageDownloader {
       }
       pendingListCubit.push(fileUrl);
     } else {
-      downloadStateCubit.push(
-          ImageDownloadState(url: fileUrl, state: DownloadState.downloading));
+      downloadStateCubit.push(ImageDownloadState(
+          postId: post.id, url: fileUrl, state: DownloadState.downloading));
     }
+  }
+
+  static void checkChildrenDownloadable(
+      int postId, Iterable<PostCardUiModel> children) async {
+    Iterable<int> pendingList =
+        ImageDownloader._pendingList.map((post) => post.id);
+    ImageDownloadState? downloadState = downloadStateCubit.state;
+    bool isAbleToDownloadChildren = children.where((child) {
+      return (child.id == downloadState?.postId &&
+              downloadState?.state == DownloadState.downloading) ||
+          pendingList.contains(child.id);
+    }).isEmpty;
+    Map<int, bool> downloadableChildrenMap = {};
+    downloadableChildrenMap
+        .addAll(ImageDownloader.areChildrenDownloadableCubit?.state ?? {});
+    downloadableChildrenMap[postId] = isAbleToDownloadChildren;
+    ImageDownloader.areChildrenDownloadableCubit?.push(downloadableChildrenMap);
   }
 
   static void _sendDownloadInProgressNotification(Post post) {
