@@ -16,7 +16,7 @@ class ImageDownloader {
   static final List<Post> _pendingList = [];
   static final DataCubit<ImageDownloadState?> downloadStateCubit =
       DataCubit(null);
-  static final DataCubit<String?> pendingListCubit = DataCubit(null);
+  static final DataCubit<String?> pendingUrlCubit = DataCubit(null);
 
   static final NotificationHelper notificationHelper =
       NotificationHelperFactory.illustrationDownloadNotificationHelper;
@@ -57,7 +57,7 @@ class ImageDownloader {
           .isEmpty) {
         _pendingList.add(post);
       }
-      pendingListCubit.push(fileUrl);
+      pendingUrlCubit.push(fileUrl);
     } else {
       downloadStateCubit.push(ImageDownloadState(
           postId: post.id, url: fileUrl, state: DownloadState.downloading));
