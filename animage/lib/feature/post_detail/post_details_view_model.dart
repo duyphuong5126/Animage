@@ -87,7 +87,7 @@ abstract class PostDetailsViewModel {
 
   void clearDetailsPageRequest();
 
-  void startDownloadAllChildren(List<PostCardUiModel> children);
+  void startDownloadAllChildren(int postId, List<PostCardUiModel> children);
 
   void toggleFavorite(Post post);
 
@@ -123,6 +123,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
 
   StreamSubscription? _getArtistSubscription;
   StreamSubscription? _initFavoriteSubscription;
+  StreamSubscription? _downloadStateSubscription;
 
   final Map<int, Post> _postDetailsMap = {};
 
@@ -156,6 +157,10 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
         .listen((favoriteList) {
           FavoriteService.addFavorites(favoriteList);
         });
+
+    _downloadStateSubscription = ImageDownloader.downloadStateCubit.stream
+        .listen((downloadState) => ImageDownloader.checkChildrenDownloadable(
+            post.id, _childrenCubit?.state ?? []));
   }
 
   @override
@@ -235,7 +240,8 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
   }
 
   @override
-  void startDownloadAllChildren(List<PostCardUiModel> children) async {
+  void startDownloadAllChildren(
+      int postId, List<PostCardUiModel> children) async {
     List<int> childIds = children.map((child) => child.id).toList();
     childIds.sort((int idA, int idB) => idA.compareTo(idB));
     for (int childId in childIds) {
@@ -244,6 +250,8 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
         ImageDownloader.startDownloadingOriginalFile(childPost);
       }
     }
+    ImageDownloader.checkChildrenDownloadable(
+        postId, _childrenCubit?.state ?? []);
   }
 
   @override
@@ -254,6 +262,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
     _pagingController?.dispose();
     _pagingController = null;
     _postDetailsCubit?.closeAsync();
+    _downloadStateSubscription?.cancel();
   }
 
   void _initArtist(Post post) async {

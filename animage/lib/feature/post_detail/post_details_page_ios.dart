@@ -326,29 +326,53 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                                         children.length),
                                     style: context.navTitleTextStyle,
                                   ),
-                                  CupertinoButton(
-                                      onPressed: () {
-                                        context.showCupertinoYesNoDialog(
-                                            title: _viewModel
-                                                .downloadChildrenTitle,
-                                            message: _viewModel
-                                                .getDownloadChildrenMessage(
-                                                    children.length),
-                                            yesLabel: _viewModel
-                                                .acceptDownloadChildrenAction,
-                                            noLabel: _viewModel
-                                                .cancelDownloadChildrenAction,
-                                            yesAction: () => _viewModel
-                                                .startDownloadAllChildren(
-                                                    children),
-                                            noAction: () {});
-                                      },
-                                      child: Text(
-                                        _viewModel.downloadChildrenAction,
-                                        style: context.navActionTextStyle
-                                            .copyWith(
-                                                color: context.brandColor),
-                                      ))
+                                  BlocBuilder(
+                                      bloc: ImageDownloader
+                                          .areChildrenDownloadableCubit,
+                                      builder: (context,
+                                          Map<int, bool>
+                                              childrenDownloadableMap) {
+                                        bool areChildrenDownloadable =
+                                            childrenDownloadableMap[post.id] ??
+                                                true;
+                                        return areChildrenDownloadable
+                                            ? CupertinoButton(
+                                                onPressed: () {
+                                                  context.showCupertinoYesNoDialog(
+                                                      title: _viewModel
+                                                          .downloadChildrenTitle,
+                                                      message: _viewModel
+                                                          .getDownloadChildrenMessage(
+                                                              children.length),
+                                                      yesLabel: _viewModel
+                                                          .acceptDownloadChildrenAction,
+                                                      noLabel: _viewModel
+                                                          .cancelDownloadChildrenAction,
+                                                      yesAction: () => _viewModel
+                                                          .startDownloadAllChildren(
+                                                              post.id,
+                                                              children),
+                                                      noAction: () {});
+                                                },
+                                                child: Text(
+                                                  _viewModel
+                                                      .downloadChildrenAction,
+                                                  style: context
+                                                      .navActionTextStyle
+                                                      .copyWith(
+                                                          color: context
+                                                              .brandColor),
+                                                ))
+                                            : Container(
+                                                child:
+                                                    CupertinoActivityIndicator(
+                                                  radius: 12,
+                                                  color: context.primaryColor,
+                                                ),
+                                                margin: const EdgeInsets.only(
+                                                    left: 12.0, right: 8.0),
+                                              );
+                                      })
                                 ],
                               ),
                             ));

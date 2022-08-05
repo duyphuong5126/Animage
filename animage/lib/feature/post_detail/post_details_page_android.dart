@@ -561,26 +561,48 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                             _viewModel.getChildrenSectionTitle(children.length),
                             style: context.bodyText1,
                           ),
-                          TextButton(
-                              onPressed: () {
-                                context.showYesNoDialog(
-                                    title: _viewModel.downloadChildrenTitle,
-                                    content:
-                                        _viewModel.getDownloadChildrenMessage(
-                                            children.length),
-                                    yesLabel:
-                                        _viewModel.acceptDownloadChildrenAction,
-                                    noLabel:
-                                        _viewModel.cancelDownloadChildrenAction,
-                                    yesAction: () => _viewModel
-                                        .startDownloadAllChildren(children),
-                                    noAction: () {});
-                              },
-                              child: Text(
-                                _viewModel.downloadChildrenAction,
-                                style: context.button
-                                    ?.copyWith(color: context.secondaryColor),
-                              ))
+                          BlocBuilder(
+                              bloc:
+                                  ImageDownloader.areChildrenDownloadableCubit,
+                              builder: (context,
+                                  Map<int, bool> childrenDownloadableMap) {
+                                bool areChildrenDownloadable =
+                                    childrenDownloadableMap[post.id] ?? true;
+                                return areChildrenDownloadable
+                                    ? TextButton(
+                                        onPressed: () {
+                                          context.showYesNoDialog(
+                                              title: _viewModel
+                                                  .downloadChildrenTitle,
+                                              content: _viewModel
+                                                  .getDownloadChildrenMessage(
+                                                      children.length),
+                                              yesLabel: _viewModel
+                                                  .acceptDownloadChildrenAction,
+                                              noLabel: _viewModel
+                                                  .cancelDownloadChildrenAction,
+                                              yesAction: () => _viewModel
+                                                  .startDownloadAllChildren(
+                                                      post.id, children),
+                                              noAction: () {});
+                                        },
+                                        child: Text(
+                                          _viewModel.downloadChildrenAction,
+                                          style: context.button?.copyWith(
+                                              color: context.secondaryColor),
+                                        ))
+                                    : Container(
+                                        margin:
+                                            const EdgeInsets.only(right: 16.0),
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  context.secondaryColor),
+                                        ),
+                                      );
+                              })
                         ],
                       ),
                     ));
