@@ -52,7 +52,7 @@ class NewPostsCubit extends Cubit<Iterable<String>> {
             ? _getPostListUseCase.execute(1)
             : _searchPostsByTagsUseCase.execute(_tagList, 1)))
         .toList()
-      ..sort((a, b) => a.id.compareTo(b.id) * -1);
+      ..sort((a, b) => b.id.compareTo(a.id));
 
     if (postList.length >= _toUpdateLength &&
         postList[_toUpdateLength - 1].id > _maxPostId) {
