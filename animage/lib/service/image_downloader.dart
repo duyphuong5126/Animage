@@ -8,6 +8,7 @@ import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/notification_helper.dart';
 import 'package:animage/service/notification_helper_factory.dart';
+import 'package:animage/utils/log.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 import 'dart:io' show Platform;
@@ -43,8 +44,16 @@ class ImageDownloader {
       String albumName = artist != null
           ? '$appDirectoryName/${artist.name.trim().toLowerCase()}'
           : appDirectoryName;
-      bool downloaded =
-          await GallerySaver.saveImage(fileUrl, albumName: albumName) ?? false;
+      bool downloaded;
+      try {
+        downloaded =
+            await GallerySaver.saveImage(fileUrl, albumName: albumName) ??
+                false;
+      } catch (e) {
+        Log.d('ImageDownloader',
+            'could not download file $fileUrl with error $e');
+        downloaded = false;
+      }
       downloadStateCubit.push(ImageDownloadState(
           postId: post.id,
           state: downloaded ? DownloadState.success : DownloadState.failed));
