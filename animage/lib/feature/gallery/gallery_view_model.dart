@@ -525,8 +525,8 @@ class GalleryViewModelImpl extends GalleryViewModel {
   String specialOfferMessage(int level) {
     int requiredChallenges = GalleryLevel.levelChallengesMap[level] ?? 0;
     return requiredChallenges > 1
-        ? 'Watch an ad to receive our special offer?' // todo
-        : 'Watch an ad to receive our special offer?';
+        ? 'Watch two ads to receive a special offer?'
+        : 'Watch an ad to receive a special offer?';
   }
 
   @override
@@ -537,7 +537,7 @@ class GalleryViewModelImpl extends GalleryViewModel {
 
   @override
   String specialOfferEarnedMessage(int level) {
-    return 'You have earned a special offer.\nIt will be active for ${GalleryLevel.levelExpirationMap[level]?.inHours ?? 0} hours.\nPlease restart the app to activate it.';
+    return 'You have earned a special offer.\nIt will be active for ${GalleryLevel.levelExpirationMap[level]?.inHours ?? 0} hours.';
   }
 
   @override

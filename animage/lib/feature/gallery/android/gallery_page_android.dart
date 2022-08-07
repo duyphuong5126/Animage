@@ -47,7 +47,8 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
   late BannerAd _bannerAd;
   bool _isAdReady = false;
 
-  RewardedAd? _rewardedAd;
+  RewardedAd? _firstRewardedAd;
+  RewardedAd? _secondRewardedAd;
 
   @override
   void initState() {
@@ -106,7 +107,8 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
     _scrollController?.dispose();
     _scrollController = null;
     _bannerAd.dispose();
-    _rewardedAd?.dispose();
+    _firstRewardedAd?.dispose();
+    _secondRewardedAd?.dispose();
   }
 
   @override
@@ -661,47 +663,125 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
   }
 
   void _loadRewardedAd(int levelId) async {
-    if (levelId > 0) {
-      RewardedAd.load(
-        adUnitId: AdService.rewardedAdId,
-        request: const AdRequest(),
-        rewardedAdLoadCallback: RewardedAdLoadCallback(
-          onAdLoaded: (ad) {
-            bool isRewardEarned = false;
-            ad.fullScreenContentCallback =
-                FullScreenContentCallback(onAdDismissedFullScreenContent: (ad) {
-              if (isRewardEarned) {
-                context.showConfirmationDialog(
-                    title: _viewModel.specialOfferEarnedTitle,
-                    message: _viewModel.specialOfferEarnedMessage(
-                        _viewModel.galleryLevelIndexCubit.state),
-                    actionLabel: _viewModel.specialOfferEarnedConfirmLabel,
-                    action: () {});
-              }
-            });
+    if (levelId == 1) {
+      _loadLevel1Ad();
+    } else if (levelId == 2) {
+      _loadLevel2Ads();
+    }
+  }
 
-            _rewardedAd = ad;
+  void _loadLevel1Ad() {
+    RewardedAd.load(
+      adUnitId: AdService.firstRewardedAdId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          bool isRewardEarned = false;
+          ad.fullScreenContentCallback =
+              FullScreenContentCallback(onAdDismissedFullScreenContent: (ad) {
+            if (isRewardEarned) {
+              context.showConfirmationDialog(
+                  title: _viewModel.specialOfferEarnedTitle,
+                  message: _viewModel.specialOfferEarnedMessage(
+                      _viewModel.galleryLevelIndexCubit.state),
+                  actionLabel: _viewModel.specialOfferEarnedConfirmLabel,
+                  action: () => _viewModel.refreshGallery());
+            }
+          });
 
-            context.showYesNoDialog(
-                title: _viewModel.specialOfferTitle,
-                content: _viewModel.specialOfferMessage(levelId),
-                yesLabel: _viewModel.specialOfferAcceptLabel,
-                yesAction: () => _rewardedAd?.show(onUserEarnedReward:
+          _firstRewardedAd = ad;
+
+          context.showYesNoDialog(
+              title: _viewModel.specialOfferTitle,
+              content: _viewModel.specialOfferMessage(1),
+              yesLabel: _viewModel.specialOfferAcceptLabel,
+              yesAction: () => _firstRewardedAd?.show(onUserEarnedReward:
+                      (AdWithoutView ad, RewardItem reward) {
+                    if (reward.amount.isFinite) {
+                      isRewardEarned = true;
+                      _viewModel.enableGalleryLevel(1);
+                    }
+                  }),
+              noLabel: _viewModel.specialOfferDenyLabel,
+              noAction: () {});
+        },
+        onAdFailedToLoad: (err) {
+          Log.d('_GalleryPageAndroidState',
+              'Failed to load a rewarded ad: ${err.message}');
+        },
+      ),
+    );
+  }
+
+  void _loadLevel2Ads() {
+    RewardedAd.load(
+      adUnitId: AdService.firstRewardedAdId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (firstAd) {
+          bool isFirstRewardEarned = false;
+          firstAd.fullScreenContentCallback =
+              FullScreenContentCallback(onAdDismissedFullScreenContent: (ad) {
+            if (isFirstRewardEarned) {
+              RewardedAd.load(
+                adUnitId: AdService.secondRewardedAdId,
+                request: const AdRequest(),
+                rewardedAdLoadCallback: RewardedAdLoadCallback(
+                  onAdLoaded: (secondAd) {
+                    bool isSecondRewardEarned = false;
+                    secondAd.fullScreenContentCallback =
+                        FullScreenContentCallback(
+                            onAdDismissedFullScreenContent: (ad) {
+                      if (isSecondRewardEarned) {
+                        context.showConfirmationDialog(
+                            title: _viewModel.specialOfferEarnedTitle,
+                            message: _viewModel.specialOfferEarnedMessage(
+                                _viewModel.galleryLevelIndexCubit.state),
+                            actionLabel:
+                                _viewModel.specialOfferEarnedConfirmLabel,
+                            action: () => _viewModel.refreshGallery());
+                      }
+                    });
+
+                    _secondRewardedAd = secondAd;
+
+                    _secondRewardedAd?.show(onUserEarnedReward:
                         (AdWithoutView ad, RewardItem reward) {
                       if (reward.amount.isFinite) {
-                        isRewardEarned = true;
-                        _viewModel.enableGalleryLevel(levelId);
+                        isSecondRewardEarned = true;
+                        _viewModel.enableGalleryLevel(2);
                       }
-                    }),
-                noLabel: _viewModel.specialOfferDenyLabel,
-                noAction: () {});
-          },
-          onAdFailedToLoad: (err) {
-            Log.d('_GalleryPageAndroidState',
-                'Failed to load a rewarded ad: ${err.message}');
-          },
-        ),
-      );
-    }
+                    });
+                  },
+                  onAdFailedToLoad: (err) {
+                    Log.d('_GalleryPageAndroidState',
+                        'Failed to load a rewarded ad: ${err.message}');
+                  },
+                ),
+              );
+            }
+          });
+
+          _firstRewardedAd = firstAd;
+
+          context.showYesNoDialog(
+              title: _viewModel.specialOfferTitle,
+              content: _viewModel.specialOfferMessage(2),
+              yesLabel: _viewModel.specialOfferAcceptLabel,
+              yesAction: () => _firstRewardedAd?.show(onUserEarnedReward:
+                      (AdWithoutView ad, RewardItem reward) {
+                    if (reward.amount.isFinite) {
+                      isFirstRewardEarned = true;
+                    }
+                  }),
+              noLabel: _viewModel.specialOfferDenyLabel,
+              noAction: () {});
+        },
+        onAdFailedToLoad: (err) {
+          Log.d('_GalleryPageAndroidState',
+              'Failed to load a rewarded ad: ${err.message}');
+        },
+      ),
+    );
   }
 }

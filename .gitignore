@@ -86,3 +86,5 @@ lint/tmp/
 
 #Business
 animage/lib/app_const.dart
+animage/android/app/google-services.json
+animage/lib/app_const.dart

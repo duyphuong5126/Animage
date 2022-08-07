@@ -14,9 +14,19 @@ class AdService {
     }
   }
 
-  static String get rewardedAdId {
+  static String get firstRewardedAdId {
     if (Platform.isAndroid) {
-      return _androidRewardedAdId;
+      return _androidFirstRewardedAdId;
+    } else if (Platform.isIOS) {
+      return 'ca-app-pub-3940256099942544/1712485313';
+    } else {
+      throw UnsupportedError('Unsupported platform');
+    }
+  }
+
+  static String get secondRewardedAdId {
+    if (Platform.isAndroid) {
+      return _androidSecondRewardedAdId;
     } else if (Platform.isIOS) {
       return 'ca-app-pub-3940256099942544/1712485313';
     } else {
@@ -28,7 +38,11 @@ class AdService {
       ? androidBannerAdId
       : 'ca-app-pub-3940256099942544/6300978111';
 
-  static String get _androidRewardedAdId => kReleaseMode
-      ? androidRewardedAdId
+  static String get _androidFirstRewardedAdId => kReleaseMode
+      ? androidFirstRewardedAdId
+      : 'ca-app-pub-3940256099942544/5224354917';
+
+  static String get _androidSecondRewardedAdId => kReleaseMode
+      ? androidSecondRewardedAdId
       : 'ca-app-pub-3940256099942544/5224354917';
 }
