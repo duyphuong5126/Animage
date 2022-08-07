@@ -442,9 +442,13 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                             state?.postId == post.id;
                                         return !isDownloading && !isPending
                                             ? IconButton(
-                                                onPressed: () => _viewModel
-                                                    .startDownloadingOriginalImage(
-                                                        post),
+                                                onPressed: () {
+                                                  _viewModel
+                                                      .startDownloadingOriginalImage(
+                                                          post);
+                                                  AnalyticsHelper.download(
+                                                      post.id);
+                                                },
                                                 icon: Icon(
                                                   Icons.download_rounded,
                                                   size: 24,

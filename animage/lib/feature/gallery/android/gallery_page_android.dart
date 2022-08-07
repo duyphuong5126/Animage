@@ -47,6 +47,8 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
   late BannerAd _bannerAd;
   bool _isAdReady = false;
 
+  RewardedAd? _rewardedAd;
+
   @override
   void initState() {
     super.initState();
@@ -87,6 +89,8 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
     );
 
     _bannerAd.load();
+
+    _viewModel.requestLevelChallenge();
   }
 
   @override
@@ -102,6 +106,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
     _scrollController?.dispose();
     _scrollController = null;
     _bannerAd.dispose();
+    _rewardedAd?.dispose();
   }
 
   @override
@@ -134,271 +139,287 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
             BlocProvider(create: (context) => NewPostsCubit()),
           ],
           child: SafeArea(
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
-              child: BlocBuilder(
-                  bloc: _modeCubit,
-                  builder: (context, GalleryMode mode) {
-                    bool isGrid = mode == GalleryMode.grid;
-                    return BlocConsumer(
-                      listener: (context, List<String> tags) {
-                        context.read<NewPostsCubit>().updateTagsList(tags);
-                      },
-                      bloc: _viewModel.tagListCubit,
-                      builder: (context, List<String> tags) {
-                        bool hasTag = tags.isNotEmpty;
-                        List<Widget> bodyWidgets = [
-                          Positioned.fill(
-                              child: Align(
-                            child: Container(
-                              child: BlocBuilder(
-                                  bloc: _viewModel.setUpFinishCubit,
-                                  builder: (context, bool setUpFinished) {
-                                    return setUpFinished
-                                        ? Stack(
-                                            alignment: Alignment.topCenter,
-                                            children: [
-                                              RefreshIndicator(
-                                                onRefresh: () => Future.sync(
-                                                    () => _viewModel
-                                                        .refreshGallery()),
-                                                child: isGrid
-                                                    ? _buildPagedGridView(
-                                                        context.secondaryColor)
-                                                    : _buildPagedListView(
-                                                        context.secondaryColor),
-                                              ),
-                                              BlocConsumer<NewPostsCubit,
-                                                      Iterable<String>>(
-                                                  listener: (context,
-                                                      Iterable<String>
-                                                          sampleList) {
-                                                if (sampleList.isNotEmpty) {
-                                                  _notificationAnimationController
-                                                      .forward();
-                                                }
-                                              }, builder: (context,
-                                                      Iterable<String>
-                                                          sampleList) {
-                                                return sampleList.isNotEmpty
-                                                    ? SlideTransition(
-                                                        position:
-                                                            _notificationSlideInAnimation,
-                                                        child: Container(
-                                                          margin:
-                                                              const EdgeInsets
-                                                                      .only(
-                                                                  top: 8.0),
-                                                          child:
-                                                              GestureDetector(
-                                                            onTap: () {
-                                                              _notificationAnimationController
-                                                                  .reverse();
-                                                              context
-                                                                  .read<
-                                                                      NewPostsCubit>()
-                                                                  .reset();
-                                                              _viewModel
-                                                                  .refreshGallery();
-                                                            },
-                                                            child: ListUpdateNotificationAndroid(
-                                                                message:
-                                                                    'New posts',
-                                                                images:
-                                                                    sampleList),
-                                                          ),
-                                                        ),
-                                                      )
-                                                    : Visibility(
-                                                        child: Container(),
-                                                        visible: false,
-                                                      );
-                                              })
-                                            ],
-                                          )
-                                        : Center(
-                                            child: SizedBox(
-                                              width: 32,
-                                              height: 32,
-                                              child: CircularProgressIndicator(
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                            Color>(
-                                                        context.secondaryColor),
-                                              ),
-                                            ),
-                                          );
-                                  }),
-                              margin:
-                                  EdgeInsets.only(top: hasTag ? 80.0 : 32.0),
-                              padding: const EdgeInsets.only(top: 16.0),
-                            ),
-                            alignment: AlignmentDirectional.topCenter,
-                          )),
-                          Positioned.fill(
-                              child: Align(
-                            child: Container(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Container(
-                                        child: Text(
-                                          _viewModel.pageTitle,
-                                          style: context.headline6,
-                                        ),
-                                        margin:
-                                            const EdgeInsets.only(left: 8.0),
-                                      ),
-                                      Container(
-                                        height: 32,
-                                        width: 101,
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(8.0)),
-                                            border: Border.all(
-                                                color: context.secondaryColor)),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: IconButton(
-                                                onPressed: () {
-                                                  _modeCubit
-                                                      .push(GalleryMode.list);
-                                                  saveGalleryModePref(
-                                                      GalleryMode.list);
-                                                  AnalyticsHelper
-                                                      .viewListGallery();
-                                                },
-                                                icon: Icon(
-                                                  Icons.list,
-                                                  color: isGrid
-                                                      ? unSelectedModeColor
-                                                      : context.secondaryColor,
+            child: BlocListener(
+              bloc: _viewModel.galleryLevelIndexCubit,
+              listener: (context, int levelId) {
+                _loadRewardedAd(levelId);
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+                child: BlocBuilder(
+                    bloc: _modeCubit,
+                    builder: (context, GalleryMode mode) {
+                      bool isGrid = mode == GalleryMode.grid;
+                      return BlocConsumer(
+                        listener: (context, List<String> tags) {
+                          context.read<NewPostsCubit>().updateTagsList(tags);
+                        },
+                        bloc: _viewModel.tagListCubit,
+                        builder: (context, List<String> tags) {
+                          bool hasTag = tags.isNotEmpty;
+                          List<Widget> bodyWidgets = [
+                            Positioned.fill(
+                                child: Align(
+                              child: Container(
+                                child: BlocBuilder(
+                                    bloc: _viewModel.setUpFinishCubit,
+                                    builder: (context, bool setUpFinished) {
+                                      return setUpFinished
+                                          ? Stack(
+                                              alignment: Alignment.topCenter,
+                                              children: [
+                                                RefreshIndicator(
+                                                  onRefresh: () => Future.sync(
+                                                      () => _viewModel
+                                                          .refreshGallery()),
+                                                  child: isGrid
+                                                      ? _buildPagedGridView(
+                                                          context
+                                                              .secondaryColor)
+                                                      : _buildPagedListView(
+                                                          context
+                                                              .secondaryColor),
                                                 ),
-                                                padding:
-                                                    const EdgeInsetsDirectional
-                                                        .all(4.0),
-                                              ),
-                                              flex: 1,
-                                            ),
-                                            Container(
-                                              width: 1,
-                                              color: context.secondaryColor,
-                                            ),
-                                            Expanded(
-                                              child: IconButton(
-                                                onPressed: () {
-                                                  _modeCubit
-                                                      .push(GalleryMode.grid);
-                                                  saveGalleryModePref(
-                                                      GalleryMode.grid);
-                                                  AnalyticsHelper
-                                                      .viewGridGallery();
-                                                },
-                                                icon: Icon(Icons.grid_view,
-                                                    color: isGrid
-                                                        ? context.secondaryColor
-                                                        : unSelectedModeColor),
-                                                padding:
-                                                    const EdgeInsetsDirectional
-                                                        .all(4.0),
-                                              ),
-                                              flex: 1,
+                                                BlocConsumer<NewPostsCubit,
+                                                        Iterable<String>>(
+                                                    listener: (context,
+                                                        Iterable<String>
+                                                            sampleList) {
+                                                  if (sampleList.isNotEmpty) {
+                                                    _notificationAnimationController
+                                                        .forward();
+                                                  }
+                                                }, builder: (context,
+                                                        Iterable<String>
+                                                            sampleList) {
+                                                  return sampleList.isNotEmpty
+                                                      ? SlideTransition(
+                                                          position:
+                                                              _notificationSlideInAnimation,
+                                                          child: Container(
+                                                            margin:
+                                                                const EdgeInsets
+                                                                        .only(
+                                                                    top: 8.0),
+                                                            child:
+                                                                GestureDetector(
+                                                              onTap: () {
+                                                                _notificationAnimationController
+                                                                    .reverse();
+                                                                context
+                                                                    .read<
+                                                                        NewPostsCubit>()
+                                                                    .reset();
+                                                                _viewModel
+                                                                    .refreshGallery();
+                                                              },
+                                                              child: ListUpdateNotificationAndroid(
+                                                                  message:
+                                                                      'New posts',
+                                                                  images:
+                                                                      sampleList),
+                                                            ),
+                                                          ),
+                                                        )
+                                                      : Visibility(
+                                                          child: Container(),
+                                                          visible: false,
+                                                        );
+                                                })
+                                              ],
                                             )
-                                          ],
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                  Visibility(
-                                    child: Container(
-                                      child: ListView.separated(
-                                          scrollDirection: Axis.horizontal,
-                                          itemBuilder: (context, index) {
-                                            String tag = tags[index];
-                                            return Chip(
-                                              deleteIcon:
-                                                  const Icon(Icons.close),
-                                              deleteIconColor: Colors.white,
-                                              onDeleted: () {
-                                                context.showYesNoDialog(
-                                                    title: _viewModel
-                                                        .removeTagTitle,
-                                                    content: _viewModel
-                                                        .getTagRemovalMessage(
-                                                            tag),
-                                                    yesLabel: _viewModel
-                                                        .acceptTagRemoval,
-                                                    yesAction: () {
-                                                      _viewModel
-                                                          .removeSearchTag(tag);
-                                                    },
-                                                    noLabel: _viewModel
-                                                        .cancelTagRemoval,
-                                                    noAction: () {});
-                                              },
-                                              label: Text(
-                                                tag,
-                                                style: context.bodyText2
-                                                    ?.copyWith(
-                                                        color: Colors.white),
+                                          : Center(
+                                              child: SizedBox(
+                                                width: 32,
+                                                height: 32,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                              Color>(
+                                                          context
+                                                              .secondaryColor),
+                                                ),
                                               ),
-                                              backgroundColor:
-                                                  context.secondaryColor,
-                                              labelPadding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 8.0),
                                             );
-                                          },
-                                          separatorBuilder: (context, index) {
-                                            return const SizedBox(
-                                              width: 8.0,
-                                            );
-                                          },
-                                          itemCount: tags.length),
-                                      constraints: const BoxConstraints.expand(
-                                          height: 32),
-                                      margin: const EdgeInsets.only(top: 8.0),
+                                    }),
+                                margin:
+                                    EdgeInsets.only(top: hasTag ? 80.0 : 32.0),
+                                padding: const EdgeInsets.only(top: 16.0),
+                              ),
+                              alignment: AlignmentDirectional.topCenter,
+                            )),
+                            Positioned.fill(
+                                child: Align(
+                              child: Container(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Container(
+                                          child: Text(
+                                            _viewModel.pageTitle,
+                                            style: context.headline6,
+                                          ),
+                                          margin:
+                                              const EdgeInsets.only(left: 8.0),
+                                        ),
+                                        Container(
+                                          height: 32,
+                                          width: 101,
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  const BorderRadius.all(
+                                                      Radius.circular(8.0)),
+                                              border: Border.all(
+                                                  color:
+                                                      context.secondaryColor)),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: IconButton(
+                                                  onPressed: () {
+                                                    _modeCubit
+                                                        .push(GalleryMode.list);
+                                                    saveGalleryModePref(
+                                                        GalleryMode.list);
+                                                    AnalyticsHelper
+                                                        .viewListGallery();
+                                                  },
+                                                  icon: Icon(
+                                                    Icons.list,
+                                                    color: isGrid
+                                                        ? unSelectedModeColor
+                                                        : context
+                                                            .secondaryColor,
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .all(4.0),
+                                                ),
+                                                flex: 1,
+                                              ),
+                                              Container(
+                                                width: 1,
+                                                color: context.secondaryColor,
+                                              ),
+                                              Expanded(
+                                                child: IconButton(
+                                                  onPressed: () {
+                                                    _modeCubit
+                                                        .push(GalleryMode.grid);
+                                                    saveGalleryModePref(
+                                                        GalleryMode.grid);
+                                                    AnalyticsHelper
+                                                        .viewGridGallery();
+                                                  },
+                                                  icon: Icon(Icons.grid_view,
+                                                      color: isGrid
+                                                          ? context
+                                                              .secondaryColor
+                                                          : unSelectedModeColor),
+                                                  padding:
+                                                      const EdgeInsetsDirectional
+                                                          .all(4.0),
+                                                ),
+                                                flex: 1,
+                                              )
+                                            ],
+                                          ),
+                                        )
+                                      ],
                                     ),
-                                    visible: tags.isNotEmpty,
-                                  )
-                                ],
+                                    Visibility(
+                                      child: Container(
+                                        child: ListView.separated(
+                                            scrollDirection: Axis.horizontal,
+                                            itemBuilder: (context, index) {
+                                              String tag = tags[index];
+                                              return Chip(
+                                                deleteIcon:
+                                                    const Icon(Icons.close),
+                                                deleteIconColor: Colors.white,
+                                                onDeleted: () {
+                                                  context.showYesNoDialog(
+                                                      title: _viewModel
+                                                          .removeTagTitle,
+                                                      content: _viewModel
+                                                          .getTagRemovalMessage(
+                                                              tag),
+                                                      yesLabel: _viewModel
+                                                          .acceptTagRemoval,
+                                                      yesAction: () {
+                                                        _viewModel
+                                                            .removeSearchTag(
+                                                                tag);
+                                                      },
+                                                      noLabel: _viewModel
+                                                          .cancelTagRemoval,
+                                                      noAction: () {});
+                                                },
+                                                label: Text(
+                                                  tag,
+                                                  style: context.bodyText2
+                                                      ?.copyWith(
+                                                          color: Colors.white),
+                                                ),
+                                                backgroundColor:
+                                                    context.secondaryColor,
+                                                labelPadding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8.0),
+                                              );
+                                            },
+                                            separatorBuilder: (context, index) {
+                                              return const SizedBox(
+                                                width: 8.0,
+                                              );
+                                            },
+                                            itemCount: tags.length),
+                                        constraints:
+                                            const BoxConstraints.expand(
+                                                height: 32),
+                                        margin: const EdgeInsets.only(top: 8.0),
+                                      ),
+                                      visible: tags.isNotEmpty,
+                                    )
+                                  ],
+                                ),
+                                margin:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
                               ),
-                              margin: const EdgeInsets.symmetric(vertical: 8.0),
-                            ),
-                            alignment: Alignment.topCenter,
-                          )),
-                        ];
-                        if (_isAdReady) {
-                          bodyWidgets.add(Positioned.fill(
-                              child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              constraints: BoxConstraints.expand(
-                                  width: double.infinity,
-                                  height: _bannerAd.size.height.toDouble()),
-                              color: context.defaultBackgroundColor,
-                              child: SizedBox(
-                                width: _bannerAd.size.width.toDouble(),
-                                height: _bannerAd.size.height.toDouble(),
-                                child: AdWidget(ad: _bannerAd),
+                              alignment: Alignment.topCenter,
+                            )),
+                          ];
+                          if (_isAdReady) {
+                            bodyWidgets.add(Positioned.fill(
+                                child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: Container(
+                                constraints: BoxConstraints.expand(
+                                    width: double.infinity,
+                                    height: _bannerAd.size.height.toDouble()),
+                                color: context.defaultBackgroundColor,
+                                child: SizedBox(
+                                  width: _bannerAd.size.width.toDouble(),
+                                  height: _bannerAd.size.height.toDouble(),
+                                  child: AdWidget(ad: _bannerAd),
+                                ),
                               ),
-                            ),
-                          )));
-                        }
-                        return Stack(
-                          children: bodyWidgets,
-                        );
-                      },
-                    );
-                  }),
+                            )));
+                          }
+                          return Stack(
+                            children: bodyWidgets,
+                          );
+                        },
+                      );
+                    }),
+              ),
             ),
           )),
       backgroundColor: Theme.of(context).backgroundColor,
@@ -637,5 +658,50 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
         noLabel: _viewModel.cancelTagRemoval,
         yesAction: () => _viewModel.removeSearchHistory(historyItem),
         noAction: () {});
+  }
+
+  void _loadRewardedAd(int levelId) async {
+    if (levelId > 0) {
+      RewardedAd.load(
+        adUnitId: AdService.rewardedAdId,
+        request: const AdRequest(),
+        rewardedAdLoadCallback: RewardedAdLoadCallback(
+          onAdLoaded: (ad) {
+            bool isRewardEarned = false;
+            ad.fullScreenContentCallback =
+                FullScreenContentCallback(onAdDismissedFullScreenContent: (ad) {
+              if (isRewardEarned) {
+                context.showConfirmationDialog(
+                    title: _viewModel.specialOfferEarnedTitle,
+                    message: _viewModel.specialOfferEarnedMessage(
+                        _viewModel.galleryLevelIndexCubit.state),
+                    actionLabel: _viewModel.specialOfferEarnedConfirmLabel,
+                    action: () {});
+              }
+            });
+
+            _rewardedAd = ad;
+
+            context.showYesNoDialog(
+                title: _viewModel.specialOfferTitle,
+                content: _viewModel.specialOfferMessage(levelId),
+                yesLabel: _viewModel.specialOfferAcceptLabel,
+                yesAction: () => _rewardedAd?.show(onUserEarnedReward:
+                        (AdWithoutView ad, RewardItem reward) {
+                      if (reward.amount.isFinite) {
+                        isRewardEarned = true;
+                        _viewModel.enableGalleryLevel(levelId);
+                      }
+                    }),
+                noLabel: _viewModel.specialOfferDenyLabel,
+                noAction: () {});
+          },
+          onAdFailedToLoad: (err) {
+            Log.d('_GalleryPageAndroidState',
+                'Failed to load a rewarded ad: ${err.message}');
+          },
+        ),
+      );
+    }
   }
 }

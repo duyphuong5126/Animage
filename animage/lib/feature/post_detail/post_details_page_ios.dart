@@ -9,6 +9,7 @@ import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/feature/ui_model/view_original_ui_model.dart';
+import 'package:animage/service/analytics_helper.dart';
 import 'package:animage/service/favorite_service.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/image_downloader.dart';
@@ -131,6 +132,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                                         _viewModel
                                             .startDownloadingOriginalImage(
                                                 post);
+                                        AnalyticsHelper.download(post.id);
                                       },
                                       child: Icon(
                                         CupertinoIcons.cloud_download,
@@ -165,8 +167,8 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                       bloc: _viewModel.vieOriginalPostsCubit,
                       listener: (context, ViewOriginalUiModel? uiModel) {
                         if (uiModel != null) {
-                          Navigator.of(context)
-                              .pushNamed(viewOriginalPageRoute, arguments: uiModel);
+                          Navigator.of(context).pushNamed(viewOriginalPageRoute,
+                              arguments: uiModel);
                           _viewModel.clearViewOriginalRequest();
                         }
                       },

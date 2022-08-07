@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/domain/entity/artist/artist.dart';
+import 'package:animage/domain/entity/gallery_level.dart';
 import 'package:animage/domain/entity/general/pair.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/domain/use_case/add_search_filter_use_case.dart';
@@ -10,10 +11,13 @@ import 'package:animage/domain/use_case/delete_search_history_use_case.dart';
 import 'package:animage/domain/use_case/filter_favorite_list_use_case.dart';
 import 'package:animage/domain/use_case/get_all_search_filters_use_case.dart';
 import 'package:animage/domain/use_case/get_artists_use_case.dart';
+import 'package:animage/domain/use_case/get_favorite_list_use_case.dart';
+import 'package:animage/domain/use_case/get_gallery_level_use_case.dart';
 import 'package:animage/domain/use_case/get_post_list_use_case.dart';
 import 'package:animage/domain/use_case/get_search_history_use_case.dart';
 import 'package:animage/domain/use_case/search_posts_by_tags_use_case.dart';
 import 'package:animage/domain/use_case/toggle_favorite_use_case.dart';
+import 'package:animage/domain/use_case/update_gallery_level_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/favorite_service.dart';
@@ -28,6 +32,8 @@ abstract class GalleryViewModel {
   DataCubit<List<String>> get searchHistoryCubit;
 
   DataCubit<bool> get setUpFinishCubit;
+
+  DataCubit<int> get galleryLevelIndexCubit;
 
   String get pageTitle;
 
@@ -69,6 +75,10 @@ abstract class GalleryViewModel {
 
   void toggleFavorite(PostCardUiModel uiModel);
 
+  void requestLevelChallenge();
+
+  void enableGalleryLevel(int level);
+
   void destroy();
 
   // For iOS only
@@ -85,6 +95,20 @@ abstract class GalleryViewModel {
   String get refresherIdleText;
 
   String get refresherReleaseText;
+
+  String get specialOfferTitle;
+
+  String specialOfferMessage(int level);
+
+  String get specialOfferAcceptLabel;
+
+  String get specialOfferDenyLabel;
+
+  String get specialOfferEarnedTitle;
+
+  String specialOfferEarnedMessage(int level);
+
+  String get specialOfferEarnedConfirmLabel;
 }
 
 class GalleryViewModelImpl extends GalleryViewModel {
@@ -106,6 +130,12 @@ class GalleryViewModelImpl extends GalleryViewModel {
       GetSearchHistoryUseCaseImpl();
   late final DeleteSearchHistoryUseCase _deleteSearchHistoryUseCase =
       DeleteSearchHistoryUseCaseImpl();
+  late final GetFavoriteListUseCase _getFavoriteListUseCase =
+      GetFavoriteListUseCaseImpl();
+  late final GetGalleryLevelUseCase _galleryLevelUseCase =
+      GetGalleryLevelUseCaseImpl();
+  late final UpdateGalleryLevelUseCase _updateGalleryLevelUseCase =
+      UpdateGalleryLevelUseCaseImpl();
 
   late final StreamSubscription? _getAllSearchFilterSubscription;
   late final StreamSubscription? _getAllSearchHistorySubscription;
@@ -117,6 +147,7 @@ class GalleryViewModelImpl extends GalleryViewModel {
   DataCubit<List<String>>? _tagListCubit;
   DataCubit<List<String>>? _searchHistoryCubit;
   DataCubit<bool>? _setUpFinishCubit;
+  DataCubit<int>? _galleryLevelIndexCubit;
 
   final Map<int, Post> _postDetailsMap = {};
 
@@ -136,6 +167,9 @@ class GalleryViewModelImpl extends GalleryViewModel {
 
   @override
   DataCubit<bool> get setUpFinishCubit => _setUpFinishCubit!;
+
+  @override
+  DataCubit<int> get galleryLevelIndexCubit => _galleryLevelIndexCubit!;
 
   @override
   String get pageTitle => 'Illustrations';
@@ -184,6 +218,7 @@ class GalleryViewModelImpl extends GalleryViewModel {
     _tagListCubit = DataCubit([]);
     _searchHistoryCubit = DataCubit([]);
     _setUpFinishCubit = DataCubit(false);
+    _galleryLevelIndexCubit = DataCubit(0);
 
     _getAllSearchFilterSubscription =
         _getAllSearchFiltersUseCase.execute().asStream().listen((filters) {
@@ -332,6 +367,8 @@ class GalleryViewModelImpl extends GalleryViewModel {
     _getAllSearchFilterSubscription = null;
     _getAllSearchHistorySubscription?.cancel();
     _getAllSearchHistorySubscription = null;
+    _galleryLevelIndexCubit?.closeAsync();
+    _galleryLevelIndexCubit = null;
   }
 
   Future<void> _getPage(int pageIndex,
@@ -455,4 +492,54 @@ class GalleryViewModelImpl extends GalleryViewModel {
 
   @override
   String get searchHint => 'Search by artist name or tag';
+
+  @override
+  void requestLevelChallenge() async {
+    _getFavoriteListUseCase.execute(0, 20).asStream().listen((postList) async {
+      GalleryLevel galleryLevel = await _galleryLevelUseCase.execute();
+      if (galleryLevel.level < 2) {
+        int requiredFavorites =
+            GalleryLevel.levelRequiredFavoriteMap[galleryLevel.level + 1] ?? 0;
+        if (postList.length >= requiredFavorites) {
+          _galleryLevelIndexCubit?.push(galleryLevel.level + 1);
+        }
+      }
+    }, onError: (error, stackTrace) {});
+  }
+
+  @override
+  void enableGalleryLevel(int level) async {
+    _updateGalleryLevelUseCase
+        .execute(level)
+        .asStream()
+        .listen((event) {}, onError: (error, stackTrace) {});
+  }
+
+  @override
+  String get specialOfferAcceptLabel => 'Yes';
+
+  @override
+  String get specialOfferDenyLabel => 'No';
+
+  @override
+  String specialOfferMessage(int level) {
+    int requiredChallenges = GalleryLevel.levelChallengesMap[level] ?? 0;
+    return requiredChallenges > 1
+        ? 'Watch an ad to receive our special offer?' // todo
+        : 'Watch an ad to receive our special offer?';
+  }
+
+  @override
+  String get specialOfferTitle => 'Special Offer';
+
+  @override
+  String get specialOfferEarnedConfirmLabel => 'OK';
+
+  @override
+  String specialOfferEarnedMessage(int level) {
+    return 'You have earned a special offer.\nIt will be active for ${GalleryLevel.levelExpirationMap[level]?.inHours ?? 0} hours.\nPlease restart the app to activate it.';
+  }
+
+  @override
+  String get specialOfferEarnedTitle => 'Offer Earned';
 }
