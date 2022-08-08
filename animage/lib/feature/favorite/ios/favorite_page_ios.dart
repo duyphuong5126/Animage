@@ -95,7 +95,7 @@ class _FavoritePageIOSState extends State<FavoritePageIOS> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(_viewModel.pageTitle),
+                  Text(_viewModel.defaultTitle),
                   Container(
                     child: BlocBuilder(
                         bloc: _modeCubit,
