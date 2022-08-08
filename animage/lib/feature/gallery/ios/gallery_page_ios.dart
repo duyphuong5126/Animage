@@ -870,7 +870,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS>
                     }
                   }),
               noLabel: _viewModel.specialOfferDenyLabel,
-              noAction: () {});
+              noAction: () => _viewModel.hideLevelUpMessageTemporarily(1));
         },
         onAdFailedToLoad: (err) {
           Log.d('_GalleryPageAndroidState',
@@ -947,7 +947,7 @@ class _GalleryPageIOSState extends State<GalleryPageIOS>
                     }
                   }),
               noLabel: _viewModel.specialOfferDenyLabel,
-              noAction: () {});
+              noAction: () => _viewModel.hideLevelUpMessageTemporarily(2));
         },
         onAdFailedToLoad: (err) {
           Log.d('_GalleryPageAndroidState',
