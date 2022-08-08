@@ -28,4 +28,11 @@ class PostRepositoryImpl implements PostRepository {
   Future<GalleryLevel> getGalleryLevel() {
     return getCurrentGalleryLevel().then((level) => level);
   }
+
+  @override
+  Future<int> getNextGalleryLevelUpTime() => getGalleryLevelUpTime();
+
+  @override
+  Future<void> saveNextGalleryLevelUpTime(int millisecondsTime) =>
+      saveGalleryLevelUpTime(millisecondsTime);
 }

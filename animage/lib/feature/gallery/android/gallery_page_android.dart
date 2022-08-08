@@ -482,8 +482,8 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
                             color: defaultTransparentGrey,
                             child: Center(
                               child: SizedBox(
-                                width: 64,
-                                height: 64,
+                                width: 32,
+                                height: 32,
                                 child: CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                       context.secondaryColor),
@@ -777,7 +777,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
                     }
                   }),
               noLabel: _viewModel.specialOfferDenyLabel,
-              noAction: () {});
+              noAction: () => _viewModel.hideLevelUpMessageTemporarily(1));
         },
         onAdFailedToLoad: (err) {
           Log.d('_GalleryPageAndroidState',
@@ -854,7 +854,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
                     }
                   }),
               noLabel: _viewModel.specialOfferDenyLabel,
-              noAction: () {});
+              noAction: () => _viewModel.hideLevelUpMessageTemporarily(2));
         },
         onAdFailedToLoad: (err) {
           Log.d('_GalleryPageAndroidState',

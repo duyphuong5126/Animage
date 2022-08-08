@@ -8,5 +8,9 @@ abstract class PostRepository {
 
   Future<void> updateGalleryLevel(int level, Duration existDuration);
 
+  Future<void> saveNextGalleryLevelUpTime(int millisecondsTime);
+
+  Future<int> getNextGalleryLevelUpTime();
+
   Future<GalleryLevel> getGalleryLevel();
 }

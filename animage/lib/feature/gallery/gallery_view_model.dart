@@ -14,9 +14,11 @@ import 'package:animage/domain/use_case/get_all_search_filters_use_case.dart';
 import 'package:animage/domain/use_case/get_artists_use_case.dart';
 import 'package:animage/domain/use_case/get_favorite_list_use_case.dart';
 import 'package:animage/domain/use_case/get_gallery_level_use_case.dart';
+import 'package:animage/domain/use_case/get_next_level_up_time_use_case.dart';
 import 'package:animage/domain/use_case/get_post_list_use_case.dart';
 import 'package:animage/domain/use_case/get_search_history_use_case.dart';
 import 'package:animage/domain/use_case/search_posts_by_tags_use_case.dart';
+import 'package:animage/domain/use_case/temporarily_cancel_special_offer_use_case.dart';
 import 'package:animage/domain/use_case/toggle_favorite_use_case.dart';
 import 'package:animage/domain/use_case/update_gallery_level_use_case.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
@@ -80,6 +82,8 @@ abstract class GalleryViewModel {
 
   void enableGalleryLevel(int level);
 
+  void hideLevelUpMessageTemporarily(int level);
+
   void destroy();
 
   // For iOS only
@@ -141,6 +145,12 @@ class GalleryViewModelImpl extends GalleryViewModel {
   late final CheckGalleryLevelingEnabledUseCase
       _checkGalleryLevelingEnabledUseCase =
       CheckGalleryLevelingEnabledUseCaseImpl();
+
+  late final TemporarilyCancelSpecialOfferUseCase
+      _temporarilyCancelSpecialOfferUseCase =
+      TemporarilyCancelSpecialOfferUseCaseImpl();
+
+  late final GetNextLevelUpTime _getNextLevelUpTime = GetNextLevelUpTimeImpl();
 
   late final StreamSubscription? _getAllSearchFilterSubscription;
   late final StreamSubscription? _getAllSearchHistorySubscription;
@@ -502,7 +512,9 @@ class GalleryViewModelImpl extends GalleryViewModel {
   void requestLevelChallenge() async {
     bool isGalleryLevelingEnabled =
         await _checkGalleryLevelingEnabledUseCase.execute();
-    if (isGalleryLevelingEnabled) {
+    int nextGalleryLevelUpTime = await _getNextLevelUpTime.execute();
+    if (isGalleryLevelingEnabled &&
+        nextGalleryLevelUpTime <= DateTime.now().millisecondsSinceEpoch) {
       _getFavoriteListUseCase.execute(0, 20).asStream().listen(
           (postList) async {
         GalleryLevel galleryLevel = await _galleryLevelUseCase.execute();
@@ -524,6 +536,16 @@ class GalleryViewModelImpl extends GalleryViewModel {
         .execute(level)
         .asStream()
         .listen((event) {}, onError: (error, stackTrace) {});
+  }
+
+  @override
+  void hideLevelUpMessageTemporarily(int level) async {
+    _temporarilyCancelSpecialOfferUseCase.execute(level).asStream().listen(
+        (event) {
+      Log.d(_tag, 'Level up message hidden');
+    }, onError: (error, stackTrace) {
+      Log.d(_tag, 'Could not cancel level up message');
+    });
   }
 
   @override

@@ -11,6 +11,7 @@ final bool isIOS = Platform.isIOS;
 const String galleryPref = 'gallery_pref';
 const String galleryModeId = 'gallery_mode_id';
 const String galleryLevel = 'gallery_level';
+const String nextGalleryLevelUpTime = 'next_gallery_level_up_time';
 
 Future<Box> openHiveBox(String boxName) async {
   if (!kIsWeb && !Hive.isBoxOpen(boxName)) {
@@ -60,4 +61,15 @@ Future<GalleryLevel> getCurrentGalleryLevel() async {
   } else {
     return level;
   }
+}
+
+Future<void> saveGalleryLevelUpTime(int millisecondsTime) async {
+  Box galleryPrefBox = await openHiveBox(galleryPref);
+  await galleryPrefBox.put(nextGalleryLevelUpTime, millisecondsTime);
+}
+
+Future<int> getGalleryLevelUpTime() async {
+  Box galleryPrefBox = await openHiveBox(galleryPref);
+  return galleryPrefBox.get(nextGalleryLevelUpTime,
+      defaultValue: DateTime.now().millisecondsSinceEpoch);
 }
