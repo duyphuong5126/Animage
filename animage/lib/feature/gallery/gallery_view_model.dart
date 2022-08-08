@@ -6,6 +6,7 @@ import 'package:animage/domain/entity/gallery_level.dart';
 import 'package:animage/domain/entity/general/pair.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/domain/use_case/add_search_filter_use_case.dart';
+import 'package:animage/domain/use_case/check_gallery_leveling_enabled_use_case.dart';
 import 'package:animage/domain/use_case/delete_search_filter_use_case.dart';
 import 'package:animage/domain/use_case/delete_search_history_use_case.dart';
 import 'package:animage/domain/use_case/filter_favorite_list_use_case.dart';
@@ -136,6 +137,10 @@ class GalleryViewModelImpl extends GalleryViewModel {
       GetGalleryLevelUseCaseImpl();
   late final UpdateGalleryLevelUseCase _updateGalleryLevelUseCase =
       UpdateGalleryLevelUseCaseImpl();
+
+  late final CheckGalleryLevelingEnabledUseCase
+      _checkGalleryLevelingEnabledUseCase =
+      CheckGalleryLevelingEnabledUseCaseImpl();
 
   late final StreamSubscription? _getAllSearchFilterSubscription;
   late final StreamSubscription? _getAllSearchHistorySubscription;
@@ -495,16 +500,22 @@ class GalleryViewModelImpl extends GalleryViewModel {
 
   @override
   void requestLevelChallenge() async {
-    _getFavoriteListUseCase.execute(0, 20).asStream().listen((postList) async {
-      GalleryLevel galleryLevel = await _galleryLevelUseCase.execute();
-      if (galleryLevel.level < 2) {
-        int requiredFavorites =
-            GalleryLevel.levelRequiredFavoriteMap[galleryLevel.level + 1] ?? 0;
-        if (postList.length >= requiredFavorites) {
-          _galleryLevelIndexCubit?.push(galleryLevel.level + 1);
+    bool isGalleryLevelingEnabled =
+        await _checkGalleryLevelingEnabledUseCase.execute();
+    if (isGalleryLevelingEnabled) {
+      _getFavoriteListUseCase.execute(0, 20).asStream().listen(
+          (postList) async {
+        GalleryLevel galleryLevel = await _galleryLevelUseCase.execute();
+        if (galleryLevel.level < 2) {
+          int requiredFavorites =
+              GalleryLevel.levelRequiredFavoriteMap[galleryLevel.level + 1] ??
+                  0;
+          if (postList.length >= requiredFavorites) {
+            _galleryLevelIndexCubit?.push(galleryLevel.level + 1);
+          }
         }
-      }
-    }, onError: (error, stackTrace) {});
+      }, onError: (error, stackTrace) {});
+    }
   }
 
   @override

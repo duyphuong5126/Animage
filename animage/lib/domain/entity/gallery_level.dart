@@ -13,8 +13,8 @@ class GalleryLevel {
   const GalleryLevel({required this.level, required this.expirationTime});
 
   static const Map<int, Duration> levelExpirationMap = {
-    1: Duration(minutes: 2),
-    2: Duration(minutes: 5)
+    1: Duration(hours: 3),
+    2: Duration(hours: 6)
   };
 
   static const Map<int, int> levelChallengesMap = {1: 1, 2: 2};
