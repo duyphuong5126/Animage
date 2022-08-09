@@ -46,7 +46,7 @@ void main() {
     } while (hasData);
 
     File result = File('master_data/artist/artist.json');
-    result.writeAsString(jsonEncode(artistList).toString(), flush: true);
+    result.writeAsStringSync(jsonEncode(artistList).toString(), flush: true);
 
     int finishTimeMillis = DateTime.now().millisecondsSinceEpoch;
     final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
@@ -56,7 +56,7 @@ void main() {
         updatedAt: formatter
             .format(DateTime.fromMillisecondsSinceEpoch(finishTimeMillis)));
     File changeLog = File('master_data/artist/artist_list_change_log.json');
-    changeLog.writeAsString(jsonEncode(artistListChangeLog).toString(),
+    changeLog.writeAsStringSync(jsonEncode(artistListChangeLog).toString(),
         flush: true);
 
     Log.d(tag,
