@@ -19,5 +19,5 @@ class GalleryLevel {
 
   static const Map<int, int> levelChallengesMap = {1: 1, 2: 2};
 
-  static const Map<int, int> levelRequiredFavoriteMap = {1: 5, 2: 10};
+  static const Map<int, int> levelRequiredFavoriteMap = {1: 3, 2: 5};
 }
