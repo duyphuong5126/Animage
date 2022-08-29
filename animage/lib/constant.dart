@@ -6,6 +6,8 @@ const Color accentColorDark = Color.fromARGB(255, 184, 97, 96);
 
 const Color transparency = Color.fromARGB(0, 0, 0, 0);
 
+const Color defaultTransparentGrey = Color.fromARGB(100, 0, 0, 0);
+
 const String detailsPageRoute = '/detailsPage';
 
 const String viewOriginalPageRoute = '/viewOriginal';

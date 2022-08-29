@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:animage/app_const.dart';
 import 'package:animage/data/remote/api_constant.dart';
 import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/artist/artist_list_change_log.dart';
@@ -19,7 +20,7 @@ class ArtistRemoteDataSourceImpl extends ArtistRemoteDataSource {
 
   @override
   Future<List<Artist>> fetchArtistList() async {
-    String artistUrl = '${ApiConstant.baseUrlMasterData}/${ApiConstant.artist}';
+    String artistUrl = '$baseUrlMasterData/${ApiConstant.artist}';
 
     List<Artist> resultList = [];
     try {
@@ -41,8 +42,7 @@ class ArtistRemoteDataSourceImpl extends ArtistRemoteDataSource {
 
   @override
   Future<ArtistListChangeLog?> fetchChangeLog() async {
-    String changeLogUrl =
-        '${ApiConstant.baseUrlMasterData}/${ApiConstant.artistChangeLog}';
+    String changeLogUrl = '$baseUrlMasterData/${ApiConstant.artistChangeLog}';
 
     ArtistListChangeLog? changeLog;
     try {

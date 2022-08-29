@@ -9,6 +9,7 @@ import 'package:animage/feature/ui_model/download_state.dart';
 import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/feature/ui_model/view_original_ui_model.dart';
+import 'package:animage/service/analytics_helper.dart';
 import 'package:animage/service/favorite_service.dart';
 import 'package:animage/service/image_down_load_state.dart';
 import 'package:animage/service/image_downloader.dart';
@@ -90,54 +91,61 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
               trailing: SizedBox(
                 width: 100,
                 child: BlocBuilder(
-                  bloc: ImageDownloader.downloadStateCubit,
-                  builder: (context, ImageDownloadState? state) {
-                    bool isDownloading =
-                        state?.state == DownloadState.downloading &&
-                            state?.url == post.fileUrl;
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        CupertinoButton(
-                            padding: EdgeInsetsDirectional.zero,
-                            onPressed: () {
-                              Share.share(post.shareUrl,
-                                  subject: 'Illustration ${post.id}');
-                            },
-                            child: Icon(
-                              CupertinoIcons.share,
-                              color: context.primaryColor,
-                            )),
-                        const SizedBox(
-                          width: 4.0,
-                        ),
-                        isDownloading
-                            ? Container(
-                                child: CupertinoActivityIndicator(
-                                  radius: 12,
-                                  color: context.primaryColor,
-                                ),
-                                margin: const EdgeInsets.only(
-                                    left: 12.0, right: 8.0),
-                              )
-                            : CupertinoButton(
-                                padding: EdgeInsetsDirectional.zero,
-                                onPressed: () async {
-                                  _viewModel
-                                      .startDownloadingOriginalImage(post);
-                                },
-                                child: Icon(
-                                  CupertinoIcons.cloud_download,
-                                  color: context.primaryColor,
-                                )),
-                        const SizedBox(
-                          width: 4.0,
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                    bloc: ImageDownloader.pendingIdList,
+                    builder: (context, Set<int> pendingList) {
+                      bool isPending = pendingList.contains(post.id);
+                      return BlocBuilder(
+                        bloc: ImageDownloader.downloadStateCubit,
+                        builder: (context, ImageDownloadState? state) {
+                          bool isDownloading =
+                              state?.state == DownloadState.downloading &&
+                                  state?.postId == post.id;
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              CupertinoButton(
+                                  padding: EdgeInsetsDirectional.zero,
+                                  onPressed: () {
+                                    Share.share(post.shareUrl,
+                                        subject: 'Illustration ${post.id}');
+                                  },
+                                  child: Icon(
+                                    CupertinoIcons.share,
+                                    color: context.primaryColor,
+                                  )),
+                              const SizedBox(
+                                width: 4.0,
+                              ),
+                              isDownloading || isPending
+                                  ? Container(
+                                      child: CupertinoActivityIndicator(
+                                        radius: 12,
+                                        color: context.primaryColor,
+                                      ),
+                                      margin: const EdgeInsets.only(
+                                          left: 12.0, right: 8.0),
+                                    )
+                                  : CupertinoButton(
+                                      padding: EdgeInsetsDirectional.zero,
+                                      onPressed: () async {
+                                        _viewModel
+                                            .startDownloadingOriginalImage(
+                                                post);
+                                        AnalyticsHelper.download(post.id);
+                                      },
+                                      child: Icon(
+                                        CupertinoIcons.cloud_download,
+                                        color: context.primaryColor,
+                                      )),
+                              const SizedBox(
+                                width: 4.0,
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }),
               ),
             ),
             child: SafeArea(
@@ -159,8 +167,8 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                       bloc: _viewModel.vieOriginalPostsCubit,
                       listener: (context, ViewOriginalUiModel? uiModel) {
                         if (uiModel != null) {
-                          Navigator.of(context)
-                              .pushNamed(viewOriginalPageRoute, arguments: uiModel);
+                          Navigator.of(context).pushNamed(viewOriginalPageRoute,
+                              arguments: uiModel);
                           _viewModel.clearViewOriginalRequest();
                         }
                       },
@@ -170,7 +178,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                       ),
                     ),
                     BlocListener(
-                      bloc: ImageDownloader.pendingListCubit,
+                      bloc: ImageDownloader.pendingUrlCubit,
                       listener: (context, String? newPendingUrl) {
                         if (newPendingUrl != null &&
                             newPendingUrl == post.fileUrl) {
@@ -326,29 +334,53 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
                                         children.length),
                                     style: context.navTitleTextStyle,
                                   ),
-                                  CupertinoButton(
-                                      onPressed: () {
-                                        context.showCupertinoYesNoDialog(
-                                            title: _viewModel
-                                                .downloadChildrenTitle,
-                                            message: _viewModel
-                                                .getDownloadChildrenMessage(
-                                                    children.length),
-                                            yesLabel: _viewModel
-                                                .acceptDownloadChildrenAction,
-                                            noLabel: _viewModel
-                                                .cancelDownloadChildrenAction,
-                                            yesAction: () => _viewModel
-                                                .startDownloadAllChildren(
-                                                    children),
-                                            noAction: () {});
-                                      },
-                                      child: Text(
-                                        _viewModel.downloadChildrenAction,
-                                        style: context.navActionTextStyle
-                                            .copyWith(
-                                                color: context.brandColor),
-                                      ))
+                                  BlocBuilder(
+                                      bloc: ImageDownloader
+                                          .areChildrenDownloadableCubit,
+                                      builder: (context,
+                                          Map<int, bool>
+                                              childrenDownloadableMap) {
+                                        bool areChildrenDownloadable =
+                                            childrenDownloadableMap[post.id] ??
+                                                true;
+                                        return areChildrenDownloadable
+                                            ? CupertinoButton(
+                                                onPressed: () {
+                                                  context.showCupertinoYesNoDialog(
+                                                      title: _viewModel
+                                                          .downloadChildrenTitle,
+                                                      message: _viewModel
+                                                          .getDownloadChildrenMessage(
+                                                              children.length),
+                                                      yesLabel: _viewModel
+                                                          .acceptDownloadChildrenAction,
+                                                      noLabel: _viewModel
+                                                          .cancelDownloadChildrenAction,
+                                                      yesAction: () => _viewModel
+                                                          .startDownloadAllChildren(
+                                                              post.id,
+                                                              children),
+                                                      noAction: () {});
+                                                },
+                                                child: Text(
+                                                  _viewModel
+                                                      .downloadChildrenAction,
+                                                  style: context
+                                                      .navActionTextStyle
+                                                      .copyWith(
+                                                          color: context
+                                                              .brandColor),
+                                                ))
+                                            : Container(
+                                                child:
+                                                    CupertinoActivityIndicator(
+                                                  radius: 12,
+                                                  color: context.primaryColor,
+                                                ),
+                                                margin: const EdgeInsets.only(
+                                                    left: 12.0, right: 8.0),
+                                              );
+                                      })
                                 ],
                               ),
                             ));
@@ -492,8 +524,7 @@ class _PostDetailsPageIOSState extends State<PostDetailsPageIOS> {
   }
 
   void _processDownloadState(ImageDownloadState? state, Post currentPost) {
-    String? fileUrl = currentPost.fileUrl;
-    if (state == null || state.url != fileUrl) {
+    if (state == null || state.postId != currentPost.id) {
       return;
     }
     if (state.state == DownloadState.success) {

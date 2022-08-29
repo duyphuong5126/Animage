@@ -1,6 +1,6 @@
 import 'package:animage/constant.dart';
 import 'package:animage/feature/home/android/home_page_android.dart';
-import 'package:animage/feature/original_image_page/view_original_image_page_android.dart';
+import 'package:animage/feature/original_image_page/android/view_original_image_page_android.dart';
 import 'package:animage/feature/post_detail/post_details_page_android.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';

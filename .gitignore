@@ -83,3 +83,9 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+
+#Business
+animage/lib/app_const.dart
+animage/android/app/google-services.json
+animage/lib/app_const.dart
+animage/ios/GoogleService-Info.plist

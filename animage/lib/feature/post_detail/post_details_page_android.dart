@@ -352,7 +352,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                       ),
                     ),
                     BlocListener(
-                      bloc: ImageDownloader.pendingListCubit,
+                      bloc: ImageDownloader.pendingUrlCubit,
                       listener: (context, String? newPendingUrl) {
                         if (newPendingUrl != null &&
                             newPendingUrl == post.fileUrl) {
@@ -429,49 +429,52 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                 width: 16.0,
                               ),
                               BlocBuilder(
-                                bloc: ImageDownloader.downloadStateCubit,
-                                builder: (context, ImageDownloadState? state) {
-                                  bool isDownloading = state?.state ==
-                                          DownloadState.downloading &&
-                                      state?.url == post.fileUrl;
-                                  return Stack(
-                                    alignment: Alignment.bottomCenter,
-                                    children: [
-                                      Visibility(
-                                        child: IconButton(
-                                            onPressed: () {
-                                              _viewModel
-                                                  .startDownloadingOriginalImage(
-                                                      post);
-                                              AnalyticsHelper.download(post.id);
-                                            },
-                                            icon: Icon(
-                                              Icons.download_rounded,
-                                              size: 24,
-                                              color: context.primaryColor,
-                                            )),
-                                        visible: !isDownloading,
-                                      ),
-                                      Visibility(
-                                        child: Container(
-                                          margin: const EdgeInsets.only(
-                                              left: 16.0, top: 8.0, right: 8.0),
-                                          child: SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: CircularProgressIndicator(
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                      context.secondaryColor),
-                                            ),
-                                          ),
-                                        ),
-                                        visible: isDownloading,
-                                      )
-                                    ],
-                                  );
-                                },
-                              )
+                                  bloc: ImageDownloader.pendingIdList,
+                                  builder: (context, Set<int> pendingList) {
+                                    bool isPending =
+                                        pendingList.contains(post.id);
+                                    return BlocBuilder(
+                                      bloc: ImageDownloader.downloadStateCubit,
+                                      builder:
+                                          (context, ImageDownloadState? state) {
+                                        bool isDownloading = state?.state ==
+                                                DownloadState.downloading &&
+                                            state?.postId == post.id;
+                                        return !isDownloading && !isPending
+                                            ? IconButton(
+                                                onPressed: () {
+                                                  _viewModel
+                                                      .startDownloadingOriginalImage(
+                                                          post);
+                                                  AnalyticsHelper.download(
+                                                      post.id);
+                                                },
+                                                icon: Icon(
+                                                  Icons.download_rounded,
+                                                  size: 24,
+                                                  color: context.primaryColor,
+                                                ))
+                                            : Container(
+                                                margin: const EdgeInsets.only(
+                                                    left: 16.0,
+                                                    top: 8.0,
+                                                    right: 8.0),
+                                                child: SizedBox(
+                                                  width: 24,
+                                                  height: 24,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                                Color>(
+                                                            context
+                                                                .secondaryColor),
+                                                  ),
+                                                ),
+                                              );
+                                      },
+                                    );
+                                  })
                             ],
                           )
                         ],
@@ -565,29 +568,52 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                             _viewModel.getChildrenSectionTitle(children.length),
                             style: context.bodyText1,
                           ),
-                          TextButton(
-                              onPressed: () {
-                                context.showYesNoDialog(
-                                    title: _viewModel.downloadChildrenTitle,
-                                    content:
-                                        _viewModel.getDownloadChildrenMessage(
-                                            children.length),
-                                    yesLabel:
-                                        _viewModel.acceptDownloadChildrenAction,
-                                    noLabel:
-                                        _viewModel.cancelDownloadChildrenAction,
-                                    yesAction: () {
-                                      _viewModel
-                                          .startDownloadAllChildren(children);
-                                      AnalyticsHelper.downloadChildren(post.id);
-                                    },
-                                    noAction: () {});
-                              },
-                              child: Text(
-                                _viewModel.downloadChildrenAction,
-                                style: context.button
-                                    ?.copyWith(color: context.secondaryColor),
-                              ))
+                          BlocBuilder(
+                              bloc:
+                                  ImageDownloader.areChildrenDownloadableCubit,
+                              builder: (context,
+                                  Map<int, bool> childrenDownloadableMap) {
+                                bool areChildrenDownloadable =
+                                    childrenDownloadableMap[post.id] ?? true;
+                                return areChildrenDownloadable
+                                    ? TextButton(
+                                        onPressed: () {
+                                          context.showYesNoDialog(
+                                              title: _viewModel
+                                                  .downloadChildrenTitle,
+                                              content: _viewModel
+                                                  .getDownloadChildrenMessage(
+                                                      children.length),
+                                              yesLabel: _viewModel
+                                                  .acceptDownloadChildrenAction,
+                                              noLabel: _viewModel
+                                                  .cancelDownloadChildrenAction,
+                                              yesAction: () {
+                                                _viewModel
+                                                    .startDownloadAllChildren(
+                                                        post.id, children);
+                                                AnalyticsHelper
+                                                    .downloadChildren(post.id);
+                                              },
+                                              noAction: () {});
+                                        },
+                                        child: Text(
+                                          _viewModel.downloadChildrenAction,
+                                          style: context.button?.copyWith(
+                                              color: context.secondaryColor),
+                                        ))
+                                    : Container(
+                                        margin:
+                                            const EdgeInsets.only(right: 16.0),
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  context.secondaryColor),
+                                        ),
+                                      );
+                              })
                         ],
                       ),
                     ));
@@ -652,8 +678,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
   }
 
   void _processDownloadState(ImageDownloadState? state, Post currentPost) {
-    String? fileUrl = currentPost.fileUrl;
-    if (state == null || state.url != fileUrl) {
+    if (state == null || state.postId != currentPost.id) {
       return;
     }
     if (state.state == DownloadState.success) {

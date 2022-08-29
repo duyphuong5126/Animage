@@ -10,11 +10,12 @@ import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/favorite_service.dart';
 import 'package:animage/utils/log.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:intl/intl.dart';
 
 abstract class FavoriteViewModel {
   DataCubit<Post?> get postDetailsCubit;
 
-  String get pageTitle;
+  String pageTitle(int favoriteCount);
 
   String get firstPageErrorMessage;
 
@@ -46,11 +47,14 @@ abstract class FavoriteViewModel {
   String get refresherIdleText;
 
   String get refresherReleaseText;
+
+  String get defaultTitle;
 }
 
 class FavoriteViewModelImpl extends FavoriteViewModel {
   static const int _pageSize = 25;
   static const String _tag = 'FavoriteViewModelImpl';
+  static const String _defaultTitle = 'Favorite';
 
   DataCubit<Post?>? _postDetailsCubit;
   DataCubit<int>? _galleryRefreshedAtCubit;
@@ -81,7 +85,12 @@ class FavoriteViewModelImpl extends FavoriteViewModel {
   String get firstPageErrorMessage => 'Could not load library';
 
   @override
-  String get pageTitle => 'Favorite';
+  String pageTitle(int favoriteCount) {
+    NumberFormat numberFormat = NumberFormat('###,###');
+    return favoriteCount > 0
+        ? '$_defaultTitle (${numberFormat.format(favoriteCount)})'
+        : _defaultTitle;
+  }
 
   @override
   String get refreshedSuccessfullyText => 'Refreshed';
@@ -94,6 +103,9 @@ class FavoriteViewModelImpl extends FavoriteViewModel {
 
   @override
   String get refreshingText => 'Refreshing gallery';
+
+  @override
+  String get defaultTitle => _defaultTitle;
 
   @override
   void clearDetailsPageRequest() {

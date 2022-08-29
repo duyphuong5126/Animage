@@ -64,9 +64,14 @@ class _FavoritePageState extends State<FavoritePage> {
             appBar: AppBar(
               backgroundColor: context.defaultBackgroundColor,
               elevation: 0,
-              title: Text(
-                _viewModel.pageTitle,
-                style: context.headline6,
+              title: BlocBuilder(
+                bloc: FavoriteService.favoriteListCubit,
+                builder: (context, List<int> favoriteIds) {
+                  return Text(
+                    _viewModel.pageTitle(favoriteIds.length),
+                    style: context.headline6,
+                  );
+                },
               ),
               actions: [
                 Container(
