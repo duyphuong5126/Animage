@@ -29,24 +29,24 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^0.13.4
-  flutter_platform_widgets: ^1.20.0
-  flutter_bloc: ^8.0.1
-  cached_network_image: ^3.2.1
-  infinite_scroll_pagination: ^3.1.0
-  flutter_staggered_grid_view: ^0.6.1
+  http: ^0.13.5
+  flutter_platform_widgets: ^2.0.0
+  flutter_bloc: ^8.1.1
+  cached_network_image: ^3.2.2
+  infinite_scroll_pagination: ^3.2.0
+  flutter_staggered_grid_view: ^0.6.2
   intl:
-  palette_generator: ^0.3.3
+  palette_generator: ^0.3.3+2
   flutter_linkify: ^5.0.2
-  url_launcher: ^6.1.2
-  sqflite: ^2.0.2+1
-  path_provider: ^2.0.10
-  hive: ^2.2.1
+  url_launcher: ^6.1.5
+  sqflite: ^2.1.0
+  path_provider: ^2.0.11
+  hive: ^2.2.3
   pull_to_refresh: ^2.0.0
   gallery_saver: ^2.3.2
   share: ^2.0.4
   photo_view: ^0.14.0
-  flutter_local_notifications: ^9.5.3+1
+  flutter_local_notifications: ^11.0.0
   dismissible_page: ^0.7.3
 
   # The following adds the Cupertino Icons font to your application.
@@ -54,7 +54,7 @@ dependencies:
   cupertino_icons: ^1.0.2
 
 dependency_overrides:
-  test_api: 0.4.9
+  test_api: 0.4.14
   photo_view:
     git:
       url: https://github.com/bluefireteam/photo_view

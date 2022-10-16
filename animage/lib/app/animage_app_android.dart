@@ -80,11 +80,6 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
         FlutterLocalNotificationsPlugin();
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: _selectNotification);
-  }
-
-  Future _selectNotification(String? payload) async {
-    //Handle notification tapped logic here
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 }

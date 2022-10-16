@@ -197,7 +197,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
   void startDownloadingOriginalImage(Post post) {
     String? fileUrl = post.fileUrl;
     if (fileUrl != null && fileUrl.isNotEmpty) {
-      ImageDownloader.startDownloadingOriginalFile(post);
+      ImageDownloader.startDownloadingOriginalFile(post: post);
     }
   }
 
@@ -247,7 +247,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
     for (int childId in childIds) {
       Post? childPost = _postDetailsMap[childId];
       if (childPost != null) {
-        ImageDownloader.startDownloadingOriginalFile(childPost);
+        ImageDownloader.startDownloadingOriginalFile(post: childPost);
       }
     }
     ImageDownloader.checkChildrenDownloadable(

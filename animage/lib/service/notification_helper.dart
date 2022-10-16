@@ -53,7 +53,7 @@ class NotificationHelper {
       bool presentAlert = false,
       bool presentBadge = false,
       bool presentSound = false}) {
-    IOSNotificationDetails iosNotificationDetails = IOSNotificationDetails(
+    DarwinNotificationDetails iosNotificationDetails = DarwinNotificationDetails(
         presentAlert: presentAlert,
         presentBadge: presentBadge,
         presentSound: presentSound,

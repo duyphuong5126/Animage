@@ -38,8 +38,8 @@ class _AnimageAppIOSState extends State<AnimageAppIOS> {
   }
 
   void _initNotificationSettings() async {
-    final IOSInitializationSettings initializationSettingsIOS =
-        IOSInitializationSettings(
+    final DarwinInitializationSettings initializationSettingsIOS =
+        DarwinInitializationSettings(
       requestSoundPermission: true,
       requestBadgePermission: true,
       requestAlertPermission: true,
@@ -52,8 +52,7 @@ class _AnimageAppIOSState extends State<AnimageAppIOS> {
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
         FlutterLocalNotificationsPlugin();
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: _selectNotification);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
   Future<dynamic> _onDidReceiveLocalNotification(
@@ -76,9 +75,5 @@ class _AnimageAppIOSState extends State<AnimageAppIOS> {
         ],
       ),
     );
-  }
-
-  Future _selectNotification(String? payload) async {
-    //Handle notification tapped logic here
   }
 }
