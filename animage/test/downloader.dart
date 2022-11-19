@@ -9,6 +9,9 @@ SearchPostsByTagsUseCase useCase = SearchPostsByTagsUseCaseImpl();
 
 const String imagesFolder = 'images';
 const Iterable<String> artists = [
+  're:shimashima',
+  'osisio',
+  'ramchi',
   'foria_sensei',
   'etsunami_kumita',
   'twinbox',

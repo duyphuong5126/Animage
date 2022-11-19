@@ -85,3 +85,4 @@ lint/tmp/
 # lint/reports/
 animage/android/app/google-services.json
 animage/lib/app_const.dart
+animage/images/
