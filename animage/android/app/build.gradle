@@ -52,7 +52,7 @@ android {
         applicationId "com.nonoka.animage"
         compileSdkVersion 33
         minSdkVersion 23
-        targetSdkVersion flutter.targetSdkVersion
+        targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true

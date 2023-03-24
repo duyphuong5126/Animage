@@ -25,10 +25,15 @@ class _AnimageAppIOSState extends State<AnimageAppIOS> {
     return CupertinoApp(
       debugShowCheckedModeBanner: false,
       theme: const CupertinoThemeData(
-          barBackgroundColor: CupertinoDynamicColor.withBrightness(
-              color: CupertinoColors.white, darkColor: CupertinoColors.black),
-          primaryColor: CupertinoDynamicColor.withBrightness(
-              color: accentColor, darkColor: accentColorLight)),
+        barBackgroundColor: CupertinoDynamicColor.withBrightness(
+          color: CupertinoColors.white,
+          darkColor: CupertinoColors.black,
+        ),
+        primaryColor: CupertinoDynamicColor.withBrightness(
+          color: accentColor,
+          darkColor: accentColorLight,
+        ),
+      ),
       routes: {
         '/': (context) => const HomePageIOS(),
         detailsPageRoute: (context) => const PostDetailsPageIOS(),

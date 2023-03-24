@@ -86,3 +86,4 @@ lint/tmp/
 animage/android/app/google-services.json
 animage/lib/app_const.dart
 animage/images/
+animage/ios/GoogleService-Info.plist
