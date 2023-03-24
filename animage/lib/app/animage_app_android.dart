@@ -102,11 +102,13 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
         FlutterLocalNotificationsPlugin();
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: _selectNotification);
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: _selectNotification,
+    );
   }
 
-  Future _selectNotification(String? payload) async {
+  Future _selectNotification(NotificationResponse? response) async {
     //Handle notification tapped logic here
   }
 }
