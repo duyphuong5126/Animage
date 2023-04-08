@@ -6,12 +6,18 @@ const Color accentColorDark = Color.fromARGB(255, 184, 97, 96);
 
 const Color transparency = Color.fromARGB(0, 0, 0, 0);
 
+const Color defaultTransparentGrey = Color.fromARGB(100, 0, 0, 0);
+
 const String detailsPageRoute = '/detailsPage';
 
-const String viewOriginalPage = '/viewOriginal';
+const String viewOriginalPageRoute = '/viewOriginal';
 
 const String id = '_id';
 
 const String appDirectoryName = 'Animage';
 
 const String postShareUrl = 'https://yande.re/post/show';
+
+const String home = 'home_page';
+const String postDetailsPage = 'post_details_page';
+const String viewOriginalPage = 'view_original_page';

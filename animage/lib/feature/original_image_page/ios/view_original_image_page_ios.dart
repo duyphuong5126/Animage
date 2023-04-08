@@ -54,8 +54,9 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
                     bloc: _isSwipeEnabled,
                     builder: (context, bool isSwipeEnabled) {
                       return PhotoViewGallery.builder(
+                          allowImplicitScrolling: true,
                           scrollPhysics: isSwipeEnabled
-                              ? const BouncingScrollPhysics()
+                              ? const AlwaysScrollableScrollPhysics()
                               : const NeverScrollableScrollPhysics(),
                           enableRotation: false,
                           itemCount: urls.length,
@@ -63,8 +64,10 @@ class _ViewOriginalImagePageIOSState extends State<ViewOriginalImagePageIOS> {
                               (PhotoViewScaleState state) {
                             _isSwipeEnabled.push(state.index == 0);
                           },
-                          onPageChanged: (int index) => _viewModel
-                              .onGalleryItemSelected(index, urls.length),
+                          onPageChanged: (int index) {
+                            _viewModel.onGalleryItemSelected(
+                                index, urls.length);
+                          },
                           builder: (context, int index) {
                             String url = urls.elementAt(index);
                             return PhotoViewGalleryPageOptions(

@@ -25,26 +25,21 @@ class _AnimageAppIOSState extends State<AnimageAppIOS> {
     return CupertinoApp(
       debugShowCheckedModeBanner: false,
       theme: const CupertinoThemeData(
-        barBackgroundColor: CupertinoDynamicColor.withBrightness(
-          color: CupertinoColors.white,
-          darkColor: CupertinoColors.black,
-        ),
-        primaryColor: CupertinoDynamicColor.withBrightness(
-          color: accentColor,
-          darkColor: accentColorLight,
-        ),
-      ),
+          barBackgroundColor: CupertinoDynamicColor.withBrightness(
+              color: CupertinoColors.white, darkColor: CupertinoColors.black),
+          primaryColor: CupertinoDynamicColor.withBrightness(
+              color: accentColor, darkColor: accentColorLight)),
       routes: {
         '/': (context) => const HomePageIOS(),
         detailsPageRoute: (context) => const PostDetailsPageIOS(),
-        viewOriginalPage: (context) => const ViewOriginalImagePageIOS()
+        viewOriginalPageRoute: (context) => const ViewOriginalImagePageIOS()
       },
     );
   }
 
   void _initNotificationSettings() async {
     final DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
+    DarwinInitializationSettings(
       requestSoundPermission: true,
       requestBadgePermission: true,
       requestAlertPermission: true,
@@ -57,7 +52,8 @@ class _AnimageAppIOSState extends State<AnimageAppIOS> {
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
         FlutterLocalNotificationsPlugin();
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onDidReceiveNotificationResponse: _selectNotification);
   }
 
   Future<dynamic> _onDidReceiveLocalNotification(
@@ -80,5 +76,9 @@ class _AnimageAppIOSState extends State<AnimageAppIOS> {
         ],
       ),
     );
+  }
+
+  Future _selectNotification(NotificationResponse? payload) async {
+    //Handle notification tapped logic here
   }
 }

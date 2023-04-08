@@ -4,6 +4,7 @@ import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/feature/favorite/favorite_view_model.dart';
 import 'package:animage/feature/ui_model/gallery_mode.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
+import 'package:animage/service/analytics_helper.dart';
 import 'package:animage/service/favorite_service.dart';
 import 'package:animage/utils/material_context_extension.dart';
 import 'package:animage/widget/gallery_grid_item_android.dart';
@@ -86,6 +87,7 @@ class _FavoritePageState extends State<FavoritePage> {
                             child: IconButton(
                               onPressed: () {
                                 _modeCubit.push(GalleryMode.list);
+                                AnalyticsHelper.viewListFavorite();
                               },
                               icon: Icon(
                                 Icons.list,
@@ -105,6 +107,7 @@ class _FavoritePageState extends State<FavoritePage> {
                             child: IconButton(
                               onPressed: () {
                                 _modeCubit.push(GalleryMode.grid);
+                                AnalyticsHelper.viewGridFavorite();
                               },
                               icon: Icon(Icons.grid_view,
                                   color: isGrid

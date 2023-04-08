@@ -7,7 +7,7 @@ class NotificationHelper {
   final Importance importance;
   final Priority priority;
 
-  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  late FlutterLocalNotificationsPlugin localNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
   NotificationHelper(
@@ -27,7 +27,7 @@ class NotificationHelper {
             onlyAlertOnce: onlyAlertOnce,
             styleInformation: styleInformation);
 
-    flutterLocalNotificationsPlugin.show(id, title, body,
+    localNotificationsPlugin.show(id, title, body,
         NotificationDetails(android: androidNotificationDetails));
   }
 
@@ -43,7 +43,7 @@ class NotificationHelper {
             onlyAlertOnce: onlyAlertOnce,
             styleInformation: styleInformation);
 
-    flutterLocalNotificationsPlugin.show(id, title, body,
+    localNotificationsPlugin.show(id, title, body,
         NotificationDetails(android: androidNotificationDetails));
   }
 
@@ -53,18 +53,23 @@ class NotificationHelper {
       bool presentAlert = false,
       bool presentBadge = false,
       bool presentSound = false}) {
-    DarwinNotificationDetails iosNotificationDetails = DarwinNotificationDetails(
-        presentAlert: presentAlert,
-        presentBadge: presentBadge,
-        presentSound: presentSound,
-        subtitle: subTitle,
-        threadIdentifier: threadIdentifier);
+    DarwinNotificationDetails notificationDetails = DarwinNotificationDetails(
+      presentAlert: presentAlert,
+      presentBadge: presentBadge,
+      presentSound: presentSound,
+      subtitle: subTitle,
+      threadIdentifier: threadIdentifier,
+    );
 
-    flutterLocalNotificationsPlugin.show(
-        id, title, body, NotificationDetails(iOS: iosNotificationDetails));
+    localNotificationsPlugin.show(
+      id,
+      title,
+      body,
+      NotificationDetails(iOS: notificationDetails),
+    );
   }
 
   void cancelNotification(int id) {
-    flutterLocalNotificationsPlugin.cancel(id);
+    localNotificationsPlugin.cancel(id);
   }
 }

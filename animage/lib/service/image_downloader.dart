@@ -1,5 +1,6 @@
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/constant.dart';
+import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/domain/use_case/get_artist_use_case.dart';
 import 'package:animage/feature/ui_model/download_state.dart';
@@ -27,8 +28,7 @@ class ImageDownloader {
 
   static final DataCubit<Set<int>> pendingIdList = DataCubit({});
 
-  static Future<void> startDownloadingOriginalFile(
-      {required Post post, String? album}) async {
+  static void startDownloadingOriginalFile(Post post) async {
     ImageDownloadState? currentState = downloadStateCubit.state;
     String? fileUrl = post.fileUrl;
     if (fileUrl == null) {
@@ -40,14 +40,15 @@ class ImageDownloader {
       downloadStateCubit.push(ImageDownloadState(
           postId: post.id, state: DownloadState.downloading));
       _sendDownloadInProgressNotification(post);
-      String? albumName = album ??
-          (await _getArtistUseCase.execute(post))?.name.trim().toLowerCase();
-      String folder =
-          albumName != null ? '$appDirectoryName/$albumName' : appDirectoryName;
+      Artist? artist = await _getArtistUseCase.execute(post);
+      String albumName = artist != null
+          ? '$appDirectoryName/${artist.name.trim().toLowerCase()}'
+          : appDirectoryName;
       bool downloaded;
       try {
         downloaded =
-            await GallerySaver.saveImage(fileUrl, albumName: folder) ?? false;
+            await GallerySaver.saveImage(fileUrl, albumName: albumName) ??
+                false;
       } catch (e) {
         Log.d('ImageDownloader',
             'could not download file $fileUrl with error $e');
@@ -63,7 +64,7 @@ class ImageDownloader {
         newPendingList.addAll(pendingIdList.state);
         newPendingList.remove(pendingPost.id);
         pendingIdList.push(newPendingList);
-        startDownloadingOriginalFile(post: pendingPost, album: album);
+        startDownloadingOriginalFile(pendingPost);
       }
     } else if (currentState.postId != post.id) {
       if (_pendingList

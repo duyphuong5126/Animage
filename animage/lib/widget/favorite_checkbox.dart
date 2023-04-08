@@ -1,3 +1,4 @@
+import 'package:animage/service/analytics_helper.dart';
 import 'package:animage/utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -55,6 +56,11 @@ class _FavoriteCheckboxState extends State<FavoriteCheckbox> {
             ),
             onPressed: () => setState(() {
               _isFavorite = !_isFavorite;
+              if (_isFavorite) {
+                AnalyticsHelper.addFavorite();
+              } else {
+                AnalyticsHelper.removeFavorite();
+              }
               widget.onFavoriteChanged(_isFavorite);
             }),
           );
