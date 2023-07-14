@@ -16,15 +16,15 @@ void main() async {
 
   Hive.registerAdapter(GalleryLevelAdapter());
 
-  CheckArtistListChangedUseCase _checkArtistListChangedUseCase =
+  CheckArtistListChangedUseCase checkArtistListChangedUseCase =
       CheckArtistListChangedUseCaseImpl();
-  SyncArtistListUseCase _syncArtistListUseCase = SyncArtistListUseCaseImpl();
+  SyncArtistListUseCase syncArtistListUseCase = SyncArtistListUseCaseImpl();
 
-  bool isArtistListChanged = await _checkArtistListChangedUseCase
+  bool isArtistListChanged = await checkArtistListChangedUseCase
       .execute()
       .onError((error, stackTrace) => false);
   if (isArtistListChanged) {
-    await _syncArtistListUseCase.execute().onError((error, stackTrace) => null);
+    await syncArtistListUseCase.execute().onError((error, stackTrace) => null);
   }
 
   runApp(Platform.isIOS ? const AnimageAppIOS() : const AnimageAppAndroid());

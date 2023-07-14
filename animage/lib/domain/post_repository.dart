@@ -6,6 +6,12 @@ abstract class PostRepository {
 
   Future<List<Post>> searchPostsByTag(List<String> tags, int page);
 
+  Future<List<Post>> searchPostsByTagDebug(
+    List<String> tags,
+    int page,
+    GalleryLevel level,
+  );
+
   Future<void> updateGalleryLevel(int level, Duration existDuration);
 
   Future<void> saveNextGalleryLevelUpTime(int millisecondsTime);

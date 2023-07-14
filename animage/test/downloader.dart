@@ -1,33 +1,33 @@
 import 'dart:io';
 
+import 'package:animage/data/post_repository_impl.dart';
+import 'package:animage/domain/entity/gallery_level.dart';
 import 'package:animage/domain/entity/post.dart';
-import 'package:animage/domain/use_case/search_posts_by_tags_use_case.dart';
+import 'package:animage/domain/post_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart';
 
-SearchPostsByTagsUseCase useCase = SearchPostsByTagsUseCaseImpl();
+PostRepository repo = PostRepositoryImpl();
 
 const String imagesFolder = 'images';
 const Iterable<String> artists = [
-  /*'akira_shiun',
-  'kusana_(dudqja602)',*/
   'gweda',
   'twinbox',
-  'foria_sensei',
-  'etsunami_kumita',
+  'akira_shiun',
+  'kusana_(dudqja602)',
   're:shimashima',
   'osisio',
+  'foria_sensei',
+  'etsunami_kumita',
   'mokomono',
   'norino',
   'ramchi',
 ];
 
-void main() {
-  test('Fetching all post of tag', () async {
-    for (String artist in artists) {
-      await _downloadAllPosts(artist: artist);
-    }
-  });
+void main() async {
+  for (String artist in artists) {
+    await _downloadAllPosts(artist: artist);
+  }
 }
 
 Future<void> _downloadAllPosts({required String artist}) async {
@@ -39,7 +39,15 @@ Future<void> _downloadAllPosts({required String artist}) async {
   int total = 0;
   do {
     try {
-      List<Post> postList = await useCase.execute([artist], page);
+      List<Post> postList = await repo.searchPostsByTagDebug(
+        [artist],
+        page,
+        GalleryLevel(
+          level: 2,
+          expirationTime:
+              GalleryLevel.levelExpirationMap[2]?.inMilliseconds ?? 0,
+        ),
+      );
       hasData = postList.isNotEmpty;
       print('Page $page - item=${postList.length}');
       for (Post post in postList) {

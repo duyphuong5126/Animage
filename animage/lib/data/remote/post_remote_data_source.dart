@@ -17,7 +17,7 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
   static const String basePostUrl =
       '${ApiConstant.baseUrl}/${ApiConstant.post}?${ApiConstant.apiVersionParam}=${ApiConstant.apiVersion}';
 
-  static const int requestTimeOut = 60;
+  static const int requestTimeOut = 30;
 
   static const String tag = 'PostRemoteDataSourceImpl';
 
@@ -65,6 +65,9 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
     try {
       Response response = await get(Uri.parse(url))
           .timeout(const Duration(seconds: requestTimeOut));
+      int code = response.statusCode;
+      final message = response.body;
+      Log.d(tag, 'Test>>> code=$code, message=$message');
       PostList postList = PostList.fromJson(jsonDecode(response.body));
       Log.d(tag,
           '\n-------------------\nGET $url\nResult: ${response.statusCode} - ${postList.posts.map((e) => e.id)}\n-------------------');

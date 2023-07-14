@@ -35,4 +35,13 @@ class PostRepositoryImpl implements PostRepository {
   @override
   Future<void> saveNextGalleryLevelUpTime(int millisecondsTime) =>
       saveGalleryLevelUpTime(millisecondsTime);
+
+  @override
+  Future<List<Post>> searchPostsByTagDebug(
+    List<String> tags,
+    int page,
+    GalleryLevel level,
+  ) {
+    return _remoteDataSource.searchPostsByTag(tags, page, level);
+  }
 }
