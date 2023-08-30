@@ -11,7 +11,7 @@ PostRepository repo = PostRepositoryImpl();
 
 const String imagesFolder = 'images';
 const Iterable<String> artists = [
-  'gweda',
+  /*'gweda',
   'twinbox',
   'akira_shiun',
   'kusana_(dudqja602)',
@@ -21,7 +21,8 @@ const Iterable<String> artists = [
   'etsunami_kumita',
   'mokomono',
   'norino',
-  'ramchi',
+  'ramchi',*/
+  'ginhaha'
 ];
 
 void main() async {
