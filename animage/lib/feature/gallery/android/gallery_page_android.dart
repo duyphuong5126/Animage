@@ -667,7 +667,17 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid>
               alignment: Alignment.topLeft,
               child: Container(
                 margin: const EdgeInsets.only(right: 32.0),
-                color: context.defaultBackgroundColor,
+                clipBehavior: Clip.hardEdge,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.grey,
+                      blurRadius: 4.0,
+                    ),
+                  ],
+                  color: context.defaultBackgroundColor,
+                ),
                 constraints: BoxConstraints(maxHeight: maxHeight),
                 child: ListView.separated(
                   shrinkWrap: true,

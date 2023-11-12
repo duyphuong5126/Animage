@@ -44,6 +44,8 @@ extension MaterialContextExtension on BuildContext {
     return isDark ? Colors.white : Colors.grey[300]!;
   }
 
+  Color get brandColorDayNight => isDark ? accentColorLight : accentColor;
+
   TextStyle? get headline1 => Theme.of(this).textTheme.headline1;
 
   TextStyle? get headline2 => Theme.of(this).textTheme.headline2;
@@ -70,40 +72,45 @@ extension MaterialContextExtension on BuildContext {
 
   TextStyle? get overLine => Theme.of(this).textTheme.overline;
 
-  void showConfirmationDialog(
-      {required String title,
-      required String message,
-      required String actionLabel,
-      required Function action}) {
+  void showConfirmationDialog({
+    required String title,
+    required String message,
+    required String actionLabel,
+    required Function action,
+  }) {
     showDialog(
-        context: this,
-        builder: (context) {
-          return AndroidConfirmationAlertDialog(
-              title: title,
-              content: message,
-              confirmLabel: actionLabel,
-              confirmAction: action);
-        });
+      context: this,
+      builder: (context) {
+        return AndroidConfirmationAlertDialog(
+          title: title,
+          content: message,
+          confirmLabel: actionLabel,
+          confirmAction: action,
+        );
+      },
+    );
   }
 
-  void showYesNoDialog(
-      {required String title,
-      required String content,
-      required String yesLabel,
-      required String noLabel,
-      required Function yesAction,
-      required Function noAction}) {
+  void showYesNoDialog({
+    required String title,
+    required String content,
+    required String yesLabel,
+    required String noLabel,
+    required Function yesAction,
+    required Function noAction,
+  }) {
     showDialog(
-        context: this,
-        builder: (context) {
-          return YesNoConfirmationAlertDialog(
-            title: title,
-            content: content,
-            yesLabel: yesLabel,
-            yesAction: yesAction,
-            noLabel: noLabel,
-            noAction: noAction,
-          );
-        });
+      context: this,
+      builder: (context) {
+        return YesNoConfirmationAlertDialog(
+          title: title,
+          content: content,
+          yesLabel: yesLabel,
+          yesAction: yesAction,
+          noLabel: noLabel,
+          noAction: noAction,
+        );
+      },
+    );
   }
 }
