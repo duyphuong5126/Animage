@@ -11,7 +11,7 @@ PostRepository repo = PostRepositoryImpl();
 
 const String imagesFolder = 'images';
 const Iterable<String> artists = [
-  /*'gweda',
+  'gweda',
   'twinbox',
   'akira_shiun',
   'kusana_(dudqja602)',
@@ -19,25 +19,41 @@ const Iterable<String> artists = [
   'osisio',
   'foria_sensei',
   'etsunami_kumita',
-  'mokomono',
   'norino',
-  'ramchi',*/
-  'ginhaha'
+  'ramchi',
+  'ginhaha',
+  'mokomono',
 ];
 
 void main() async {
   for (String artist in artists) {
-    await _downloadAllPosts(artist: artist);
+    await _downloadAllPosts(artist);
   }
 }
 
-Future<void> _downloadAllPosts({required String artist}) async {
+Iterable<int> _getIdSet(String artist) {
+  String filePath = '$imagesFolder/$artist';
+  Directory directory = Directory(filePath);
+  try {
+    return directory
+        .listSync()
+        .map((e) => int.parse(e.path.split('%20')[1]))
+        .toList()
+      ..sort((a, b) => b.compareTo(a));
+  } catch (e) {
+    return [];
+  }
+}
+
+Future<void> _downloadAllPosts(String artist) async {
   print(
       '------------------- Start downloading all posts from artist $artist -------------------');
   bool hasData = false;
   int page = 1;
   List<Post> retryList = [];
   int total = 0;
+  final downloadedIds = _getIdSet(artist);
+  print('Downloaded IDs: ${downloadedIds.length} - $downloadedIds');
   do {
     try {
       List<Post> postList = await repo.searchPostsByTagDebug(
@@ -51,7 +67,10 @@ Future<void> _downloadAllPosts({required String artist}) async {
       );
       hasData = postList.isNotEmpty;
       print('Page $page - item=${postList.length}');
-      for (Post post in postList) {
+      final toSaveList =
+          postList.where((post) => !downloadedIds.contains(post.id));
+      print('To be saved items: ${toSaveList.length}');
+      for (Post post in toSaveList) {
         bool success = await _downloadFile(post, artist);
         if (success) {
           total++;

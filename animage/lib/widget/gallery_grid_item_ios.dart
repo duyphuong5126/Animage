@@ -18,15 +18,15 @@ class GalleryGridItemIOS extends StatefulWidget {
   final Function(PostCardUiModel) onFavoriteChanged;
   final Function(List<String> selectedTags) onTagsSelected;
 
-  const GalleryGridItemIOS(
-      {Key? key,
-      required this.uiModel,
-      required this.postDetailsCubit,
-      required this.onOpenDetail,
-      required this.onCloseDetail,
-      required this.onFavoriteChanged,
-      required this.onTagsSelected})
-      : super(key: key);
+  const GalleryGridItemIOS({
+    Key? key,
+    required this.uiModel,
+    required this.postDetailsCubit,
+    required this.onOpenDetail,
+    required this.onCloseDetail,
+    required this.onFavoriteChanged,
+    required this.onTagsSelected,
+  }) : super(key: key);
 
   @override
   State<GalleryGridItemIOS> createState() => _GalleryGridItemIOSState();
@@ -47,72 +47,77 @@ class _GalleryGridItemIOSState extends State<GalleryGridItemIOS> {
             Container(
               color: context.cardViewBackgroundColor,
               child: CachedNetworkImage(
-                  imageUrl: uiModel.previewThumbnailUrl,
-                  width: double.infinity,
-                  height: double.infinity,
-                  alignment: FractionalOffset.center,
-                  fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => Container(
-                        constraints: const BoxConstraints.expand(),
-                        color: context.cardViewBackgroundColor,
-                      )),
+                imageUrl: uiModel.previewThumbnailUrl,
+                width: double.infinity,
+                height: double.infinity,
+                alignment: FractionalOffset.center,
+                fit: BoxFit.cover,
+                errorWidget: (context, url, error) => Container(
+                  constraints: const BoxConstraints.expand(),
+                  color: context.cardViewBackgroundColor,
+                ),
+              ),
             ),
             Container(
-                constraints: const BoxConstraints.expand(height: 64),
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    BlocListener(
-                      bloc: widget.postDetailsCubit,
-                      listener: (context, Post? post) async {
-                        if (post != null && post.id == uiModel.id) {
-                          final openResult = await Navigator.of(context)
-                              .pushNamed(detailsPageRoute, arguments: post);
-                          if (openResult is DetailResultUiModel &&
-                              openResult.selectedTags.isNotEmpty) {
-                            widget.onTagsSelected(openResult.selectedTags);
-                          }
-                          widget.onCloseDetail();
+              constraints: const BoxConstraints.expand(height: 64),
+              padding: const EdgeInsets.all(8.0),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: <Color>[
+                    Color.fromARGB(200, 0, 0, 0),
+                    Color.fromARGB(0, 0, 0, 0)
+                  ],
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  BlocListener(
+                    bloc: widget.postDetailsCubit,
+                    listener: (context, Post? post) async {
+                      if (post != null && post.id == uiModel.id) {
+                        final openResult = await Navigator.of(context)
+                            .pushNamed(detailsPageRoute, arguments: post);
+                        if (openResult is DetailResultUiModel &&
+                            openResult.selectedTags.isNotEmpty) {
+                          widget.onTagsSelected(openResult.selectedTags);
                         }
-                      },
-                      child: Visibility(
-                        child: Container(),
-                        visible: false,
-                      ),
+                        widget.onCloseDetail();
+                      }
+                    },
+                    child: Visibility(
+                      visible: false,
+                      child: Container(),
                     ),
-                    Expanded(
-                        child: Text(
+                  ),
+                  Expanded(
+                    child: Text(
                       uiModel.author,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: context.textStyle
                           .copyWith(color: CupertinoColors.white),
-                    )),
-                    BlocBuilder(
-                        bloc: FavoriteService.favoriteListCubit,
-                        builder: (context, List<int> favoriteList) {
-                          bool isFavorite = favoriteList.contains(uiModel.id);
-                          return FavoriteCheckbox(
-                            key: ValueKey(DateTime.now()),
-                            size: 20,
-                            color: context.primaryColor,
-                            isFavorite: isFavorite,
-                            onFavoriteChanged: (newFavStatus) =>
-                                widget.onFavoriteChanged(uiModel),
-                          );
-                        })
-                  ],
-                ),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: <Color>[
-                        Color.fromARGB(200, 0, 0, 0),
-                        Color.fromARGB(0, 0, 0, 0)
-                      ]),
-                ))
+                    ),
+                  ),
+                  BlocBuilder(
+                    bloc: FavoriteService.favoriteListCubit,
+                    builder: (context, List<int> favoriteList) {
+                      bool isFavorite = favoriteList.contains(uiModel.id);
+                      return FavoriteCheckbox(
+                        key: ValueKey(DateTime.now()),
+                        size: 20,
+                        color: context.primaryColor,
+                        isFavorite: isFavorite,
+                        onFavoriteChanged: (newFavStatus) =>
+                            widget.onFavoriteChanged(uiModel),
+                      );
+                    },
+                  )
+                ],
+              ),
+            )
           ],
         ),
       ),

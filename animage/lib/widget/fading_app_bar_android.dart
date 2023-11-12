@@ -5,9 +5,11 @@ class FadingAppBarAndroid extends StatefulWidget
   final AppBar appBar;
   final AnimationController controller;
 
-  const FadingAppBarAndroid(
-      {Key? key, required this.appBar, required this.controller})
-      : super(key: key);
+  const FadingAppBarAndroid({
+    Key? key,
+    required this.appBar,
+    required this.controller,
+  }) : super(key: key);
 
   @override
   State<FadingAppBarAndroid> createState() => _FadingAppBarAndroidState();

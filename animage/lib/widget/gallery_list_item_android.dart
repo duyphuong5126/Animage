@@ -20,16 +20,16 @@ class GalleryListItemAndroid extends StatefulWidget {
   final Function(PostCardUiModel) onFavoriteChanged;
   final Function(List<String> selectedTags) onTagsSelected;
 
-  const GalleryListItemAndroid(
-      {Key? key,
-      required this.uiModel,
-      required this.itemAspectRatio,
-      required this.postDetailsCubit,
-      required this.onOpenDetail,
-      required this.onCloseDetail,
-      required this.onFavoriteChanged,
-      required this.onTagsSelected})
-      : super(key: key);
+  const GalleryListItemAndroid({
+    Key? key,
+    required this.uiModel,
+    required this.itemAspectRatio,
+    required this.postDetailsCubit,
+    required this.onOpenDetail,
+    required this.onCloseDetail,
+    required this.onFavoriteChanged,
+    required this.onTagsSelected,
+  }) : super(key: key);
 
   @override
   State<GalleryListItemAndroid> createState() => _GalleryListItemAndroidState();
@@ -69,8 +69,8 @@ class _GalleryListItemAndroidState extends State<GalleryListItemAndroid> {
                     }
                   },
                   child: Visibility(
-                    child: Container(),
                     visible: false,
+                    child: Container(),
                   ),
                 ),
                 CachedNetworkImage(
@@ -85,14 +85,26 @@ class _GalleryListItemAndroidState extends State<GalleryListItemAndroid> {
                   fit: boxFit,
                 ),
                 Container(
-                    constraints: const BoxConstraints.expand(height: 80),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                            child: Column(
+                  constraints: const BoxConstraints.expand(height: 80),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 16.0,
+                  ),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: <Color>[
+                        Color.fromARGB(200, 0, 0, 0),
+                        Color.fromARGB(0, 0, 0, 0)
+                      ],
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -106,6 +118,7 @@ class _GalleryListItemAndroidState extends State<GalleryListItemAndroid> {
                                   ?.copyWith(color: Colors.white),
                             ),
                             Visibility(
+                              visible: artistUiModel != null,
                               child: Text(
                                 artistUiModel?.name ?? '',
                                 maxLines: 1,
@@ -115,35 +128,27 @@ class _GalleryListItemAndroidState extends State<GalleryListItemAndroid> {
                                     .headline5
                                     ?.copyWith(color: Colors.white),
                               ),
-                              visible: artistUiModel != null,
                             )
                           ],
-                        )),
-                        BlocBuilder(
-                            bloc: FavoriteService.favoriteListCubit,
-                            builder: (context, List<int> favoriteList) {
-                              bool isFavorite =
-                                  favoriteList.contains(uiModel.id);
-                              return FavoriteCheckbox(
-                                key: ValueKey(DateTime.now()),
-                                size: 28,
-                                color: context.secondaryColor,
-                                isFavorite: isFavorite,
-                                onFavoriteChanged: (newFavStatus) =>
-                                    widget.onFavoriteChanged(uiModel),
-                              );
-                            })
-                      ],
-                    ),
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: <Color>[
-                            Color.fromARGB(200, 0, 0, 0),
-                            Color.fromARGB(0, 0, 0, 0)
-                          ]),
-                    ))
+                        ),
+                      ),
+                      BlocBuilder(
+                        bloc: FavoriteService.favoriteListCubit,
+                        builder: (context, List<int> favoriteList) {
+                          bool isFavorite = favoriteList.contains(uiModel.id);
+                          return FavoriteCheckbox(
+                            key: ValueKey(DateTime.now()),
+                            size: 28,
+                            color: context.secondaryColor,
+                            isFavorite: isFavorite,
+                            onFavoriteChanged: (newFavStatus) =>
+                                widget.onFavoriteChanged(uiModel),
+                          );
+                        },
+                      )
+                    ],
+                  ),
+                )
               ],
             ),
           ),

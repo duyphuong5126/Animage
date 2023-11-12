@@ -21,7 +21,9 @@ class _ViewOriginalImagePageAndroidState
     extends State<ViewOriginalImagePageAndroid>
     with SingleTickerProviderStateMixin {
   late final AnimationController _animationController = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 500));
+    vsync: this,
+    duration: const Duration(milliseconds: 500),
+  );
 
   late final ViewOriginalViewModel _viewModel = ViewOriginalViewModelImpl();
 
@@ -43,77 +45,84 @@ class _ViewOriginalImagePageAndroidState
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      extendBody: true,
       backgroundColor: Colors.black,
       appBar: FadingAppBarAndroid(
-          appBar: AppBar(
-            elevation: 0,
-            systemOverlayStyle: const SystemUiOverlayStyle(
-                systemStatusBarContrastEnforced: true,
-                statusBarColor: Color.fromARGB(0, 0, 0, 0)),
-            backgroundColor: const Color.fromARGB(100, 0, 0, 0),
-            title: BlocBuilder(
-                bloc: _viewModel.galleryTitle,
-                builder: (context, String title) {
-                  return Visibility(
-                    child: Text(title),
-                    visible: title.isNotEmpty,
-                  );
-                }),
+        appBar: AppBar(
+          elevation: 0,
+          systemOverlayStyle: const SystemUiOverlayStyle(
+            systemStatusBarContrastEnforced: false,
+            statusBarColor: Color.fromARGB(0, 0, 0, 0),
           ),
-          controller: _animationController),
+          backgroundColor: const Color.fromARGB(100, 0, 0, 0),
+          title: BlocBuilder(
+            bloc: _viewModel.galleryTitle,
+            builder: (context, String title) {
+              return Visibility(
+                visible: title.isNotEmpty,
+                child: Text(title),
+              );
+            },
+          ),
+        ),
+        controller: _animationController,
+      ),
       body: urls.isNotEmpty
           ? BlocBuilder(
               bloc: _isSwipeEnabled,
               builder: (context, bool isSwipeEnabled) {
                 return PageView.builder(
-                    allowImplicitScrolling: true,
-                    physics: isSwipeEnabled
-                        ? const AlwaysScrollableScrollPhysics()
-                        : const NeverScrollableScrollPhysics(),
-                    itemCount: urls.length,
-                    onPageChanged: (int pageIndex) => _viewModel
-                        .onGalleryItemSelected(pageIndex, urls.length),
-                    itemBuilder: (context, int index) {
-                      String url = urls.elementAt(index);
-                      return PhotoView(
-                        enableRotation: false,
-                        minScale: PhotoViewComputedScale.contained * 1.0,
-                        imageProvider: CachedNetworkImageProvider(url),
-                        scaleStateChangedCallback: (PhotoViewScaleState state) {
-                          _isSwipeEnabled.push(state.index == 0);
-                        },
-                        loadingBuilder: (context, event) {
-                          return Center(
-                            child: SizedBox(
-                              width: 32,
-                              height: 32,
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    context.secondaryColor),
+                  allowImplicitScrolling: true,
+                  physics: isSwipeEnabled
+                      ? const AlwaysScrollableScrollPhysics()
+                      : const NeverScrollableScrollPhysics(),
+                  itemCount: urls.length,
+                  onPageChanged: (int pageIndex) =>
+                      _viewModel.onGalleryItemSelected(pageIndex, urls.length),
+                  itemBuilder: (context, int index) {
+                    String url = urls.elementAt(index);
+                    return PhotoView(
+                      enableRotation: false,
+                      minScale: PhotoViewComputedScale.contained * 1.0,
+                      imageProvider: CachedNetworkImageProvider(url),
+                      scaleStateChangedCallback: (PhotoViewScaleState state) {
+                        _isSwipeEnabled.push(state.index == 0);
+                      },
+                      loadingBuilder: (context, event) {
+                        return Center(
+                          child: SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                context.secondaryColor,
                               ),
                             ),
-                          );
-                        },
-                        onTapUp: (context, details, value) {
-                          switch (_animationController.status) {
-                            case AnimationStatus.completed:
-                              {
-                                _animationController.reverse();
-                                break;
-                              }
-
-                            case AnimationStatus.dismissed:
-                              {
-                                _animationController.forward();
-                                break;
-                              }
-                            default:
+                          ),
+                        );
+                      },
+                      onTapUp: (context, details, value) {
+                        switch (_animationController.status) {
+                          case AnimationStatus.completed:
+                            {
+                              _animationController.reverse();
                               break;
-                          }
-                        },
-                      );
-                    });
-              })
+                            }
+
+                          case AnimationStatus.dismissed:
+                            {
+                              _animationController.forward();
+                              break;
+                            }
+                          default:
+                            break;
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+            )
           : Container(),
     );
   }

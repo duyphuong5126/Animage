@@ -25,7 +25,7 @@ class _HomePageIOSState extends State<HomePageIOS> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> _tabs = [
+    List<Widget> tabs = [
       GalleryPageIOS(
         scrollToTopCubit: _scrollToTopCubit,
       ),
@@ -38,34 +38,37 @@ class _HomePageIOSState extends State<HomePageIOS> {
     Color selectedColor = context.isDark ? accentColorLight : accentColor;
 
     return CupertinoPageScaffold(
-        resizeToAvoidBottomInset: false,
-        child: CupertinoTabScaffold(
-            tabBar: CupertinoTabBar(
-              activeColor: selectedColor,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(
-                    CupertinoIcons.home,
-                    size: 24,
-                  ),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                    icon: Icon(
-                      CupertinoIcons.heart_fill,
-                      size: 24,
-                    ),
-                    label: 'Favorite')
-              ],
-              onTap: (int index) {
-                if (index == _currentIndex) {
-                  _scrollToTopCubit.push(DateTime.now().millisecondsSinceEpoch);
-                }
-                _currentIndex = index;
-              },
+      resizeToAvoidBottomInset: false,
+      child: CupertinoTabScaffold(
+        tabBar: CupertinoTabBar(
+          activeColor: selectedColor,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(
+                CupertinoIcons.home,
+                size: 24,
+              ),
+              label: 'Home',
             ),
-            tabBuilder: (context, int index) {
-              return _tabs[index];
-            }));
+            BottomNavigationBarItem(
+              icon: Icon(
+                CupertinoIcons.heart_fill,
+                size: 24,
+              ),
+              label: 'Favorite',
+            )
+          ],
+          onTap: (int index) {
+            if (index == _currentIndex) {
+              _scrollToTopCubit.push(DateTime.now().millisecondsSinceEpoch);
+            }
+            _currentIndex = index;
+          },
+        ),
+        tabBuilder: (context, int index) {
+          return tabs[index];
+        },
+      ),
+    );
   }
 }

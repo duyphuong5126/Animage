@@ -30,25 +30,25 @@ class _HomePageState extends State<HomePageAndroid> {
     Color selectedColor = context.isDark ? accentColor : accentColorDark;
     return Scaffold(
       body: IndexedStack(
-        children: [
-          GalleryPageAndroid(
-            scrollToTopCubit: _scrollToTopCubit,
-          ),
-          FavoritePage(
-            scrollToTopCubit: _scrollToTopCubit,
-          )
-        ],
         index: _selectedIndex,
+        children: [
+          GalleryPageAndroid(scrollToTopCubit: _scrollToTopCubit),
+          FavoritePage(scrollToTopCubit: _scrollToTopCubit)
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
-              icon: Icon(Icons.home), label: 'Gallery', tooltip: 'Gallery'),
+            icon: Icon(Icons.home),
+            label: 'Gallery',
+            tooltip: 'Gallery',
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.favorite),
-              label: 'Favorite',
-              tooltip: 'Favorite'),
+            icon: Icon(Icons.favorite),
+            label: 'Favorite',
+            tooltip: 'Favorite',
+          ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: selectedColor,

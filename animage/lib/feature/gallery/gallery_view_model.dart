@@ -295,7 +295,9 @@ class GalleryViewModelImpl extends GalleryViewModel {
 
   void _addSearchTag(String tag) async {
     bool success = await _addSearchTermUseCase.execute(
-        tag, DateTime.now().millisecondsSinceEpoch);
+      tag,
+      DateTime.now().millisecondsSinceEpoch,
+    );
     String suggestion = tag.trim().replaceAll('_', ' ');
     Log.d(_tag, 'Add result of tag $tag: $success');
     if (success) {
@@ -314,7 +316,9 @@ class GalleryViewModelImpl extends GalleryViewModel {
   void _addSearchTags(Iterable<String> tags) async {
     for (String tag in tags) {
       bool success = await _addSearchTermUseCase.execute(
-          tag, DateTime.now().millisecondsSinceEpoch);
+        tag,
+        DateTime.now().millisecondsSinceEpoch,
+      );
       Log.d(_tag, 'Add result of tag $tag: $success');
       String suggestion = tag.trim().replaceAll('_', ' ');
       if (success) {
@@ -386,8 +390,10 @@ class GalleryViewModelImpl extends GalleryViewModel {
     _galleryLevelIndexCubit = null;
   }
 
-  Future<void> _getPage(int pageIndex,
-      PagingController<int, PostCardUiModel> pagingController) async {
+  Future<void> _getPage(
+    int pageIndex,
+    PagingController<int, PostCardUiModel> pagingController,
+  ) async {
     List<String> tagList = _tagListCubit?.state ?? [];
     Log.d(_tag, 'fetching page $pageIndex, tagList=$tagList');
     (tagList.isEmpty
@@ -411,59 +417,64 @@ class GalleryViewModelImpl extends GalleryViewModel {
           }
         })
         .asStream()
-        .listen((Pair<List<Post>, Map<int, Artist>> postsAndArtists) async {
-          List<Post> postList = postsAndArtists.first;
-          Map<int, Artist> artistMap = postsAndArtists.second;
+        .listen(
+          (Pair<List<Post>, Map<int, Artist>> postsAndArtists) async {
+            List<Post> postList = postsAndArtists.first;
+            Map<int, Artist> artistMap = postsAndArtists.second;
 
-          List<int> favoriteList = await _filterFavoriteListUseCase
-              .execute(postList.map((post) => post.id).toList());
-          FavoriteService.addFavorites(favoriteList);
+            List<int> favoriteList = await _filterFavoriteListUseCase
+                .execute(postList.map((post) => post.id).toList());
+            FavoriteService.addFavorites(favoriteList);
 
-          Log.d(_tag, 'postList=${postList.length}');
-          List<PostCardUiModel> result = postList.map((post) {
-            _postDetailsMap[post.id] = post;
-            int sampleWidth = post.sampleWidth ?? 0;
-            int sampleHeight = post.sampleHeight ?? 0;
-            double sampleAspectRatio = sampleWidth > 0 && sampleHeight > 0
-                ? sampleWidth.toDouble() / sampleHeight
-                : 1;
-            int previewWidth = post.previewWidth ?? 0;
-            int previewHeight = post.previewHeight ?? 0;
-            double previewAspectRatio = previewWidth > 0 && previewHeight > 0
-                ? previewWidth.toDouble() / previewHeight
-                : 1;
+            Log.d(_tag, 'postList=${postList.length}');
+            List<PostCardUiModel> result = postList.map((post) {
+              _postDetailsMap[post.id] = post;
+              int sampleWidth = post.sampleWidth ?? 0;
+              int sampleHeight = post.sampleHeight ?? 0;
+              double sampleAspectRatio = sampleWidth > 0 && sampleHeight > 0
+                  ? sampleWidth.toDouble() / sampleHeight
+                  : 1;
+              int previewWidth = post.previewWidth ?? 0;
+              int previewHeight = post.previewHeight ?? 0;
+              double previewAspectRatio = previewWidth > 0 && previewHeight > 0
+                  ? previewWidth.toDouble() / previewHeight
+                  : 1;
 
-            ArtistUiModel? artistUiModel;
-            try {
-              Artist? artist = artistMap[post.id];
-              if (artist != null) {
-                artistUiModel =
-                    ArtistUiModel(name: artist.name, urls: artist.urls);
+              ArtistUiModel? artistUiModel;
+              try {
+                Artist? artist = artistMap[post.id];
+                if (artist != null) {
+                  artistUiModel =
+                      ArtistUiModel(name: artist.name, urls: artist.urls);
+                }
+              } catch (error) {
+                Log.d(
+                  _tag,
+                  'Could not find any artist matches id ${post.creatorId}',
+                );
               }
-            } catch (error) {
-              Log.d(_tag,
-                  'Could not find any artist matches id ${post.creatorId}');
-            }
 
-            return PostCardUiModel(
-              id: post.id,
-              author: post.author ?? '',
-              previewThumbnailUrl: post.previewUrl ?? '',
-              previewAspectRatio: previewAspectRatio,
-              sampleUrl: post.sampleUrl ?? '',
-              sampleAspectRatio: sampleAspectRatio,
-              artist: artistUiModel,
-            );
-          }).toList();
-          if (result.isEmpty) {
-            pagingController.appendLastPage(result);
-          } else {
-            pagingController.appendPage(result, pageIndex + 1);
-          }
-        }, onError: (error, stackTrace) {
-          Log.d(_tag, 'failed to get postList with error: $error');
-          pagingController.error = error;
-        });
+              return PostCardUiModel(
+                id: post.id,
+                author: post.author ?? '',
+                previewThumbnailUrl: post.previewUrl ?? '',
+                previewAspectRatio: previewAspectRatio,
+                sampleUrl: post.sampleUrl ?? '',
+                sampleAspectRatio: sampleAspectRatio,
+                artist: artistUiModel,
+              );
+            }).toList();
+            if (result.isEmpty) {
+              pagingController.appendLastPage(result);
+            } else {
+              pagingController.appendPage(result, pageIndex + 1);
+            }
+          },
+          onError: (error, stackTrace) {
+            Log.d(_tag, 'failed to get postList with error: $error');
+            pagingController.error = error;
+          },
+        );
   }
 
   @override
@@ -492,7 +503,8 @@ class GalleryViewModelImpl extends GalleryViewModel {
       List<String>? currentHistoryList = _searchHistoryCubit?.state;
       if (currentHistoryList != null && currentHistoryList.isNotEmpty) {
         newHistoryList.addAll(
-            currentHistoryList.where((historyItem) => historyItem != tag));
+          currentHistoryList.where((historyItem) => historyItem != tag),
+        );
       }
       _searchHistoryCubit?.push(newHistoryList);
     }
@@ -516,17 +528,19 @@ class GalleryViewModelImpl extends GalleryViewModel {
     if (isGalleryLevelingEnabled &&
         nextGalleryLevelUpTime <= DateTime.now().millisecondsSinceEpoch) {
       _getFavoriteListUseCase.execute(0, 20).asStream().listen(
-          (postList) async {
-        GalleryLevel galleryLevel = await _galleryLevelUseCase.execute();
-        if (galleryLevel.level < 2) {
-          int requiredFavorites =
-              GalleryLevel.levelRequiredFavoriteMap[galleryLevel.level + 1] ??
-                  0;
-          if (postList.length >= requiredFavorites) {
-            _galleryLevelIndexCubit?.push(galleryLevel.level + 1);
+        (postList) async {
+          GalleryLevel galleryLevel = await _galleryLevelUseCase.execute();
+          if (galleryLevel.level < 2) {
+            int requiredFavorites =
+                GalleryLevel.levelRequiredFavoriteMap[galleryLevel.level + 1] ??
+                    0;
+            if (postList.length >= requiredFavorites) {
+              _galleryLevelIndexCubit?.push(galleryLevel.level + 1);
+            }
           }
-        }
-      }, onError: (error, stackTrace) {});
+        },
+        onError: (error, stackTrace) {},
+      );
     }
   }
 
@@ -541,11 +555,13 @@ class GalleryViewModelImpl extends GalleryViewModel {
   @override
   void hideLevelUpMessageTemporarily(int level) async {
     _temporarilyCancelSpecialOfferUseCase.execute(level).asStream().listen(
-        (event) {
-      Log.d(_tag, 'Level up message hidden');
-    }, onError: (error, stackTrace) {
-      Log.d(_tag, 'Could not cancel level up message');
-    });
+      (event) {
+        Log.d(_tag, 'Level up message hidden');
+      },
+      onError: (error, stackTrace) {
+        Log.d(_tag, 'Could not cancel level up message');
+      },
+    );
   }
 
   @override

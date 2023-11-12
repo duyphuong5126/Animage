@@ -21,3 +21,5 @@ const String postShareUrl = 'https://yande.re/post/show';
 const String home = 'home_page';
 const String postDetailsPage = 'post_details_page';
 const String viewOriginalPage = 'view_original_page';
+
+const double mediumSpace = 8.0;
