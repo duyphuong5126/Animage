@@ -22,4 +22,6 @@ const String home = 'home_page';
 const String postDetailsPage = 'post_details_page';
 const String viewOriginalPage = 'view_original_page';
 
-const double mediumSpace = 8.0;
+const double halfSpace = 8.0;
+const double normalSpace = 16.0;
+const double x2Space = 32.0;
