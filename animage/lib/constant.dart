@@ -24,4 +24,5 @@ const String viewOriginalPage = 'view_original_page';
 
 const double halfSpace = 8.0;
 const double normalSpace = 16.0;
-const double x2Space = 32.0;
+const double x2Space = normalSpace * 2;
+const double x3Space = normalSpace * 3;

@@ -20,9 +20,13 @@ class FadingAppBarAndroid extends StatefulWidget
 
 class _FadingAppBarAndroidState extends State<FadingAppBarAndroid> {
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     widget.controller.forward();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return FadeTransition(
       opacity: CurvedAnimation(
         parent: widget.controller,

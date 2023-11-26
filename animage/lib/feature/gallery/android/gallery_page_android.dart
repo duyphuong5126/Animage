@@ -15,6 +15,7 @@ import 'package:animage/widget/gallery_grid_item_android.dart';
 import 'package:animage/widget/gallery_list_item_android.dart';
 import 'package:animage/widget/list_update_notification_android.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
@@ -155,10 +156,8 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                 alignment: Alignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 0.0,
-                      horizontal: 8.0,
-                    ),
+                    color: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: BlocBuilder(
                       bloc: _modeCubit,
                       builder: (context, GalleryMode mode) {
@@ -170,33 +169,17 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                           builder: (context, List<String> tags) {
                             bool hasTag = tags.isNotEmpty;
                             List<Widget> bodyWidgets = [
-                              Positioned.fill(
-                                child: Align(
-                                  alignment: AlignmentDirectional.topCenter,
-                                  child: _GalleryBody(
-                                    viewModel: _viewModel,
-                                    scrollController: _getScrollController(),
-                                    isAdReady: _isAdReady,
-                                    hasTag: hasTag,
-                                    galleryMode: mode,
-                                  ),
-                                ),
+                              _MainBody(
+                                viewModel: _viewModel,
+                                modeCubit: _modeCubit,
+                                scrollController: _getScrollController(),
+                                isAdReady: _isAdReady,
+                                hasTag: hasTag,
+                                galleryMode: mode,
+                                tags: tags,
+                                unSelectedModeColor: unSelectedModeColor!,
                               ),
-                              Positioned.fill(
-                                child: Align(
-                                  alignment: Alignment.topCenter,
-                                  child: _GalleryHeader(
-                                    viewModel: _viewModel,
-                                    modeCubit: _modeCubit,
-                                    galleryMode: mode,
-                                    unSelectedModeColor: unSelectedModeColor!,
-                                    tags: tags,
-                                  ),
-                                ),
-                              ),
-                            ];
-                            if (_isAdReady) {
-                              bodyWidgets.add(
+                              if (_isAdReady)
                                 Positioned.fill(
                                   child: Align(
                                     alignment: Alignment.bottomCenter,
@@ -215,12 +198,9 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            }
-                            return Stack(
-                              children: bodyWidgets,
-                            );
+                                )
+                            ];
+                            return Stack(children: bodyWidgets);
                           },
                         );
                       },
@@ -403,13 +383,16 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
   }
 }
 
-class _GalleryBody extends StatelessWidget {
-  const _GalleryBody({
+class _MainBody extends StatefulWidget {
+  const _MainBody({
     required this.viewModel,
+    required this.modeCubit,
     required this.scrollController,
     required this.isAdReady,
     required this.hasTag,
     required this.galleryMode,
+    required this.tags,
+    required this.unSelectedModeColor,
   });
 
   final GalleryViewModel viewModel;
@@ -417,15 +400,96 @@ class _GalleryBody extends StatelessWidget {
   final bool isAdReady;
   final bool hasTag;
   final GalleryMode galleryMode;
+  final DataCubit<GalleryMode> modeCubit;
+  final List<String> tags;
+  final Color unSelectedModeColor;
+
+  @override
+  State<_MainBody> createState() => _MainBodyState();
+}
+
+class _MainBodyState extends State<_MainBody> {
+  bool _headerVisible = true;
+
+  ScrollDirection? lastScrollDirection;
+
+  _onScrollDirectionChanged(ScrollDirection scrollDirection) async {
+    if (scrollDirection != lastScrollDirection) {
+      lastScrollDirection = scrollDirection;
+      Log.d('Test>>>', 'scrollDirection=$scrollDirection');
+      if (scrollDirection == ScrollDirection.reverse) {
+        setState(() {
+          _headerVisible = false;
+        });
+      } else if (scrollDirection == ScrollDirection.forward) {
+        setState(() {
+          _headerVisible = true;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Align(
+            alignment: AlignmentDirectional.topCenter,
+            child: _GalleryBody(
+              viewModel: widget.viewModel,
+              scrollController: widget.scrollController,
+              isAdReady: widget.isAdReady,
+              hasTag: widget.hasTag,
+              galleryMode: widget.galleryMode,
+              onScrollDirectionChanged: _onScrollDirectionChanged,
+              headerVisible: _headerVisible,
+            ),
+          ),
+        ),
+        if (_headerVisible)
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: _GalleryHeader(
+                viewModel: widget.viewModel,
+                modeCubit: widget.modeCubit,
+                galleryMode: widget.galleryMode,
+                unSelectedModeColor: widget.unSelectedModeColor,
+                tags: widget.tags,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _GalleryBody extends StatelessWidget {
+  const _GalleryBody({
+    required this.viewModel,
+    required this.scrollController,
+    required this.isAdReady,
+    required this.hasTag,
+    required this.headerVisible,
+    required this.galleryMode,
+    required this.onScrollDirectionChanged,
+  });
+
+  final GalleryViewModel viewModel;
+  final ScrollController scrollController;
+  final bool isAdReady;
+  final bool hasTag;
+  final bool headerVisible;
+  final GalleryMode galleryMode;
+
+  final Function(ScrollDirection) onScrollDirectionChanged;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(
-        top: hasTag ? 80.0 : x2Space,
-      ),
-      padding: const EdgeInsets.only(
-        top: normalSpace,
+        top: headerVisible ? x3Space + (hasTag ? x3Space : 0) : 0.0,
       ),
       child: BlocBuilder(
         bloc: viewModel.setUpFinishCubit,
@@ -442,22 +506,29 @@ class _GalleryBody extends StatelessWidget {
   }
 
   Widget _initializedBody() {
+    final gallery = galleryMode == GalleryMode.grid
+        ? _PagedGridView(
+            viewModel: viewModel,
+            scrollController: scrollController,
+            isAdReady: isAdReady,
+          )
+        : _PagedListView(
+            viewModel: viewModel,
+            scrollController: scrollController,
+            isAdReady: isAdReady,
+          );
     return Stack(
       alignment: Alignment.topCenter,
       children: [
         RefreshIndicator(
           onRefresh: () => Future.sync(() => viewModel.refreshGallery()),
-          child: galleryMode == GalleryMode.grid
-              ? _PagedGridView(
-                  viewModel: viewModel,
-                  scrollController: scrollController,
-                  isAdReady: isAdReady,
-                )
-              : _PagedListView(
-                  viewModel: viewModel,
-                  scrollController: scrollController,
-                  isAdReady: isAdReady,
-                ),
+          child: NotificationListener<UserScrollNotification>(
+            onNotification: (notification) {
+              onScrollDirectionChanged(notification.direction);
+              return true;
+            },
+            child: gallery,
+          ),
         ),
         _NewPostsArea(viewModel: viewModel)
       ],
@@ -702,14 +773,12 @@ class _GalleryHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isGrid = galleryMode == GalleryMode.grid;
-
+    final hasTags = tags.isNotEmpty;
     return Container(
-      margin: const EdgeInsets.symmetric(
-        vertical: 8.0,
-      ),
+      height: x2Space + normalSpace + (hasTags ? x2Space : 0.0),
+      color: context.defaultBackgroundColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -724,14 +793,10 @@ class _GalleryHeader extends StatelessWidget {
                 ),
               ),
               Container(
-                height: 32,
+                height: x2Space,
                 width: 101,
                 decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(
-                      8.0,
-                    ),
-                  ),
+                  borderRadius: const BorderRadius.all(Radius.circular(8.0)),
                   border: Border.all(
                     color: context.secondaryColor,
                   ),
