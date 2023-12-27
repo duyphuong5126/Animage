@@ -41,6 +41,7 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
         primaryColor: Colors.grey[900],
         // grey[400]
         textTheme: _getTextTheme(context, false),
+        dialogBackgroundColor: Colors.white,
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
@@ -48,6 +49,7 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
         shadowColor: Colors.white,
         primaryColor: Colors.white,
         textTheme: _getTextTheme(context, true),
+        dialogBackgroundColor: Colors.grey[900],
       ),
       themeMode: ThemeMode.system,
       routes: {

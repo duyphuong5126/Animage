@@ -10,20 +10,20 @@ class YesNoConfirmationAlertDialog extends StatelessWidget {
   final String noLabel;
   final Function noAction;
 
-  const YesNoConfirmationAlertDialog(
-      {Key? key,
-      required this.title,
-      required this.content,
-      required this.yesLabel,
-      required this.noLabel,
-      required this.yesAction,
-      required this.noAction})
-      : super(key: key);
+  const YesNoConfirmationAlertDialog({
+    Key? key,
+    required this.title,
+    required this.content,
+    required this.yesLabel,
+    required this.noLabel,
+    required this.yesAction,
+    required this.noAction,
+  }) : super(key: key);
 
   Color _getYesButtonColor(Set<MaterialState> states) {
     Set<MaterialState> interactiveStates = <MaterialState>{
       MaterialState.pressed,
-      MaterialState.selected
+      MaterialState.selected,
     };
 
     return states.any(interactiveStates.contains)
@@ -34,7 +34,7 @@ class YesNoConfirmationAlertDialog extends StatelessWidget {
   Color _getNoButtonColor(Set<MaterialState> states) {
     Set<MaterialState> interactiveStates = <MaterialState>{
       MaterialState.pressed,
-      MaterialState.selected
+      MaterialState.selected,
     };
 
     return states.any(interactiveStates.contains)
@@ -45,6 +45,7 @@ class YesNoConfirmationAlertDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      surfaceTintColor: Theme.of(context).dialogBackgroundColor,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -53,15 +54,17 @@ class YesNoConfirmationAlertDialog extends StatelessWidget {
             textAlign: TextAlign.center,
             text: TextSpan(text: title, style: context.headline6),
             overflow: TextOverflow.ellipsis,
-          )
+          ),
         ],
       ),
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(10),
-              bottomLeft: Radius.circular(10),
-              bottomRight: Radius.circular(20))),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(10),
+          bottomLeft: Radius.circular(10),
+          bottomRight: Radius.circular(20),
+        ),
+      ),
       content: RichText(
         maxLines: 10,
         textAlign: TextAlign.center,
@@ -71,51 +74,57 @@ class YesNoConfirmationAlertDialog extends StatelessWidget {
       actions: [
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 5.0),
+          constraints: const BoxConstraints.expand(height: 40),
           child: Row(
             children: [
               Expanded(
-                  child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  yesAction();
-                },
-                child: Text(
-                  yesLabel,
-                  style: context.button?.copyWith(color: Colors.white),
-                ),
-                style: ButtonStyle(
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    yesAction();
+                  },
+                  style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.resolveWith(_getYesButtonColor),
-                    shape: MaterialStateProperty.resolveWith((states) =>
-                        const RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(3))))),
-              )),
+                    shape: MaterialStateProperty.resolveWith(
+                      (states) => const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(3)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    yesLabel,
+                    style: context.button?.copyWith(color: Colors.white),
+                  ),
+                ),
+              ),
               const SizedBox(
                 width: 8.0,
               ),
               Expanded(
-                  child: TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  noAction();
-                },
-                child: Text(
-                  noLabel,
-                  style: context.button?.copyWith(color: accentColor),
-                ),
-                style: ButtonStyle(
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    noAction();
+                  },
+                  style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.resolveWith(_getNoButtonColor),
-                    shape: MaterialStateProperty.resolveWith((states) =>
-                        const RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(3))))),
-              )),
+                    shape: MaterialStateProperty.resolveWith(
+                      (states) => const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(3)),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    noLabel,
+                    style: context.button?.copyWith(color: accentColor),
+                  ),
+                ),
+              ),
             ],
           ),
-          constraints: const BoxConstraints.expand(height: 40),
-        )
+        ),
       ],
     );
   }

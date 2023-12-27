@@ -586,7 +586,7 @@ class GalleryViewModelImpl extends GalleryViewModel {
 
   @override
   String specialOfferEarnedMessage(int level) {
-    return 'You have earned a special offer.\nIt will be active for ${GalleryLevel.levelExpirationMap[level]?.inHours ?? 0} hours.';
+    return 'You have access to ${level == 2 ? 'adult' : 'mature'} content now.\nIt will be active for ${GalleryLevel.levelExpirationMap[level]?.inHours ?? 0} hours.\nPlease refresh the gallery to see it.';
   }
 
   @override

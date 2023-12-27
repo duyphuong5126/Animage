@@ -809,36 +809,25 @@ class _GalleryHeader extends StatelessWidget {
                 itemBuilder: (context, index) {
                   String tag = tags[index];
                   return Chip(
-                    deleteIcon: const Icon(
-                      Icons.close,
-                    ),
+                    padding: EdgeInsets.zero,
+                    side: BorderSide.none,
+                    deleteIcon: const Icon(Icons.close),
                     deleteIconColor: Colors.white,
                     onDeleted: () {
                       context.showYesNoDialog(
                         title: viewModel.removeTagTitle,
-                        content: viewModel.getTagRemovalMessage(
-                          tag,
-                        ),
+                        content: viewModel.getTagRemovalMessage(tag),
                         yesLabel: viewModel.acceptTagRemoval,
-                        yesAction: () {
-                          viewModel.removeSearchTag(
-                            tag,
-                          );
-                        },
+                        yesAction: () => viewModel.removeSearchTag(tag),
                         noLabel: viewModel.cancelTagRemoval,
                         noAction: () {},
                       );
                     },
                     label: Text(
                       tag,
-                      style: context.bodyText2?.copyWith(
-                        color: Colors.white,
-                      ),
+                      style: context.bodyText2?.copyWith(color: Colors.white),
                     ),
                     backgroundColor: context.secondaryColor,
-                    labelPadding: const EdgeInsets.symmetric(
-                      horizontal: halfSpace,
-                    ),
                   );
                 },
                 separatorBuilder: (context, index) {

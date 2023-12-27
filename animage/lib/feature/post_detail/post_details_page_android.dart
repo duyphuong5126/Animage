@@ -100,7 +100,10 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          return;
+        }
         Navigator.of(context).pop(const DetailResultUiModel(selectedTags: []));
       },
       child: Scaffold(
