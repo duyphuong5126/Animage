@@ -64,7 +64,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
 
     double screenHeight = MediaQuery.of(context).size.height;
 
-    double _galleryFooterVerticalMargin =
+    double galleryFooterVerticalMargin =
         galleryHeight > screenHeight ? galleryHeight - screenHeight : 0;
 
     final ScrollController scrollController = ScrollController();
@@ -85,482 +85,541 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
     List<String> tagList = post.tagList;
     List<Widget> tagChipList = [];
     tagChipList.add(
-        _buildTitleChip(_viewModel.tagSectionTitle, context.secondaryColor));
-    tagChipList.addAll(tagList.map((tag) => GestureDetector(
+      _buildTitleChip(_viewModel.tagSectionTitle, context.secondaryColor),
+    );
+    tagChipList.addAll(
+      tagList.map(
+        (tag) => GestureDetector(
           onTap: () {
             Navigator.of(context).pop(DetailResultUiModel(selectedTags: [tag]));
           },
           child: _buildChip(tag, context.secondaryColor),
-        )));
+        ),
+      ),
+    );
 
-    return WillPopScope(
-        child: Scaffold(
-          backgroundColor: context.defaultBackgroundColor,
-          body: NestedScrollView(
-            controller: scrollController,
-            headerSliverBuilder: (context, innerBoxIsScrolled) {
-              return [
-                BlocBuilder(
-                    bloc: _expandStatusCubit,
-                    builder: (context, expandStatus) {
-                      bool isExpanded =
-                          expandStatus == NavigationBarExpandStatus.expanded;
-                      Brightness statusBarIconBrightness = context.isDark
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        Navigator.of(context).pop(const DetailResultUiModel(selectedTags: []));
+      },
+      child: Scaffold(
+        backgroundColor: context.defaultBackgroundColor,
+        body: NestedScrollView(
+          controller: scrollController,
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              BlocBuilder(
+                bloc: _expandStatusCubit,
+                builder: (context, expandStatus) {
+                  bool isExpanded =
+                      expandStatus == NavigationBarExpandStatus.expanded;
+                  Brightness statusBarIconBrightness = context.isDark
+                      ? Brightness.light
+                      : isExpanded
                           ? Brightness.light
-                          : isExpanded
-                              ? Brightness.light
-                              : Brightness.dark;
-                      return SliverAppBar(
-                        systemOverlayStyle: SystemUiOverlayStyle(
-                            statusBarIconBrightness: statusBarIconBrightness,
-                            statusBarColor: Colors.transparent),
-                        foregroundColor:
-                            isExpanded ? Colors.white : context.primaryColor,
-                        backgroundColor: context.defaultBackgroundColor,
-                        elevation: 1,
-                        shadowColor: context.defaultShadowColor,
-                        expandedHeight: galleryHeight,
-                        snap: false,
-                        floating: false,
-                        pinned: true,
-                        actions: [
-                          BlocBuilder(
-                              bloc: _expandStatusCubit,
-                              builder: (context, expandStatus) {
-                                bool isExpanded = expandStatus ==
-                                    NavigationBarExpandStatus.expanded;
-                                return Visibility(
-                                  child: BlocBuilder(
-                                      bloc: FavoriteService.favoriteListCubit,
-                                      builder:
-                                          (context, List<int> favoriteList) {
-                                        bool isFavorite =
-                                            favoriteList.contains(post.id);
-                                        return Container(
-                                          margin: const EdgeInsets.only(
-                                              right: 16.0),
-                                          child: FavoriteCheckbox(
-                                            size: 28,
-                                            color: context.secondaryColor,
-                                            isFavorite: isFavorite,
-                                            onFavoriteChanged: (newFavStatus) =>
-                                                _viewModel.toggleFavorite(post),
-                                          ),
-                                        );
-                                      }),
-                                  visible: !isExpanded,
-                                );
-                              })
-                        ],
-                        flexibleSpace: FlexibleSpaceBar(
-                          title: Visibility(
-                            child: Text(
-                              'ID: ${post.id}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headline6
-                                  ?.copyWith(color: context.primaryColor),
-                            ),
+                          : Brightness.dark;
+                  return SliverAppBar(
+                    systemOverlayStyle: SystemUiOverlayStyle(
+                      statusBarIconBrightness: statusBarIconBrightness,
+                      statusBarColor: Colors.transparent,
+                    ),
+                    foregroundColor:
+                        isExpanded ? Colors.white : context.primaryColor,
+                    backgroundColor: context.defaultBackgroundColor,
+                    elevation: 1,
+                    shadowColor: context.defaultShadowColor,
+                    expandedHeight: galleryHeight,
+                    snap: false,
+                    floating: false,
+                    pinned: true,
+                    actions: [
+                      BlocBuilder(
+                        bloc: _expandStatusCubit,
+                        builder: (context, expandStatus) {
+                          bool isExpanded = expandStatus ==
+                              NavigationBarExpandStatus.expanded;
+                          return Visibility(
                             visible: !isExpanded,
-                          ),
-                          background: Stack(
-                            alignment: Alignment.topCenter,
-                            children: [
-                              Stack(
-                                alignment: Alignment.bottomCenter,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () =>
-                                        _viewModel.requestViewOriginal(post),
-                                    child: CachedNetworkImage(
-                                      imageUrl: post.sampleUrl ?? '',
-                                      alignment: Alignment.topCenter,
-                                      fit: BoxFit.fitWidth,
-                                    ),
+                            child: BlocBuilder(
+                              bloc: FavoriteService.favoriteListCubit,
+                              builder: (context, List<int> favoriteList) {
+                                bool isFavorite =
+                                    favoriteList.contains(post.id);
+                                return Container(
+                                  margin: const EdgeInsets.only(
+                                    right: 16.0,
                                   ),
-                                  ClipRect(
-                                    child: SizedBox(
-                                      width: double.infinity,
-                                      height: _defaultGalleryFooterHeight +
-                                          _galleryFooterVerticalMargin,
-                                      child: BackdropFilter(
-                                        filter: ImageFilter.blur(
-                                          sigmaX: 50.0,
-                                          sigmaY: 50.0,
-                                        ),
-                                        child: Container(
-                                          margin: const EdgeInsets.symmetric(
-                                              horizontal: 16.0),
-                                          child: BlocBuilder(
-                                            bloc: _viewModel
-                                                .sampleImageDominantColorCubit,
-                                            builder:
-                                                (context, Color dominantColor) {
-                                              double luminance = dominantColor
-                                                  .computeLuminance();
-                                              Color brandColor = luminance > 0.5
-                                                  ? accentColorDark
-                                                  : accentColor;
-                                              return Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  SizedBox(
-                                                    height:
-                                                        _defaultGalleryFooterHeight,
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        Expanded(
-                                                            child: Column(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .center,
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            BlocBuilder(
-                                                              bloc: _viewModel
-                                                                  .artistCubit,
-                                                              builder: (context,
-                                                                  ArtistUiModel?
-                                                                      artist) {
-                                                                return Text(
-                                                                  _viewModel
-                                                                      .getArtistLabel(
-                                                                          artist),
-                                                                  maxLines: 1,
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  style: context
-                                                                      .headline6
-                                                                      ?.copyWith(
-                                                                          color:
-                                                                              brandColor),
-                                                                );
-                                                              },
-                                                            ),
-                                                            const SizedBox(
-                                                              height: 4.0,
-                                                            ),
-                                                            Text(
-                                                              _viewModel
-                                                                  .getScoreLabel(
-                                                                      post),
-                                                              style: context
-                                                                  .bodyText1
-                                                                  ?.copyWith(
-                                                                      color:
-                                                                          brandColor),
-                                                            )
-                                                          ],
-                                                        )),
-                                                        BlocBuilder(
-                                                            bloc: FavoriteService
-                                                                .favoriteListCubit,
-                                                            builder: (context,
-                                                                List<int>
-                                                                    favoriteList) {
-                                                              bool isFavorite =
-                                                                  favoriteList
-                                                                      .contains(
-                                                                          post.id);
-                                                              return FavoriteCheckbox(
-                                                                key: ValueKey(
-                                                                    DateTime.now()
-                                                                        .millisecondsSinceEpoch),
-                                                                size: 32,
-                                                                color:
-                                                                    brandColor,
-                                                                isFavorite:
-                                                                    isFavorite,
-                                                                onFavoriteChanged:
-                                                                    (newFavStatus) =>
-                                                                        _viewModel
-                                                                            .toggleFavorite(post),
+                                  child: FavoriteCheckbox(
+                                    size: 28,
+                                    color: context.secondaryColor,
+                                    isFavorite: isFavorite,
+                                    onFavoriteChanged: (newFavStatus) =>
+                                        _viewModel.toggleFavorite(post),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                    flexibleSpace: FlexibleSpaceBar(
+                      title: Visibility(
+                        visible: !isExpanded,
+                        child: Text(
+                          'ID: ${post.id}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline6
+                              ?.copyWith(color: context.primaryColor),
+                        ),
+                      ),
+                      background: Stack(
+                        alignment: Alignment.topCenter,
+                        children: [
+                          Stack(
+                            alignment: Alignment.bottomCenter,
+                            children: [
+                              GestureDetector(
+                                onTap: () =>
+                                    _viewModel.requestViewOriginal(post),
+                                child: CachedNetworkImage(
+                                  imageUrl: post.sampleUrl ?? '',
+                                  alignment: Alignment.topCenter,
+                                  fit: BoxFit.fitWidth,
+                                ),
+                              ),
+                              ClipRect(
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: _defaultGalleryFooterHeight +
+                                      galleryFooterVerticalMargin,
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                      sigmaX: 50.0,
+                                      sigmaY: 50.0,
+                                    ),
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 16.0,
+                                      ),
+                                      child: BlocBuilder(
+                                        bloc: _viewModel
+                                            .sampleImageDominantColorCubit,
+                                        builder:
+                                            (context, Color dominantColor) {
+                                          double luminance =
+                                              dominantColor.computeLuminance();
+                                          Color brandColor = luminance > 0.5
+                                              ? accentColorDark
+                                              : accentColor;
+                                          return Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              SizedBox(
+                                                height:
+                                                    _defaultGalleryFooterHeight,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Expanded(
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          BlocBuilder(
+                                                            bloc: _viewModel
+                                                                .artistCubit,
+                                                            builder: (
+                                                              context,
+                                                              ArtistUiModel?
+                                                                  artist,
+                                                            ) {
+                                                              return Text(
+                                                                _viewModel
+                                                                    .getArtistLabel(
+                                                                  artist,
+                                                                ),
+                                                                maxLines: 1,
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                                style: context
+                                                                    .headline6
+                                                                    ?.copyWith(
+                                                                  color:
+                                                                      brandColor,
+                                                                ),
                                                               );
-                                                            }),
-                                                      ],
+                                                            },
+                                                          ),
+                                                          const SizedBox(
+                                                            height: 4.0,
+                                                          ),
+                                                          Text(
+                                                            _viewModel
+                                                                .getScoreLabel(
+                                                              post,
+                                                            ),
+                                                            style: context
+                                                                .bodyText1
+                                                                ?.copyWith(
+                                                              color: brandColor,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
-                                                  ),
-                                                  SizedBox(
-                                                      height:
-                                                          _galleryFooterVerticalMargin)
-                                                ],
-                                              );
-                                            },
-                                          ),
-                                        ),
+                                                    BlocBuilder(
+                                                      bloc: FavoriteService
+                                                          .favoriteListCubit,
+                                                      builder: (
+                                                        context,
+                                                        List<int> favoriteList,
+                                                      ) {
+                                                        bool isFavorite =
+                                                            favoriteList
+                                                                .contains(
+                                                          post.id,
+                                                        );
+                                                        return FavoriteCheckbox(
+                                                          key: ValueKey(
+                                                            DateTime.now()
+                                                                .millisecondsSinceEpoch,
+                                                          ),
+                                                          size: 32,
+                                                          color: brandColor,
+                                                          isFavorite:
+                                                              isFavorite,
+                                                          onFavoriteChanged:
+                                                              (newFavStatus) =>
+                                                                  _viewModel
+                                                                      .toggleFavorite(
+                                                            post,
+                                                          ),
+                                                        );
+                                                      },
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                height:
+                                                    galleryFooterVerticalMargin,
+                                              ),
+                                            ],
+                                          );
+                                        },
                                       ),
                                     ),
-                                  )
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            height: kToolbarHeight * 2,
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: <Color>[
+                                  Color.fromARGB(200, 0, 0, 0),
+                                  Color.fromARGB(0, 0, 0, 0),
                                 ],
                               ),
-                              Container(
-                                  height: kToolbarHeight * 2,
-                                  decoration: const BoxDecoration(
-                                    gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: <Color>[
-                                          Color.fromARGB(200, 0, 0, 0),
-                                          Color.fromARGB(0, 0, 0, 0)
-                                        ]),
-                                  ))
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ];
+          },
+          body: MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: BlocBuilder(
+              bloc: _viewModel.childrenCubit,
+              builder: (context, List<PostCardUiModel> children) {
+                List<Widget> content = [
+                  BlocListener(
+                    bloc: ImageDownloader.downloadStateCubit,
+                    listener: (context, ImageDownloadState? state) {
+                      _processDownloadState(state, post);
+                    },
+                    child: Visibility(
+                      visible: false,
+                      child: Container(),
+                    ),
+                  ),
+                  BlocListener(
+                    bloc: _viewModel.vieOriginalPostsCubit,
+                    listener: (context, ViewOriginalUiModel? uiModel) {
+                      if (uiModel != null) {
+                        Navigator.of(context).pushNamed(
+                          viewOriginalPageRoute,
+                          arguments: uiModel,
+                        );
+                        _viewModel.clearViewOriginalRequest();
+                      }
+                    },
+                    child: Visibility(
+                      visible: false,
+                      child: Container(),
+                    ),
+                  ),
+                  BlocListener(
+                    bloc: ImageDownloader.pendingUrlCubit,
+                    listener: (context, String? newPendingUrl) {
+                      if (newPendingUrl != null &&
+                          newPendingUrl == post.fileUrl) {
+                        context.showConfirmationDialog(
+                          title: _viewModel.downloadOnHoldTitle,
+                          message: _viewModel.downloadOnHoldMessage,
+                          actionLabel: _viewModel.downloadOnHoldAction,
+                          action: () {},
+                        );
+                      }
+                    },
+                    child: Visibility(
+                      visible: false,
+                      child: Container(),
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: BlocBuilder(
+                      bloc: _showMasterInfo,
+                      builder: (context, bool showMasterInfo) {
+                        return Visibility(
+                          visible: showMasterInfo,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              const SizedBox(
+                                height: 16.0,
+                              ),
+                              BlocBuilder(
+                                bloc: _viewModel.artistCubit,
+                                builder: (context, ArtistUiModel? artist) {
+                                  return Visibility(
+                                    visible: artist != null,
+                                    child: Text(
+                                      artist?.name ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: context.headline4,
+                                    ),
+                                  );
+                                },
+                              ),
                             ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            post.author ?? '',
+                            style: context.headline6,
+                          ),
+                        ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                Share.share(
+                                  post.shareUrl,
+                                  subject: 'Illustration ${post.id}',
+                                );
+                              },
+                              icon: Icon(
+                                Icons.share_rounded,
+                                size: 24,
+                                color: context.primaryColor,
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 16.0,
+                            ),
+                            BlocBuilder(
+                              bloc: ImageDownloader.pendingIdList,
+                              builder: (context, Set<int> pendingList) {
+                                bool isPending = pendingList.contains(post.id);
+                                return BlocBuilder(
+                                  bloc: ImageDownloader.downloadStateCubit,
+                                  builder:
+                                      (context, ImageDownloadState? state) {
+                                    bool isDownloading = state?.state ==
+                                            DownloadState.downloading &&
+                                        state?.postId == post.id;
+                                    return !isDownloading && !isPending
+                                        ? IconButton(
+                                            onPressed: () {
+                                              _viewModel
+                                                  .startDownloadingOriginalImage(
+                                                post,
+                                              );
+                                              AnalyticsHelper.download(
+                                                post.id,
+                                              );
+                                            },
+                                            icon: Icon(
+                                              Icons.download_rounded,
+                                              size: 24,
+                                              color: context.primaryColor,
+                                            ),
+                                          )
+                                        : Container(
+                                            margin: const EdgeInsets.only(
+                                              left: 16.0,
+                                              top: 8.0,
+                                              right: 8.0,
+                                            ),
+                                            child: SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                        Color>(
+                                                  context.secondaryColor,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Wrap(
+                      spacing: 6.0,
+                      runSpacing: 6.0,
+                      children: tagChipList,
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
+                    child: Text(
+                      _viewModel.getRatingLabel(post),
+                      style: context.bodyText1,
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
+                    child: Text(
+                      _viewModel.getCreatedAtTimeStamp(post),
+                      style: context.bodyText1,
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 16.0,
+                    ),
+                    child: Text(
+                      _viewModel.getUpdatedAtTimeStamp(post),
+                      style: context.bodyText1,
+                    ),
+                  ),
+                  Visibility(
+                    visible: status != null && status.isNotEmpty,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 8.0,
+                        horizontal: 16.0,
+                      ),
+                      child: Text(
+                        _viewModel.getStatusLabel(post),
+                        style: context.bodyText1,
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                    visible: source != null && source.isNotEmpty,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 8.0,
+                        horizontal: 16.0,
+                      ),
+                      child: TextWithLinks(
+                        text: _viewModel.getSourceLabel(post),
+                        textStyle: context.bodyText1,
+                        linkStyle: context.button
+                            ?.copyWith(color: context.secondaryColor),
+                      ),
+                    ),
+                  ),
+                  BlocBuilder(
+                    bloc: _viewModel.artistCubit,
+                    builder: (context, ArtistUiModel? artist) {
+                      List<String> urls = artist?.urls
+                              .where((url) => url.isNotEmpty)
+                              .toList() ??
+                          [];
+                      return Visibility(
+                        visible: urls.isNotEmpty,
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 8.0,
+                            horizontal: 16.0,
+                          ),
+                          child: TextWithLinks(
+                            text: _viewModel.getArtistInfo(urls),
+                            textStyle: context.bodyText1,
+                            linkStyle: context.button?.copyWith(
+                              color: context.secondaryColor,
+                            ),
                           ),
                         ),
                       );
-                    })
-              ];
-            },
-            body: MediaQuery.removePadding(
-              context: context,
-              removeTop: true,
-              child: BlocBuilder(
-                bloc: _viewModel.childrenCubit,
-                builder: (context, List<PostCardUiModel> children) {
-                  List<Widget> content = [
-                    BlocListener(
-                      bloc: ImageDownloader.downloadStateCubit,
-                      listener: (context, ImageDownloadState? state) {
-                        _processDownloadState(state, post);
-                      },
-                      child: Visibility(
-                        child: Container(),
-                        visible: false,
-                      ),
-                    ),
-                    BlocListener(
-                      bloc: _viewModel.vieOriginalPostsCubit,
-                      listener: (context, ViewOriginalUiModel? uiModel) {
-                        if (uiModel != null) {
-                          Navigator.of(context).pushNamed(viewOriginalPageRoute,
-                              arguments: uiModel);
-                          _viewModel.clearViewOriginalRequest();
-                        }
-                      },
-                      child: Visibility(
-                        child: Container(),
-                        visible: false,
-                      ),
-                    ),
-                    BlocListener(
-                      bloc: ImageDownloader.pendingUrlCubit,
-                      listener: (context, String? newPendingUrl) {
-                        if (newPendingUrl != null &&
-                            newPendingUrl == post.fileUrl) {
-                          context.showConfirmationDialog(
-                              title: _viewModel.downloadOnHoldTitle,
-                              message: _viewModel.downloadOnHoldMessage,
-                              actionLabel: _viewModel.downloadOnHoldAction,
-                              action: () {});
-                        }
-                      },
-                      child: Visibility(
-                        child: Container(),
-                        visible: false,
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: BlocBuilder(
-                          bloc: _showMasterInfo,
-                          builder: (context, bool showMasterInfo) {
-                            return Visibility(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  const SizedBox(
-                                    height: 16.0,
-                                  ),
-                                  BlocBuilder(
-                                    bloc: _viewModel.artistCubit,
-                                    builder: (context, ArtistUiModel? artist) {
-                                      return Visibility(
-                                        child: Text(
-                                          artist?.name ?? '',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: context.headline4,
-                                        ),
-                                        visible: artist != null,
-                                      );
-                                    },
-                                  )
-                                ],
-                              ),
-                              visible: showMasterInfo,
-                            );
-                          }),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                              child: Text(
-                            post.author ?? '',
-                            style: context.headline6,
-                          )),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              IconButton(
-                                  onPressed: () {
-                                    Share.share(post.shareUrl,
-                                        subject: 'Illustration ${post.id}');
-                                  },
-                                  icon: Icon(
-                                    Icons.share_rounded,
-                                    size: 24,
-                                    color: context.primaryColor,
-                                  )),
-                              const SizedBox(
-                                width: 16.0,
-                              ),
-                              BlocBuilder(
-                                  bloc: ImageDownloader.pendingIdList,
-                                  builder: (context, Set<int> pendingList) {
-                                    bool isPending =
-                                        pendingList.contains(post.id);
-                                    return BlocBuilder(
-                                      bloc: ImageDownloader.downloadStateCubit,
-                                      builder:
-                                          (context, ImageDownloadState? state) {
-                                        bool isDownloading = state?.state ==
-                                                DownloadState.downloading &&
-                                            state?.postId == post.id;
-                                        return !isDownloading && !isPending
-                                            ? IconButton(
-                                                onPressed: () {
-                                                  _viewModel
-                                                      .startDownloadingOriginalImage(
-                                                          post);
-                                                  AnalyticsHelper.download(
-                                                      post.id);
-                                                },
-                                                icon: Icon(
-                                                  Icons.download_rounded,
-                                                  size: 24,
-                                                  color: context.primaryColor,
-                                                ))
-                                            : Container(
-                                                margin: const EdgeInsets.only(
-                                                    left: 16.0,
-                                                    top: 8.0,
-                                                    right: 8.0),
-                                                child: SizedBox(
-                                                  width: 24,
-                                                  height: 24,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    valueColor:
-                                                        AlwaysStoppedAnimation<
-                                                                Color>(
-                                                            context
-                                                                .secondaryColor),
-                                                  ),
-                                                ),
-                                              );
-                                      },
-                                    );
-                                  })
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Wrap(
-                        spacing: 6.0,
-                        runSpacing: 6.0,
-                        children: tagChipList,
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 8.0, horizontal: 16.0),
-                      child: Text(
-                        _viewModel.getRatingLabel(post),
-                        style: context.bodyText1,
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 8.0, horizontal: 16.0),
-                      child: Text(
-                        _viewModel.getCreatedAtTimeStamp(post),
-                        style: context.bodyText1,
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 8.0, horizontal: 16.0),
-                      child: Text(
-                        _viewModel.getUpdatedAtTimeStamp(post),
-                        style: context.bodyText1,
-                      ),
-                    ),
-                    Visibility(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16.0),
-                        child: Text(
-                          _viewModel.getStatusLabel(post),
-                          style: context.bodyText1,
-                        ),
-                      ),
-                      visible: status != null && status.isNotEmpty,
-                    ),
-                    Visibility(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16.0),
-                        child: TextWithLinks(
-                            text: _viewModel.getSourceLabel(post),
-                            textStyle: context.bodyText1,
-                            linkStyle: context.button
-                                ?.copyWith(color: context.secondaryColor)),
-                      ),
-                      visible: source != null && source.isNotEmpty,
-                    ),
-                    BlocBuilder(
-                        bloc: _viewModel.artistCubit,
-                        builder: (context, ArtistUiModel? artist) {
-                          List<String> urls = artist?.urls
-                                  .where((url) => url.isNotEmpty)
-                                  .toList() ??
-                              [];
-                          return Visibility(
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 8.0, horizontal: 16.0),
-                              child: TextWithLinks(
-                                  text: _viewModel.getArtistInfo(urls),
-                                  textStyle: context.bodyText1,
-                                  linkStyle: context.button?.copyWith(
-                                      color: context.secondaryColor)),
-                            ),
-                            visible: urls.isNotEmpty,
-                          );
-                        })
-                  ];
+                    },
+                  ),
+                ];
 
-                  if (children.isNotEmpty) {
-                    content.add(Container(
+                if (children.isNotEmpty) {
+                  content.add(
+                    Container(
                       margin: const EdgeInsets.only(
-                          left: 16.0, top: 16.0, right: 8.0),
+                        left: 16.0,
+                        top: 16.0,
+                        right: 8.0,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -569,88 +628,103 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                             style: context.bodyText1,
                           ),
                           BlocBuilder(
-                              bloc:
-                                  ImageDownloader.areChildrenDownloadableCubit,
-                              builder: (context,
-                                  Map<int, bool> childrenDownloadableMap) {
-                                bool areChildrenDownloadable =
-                                    childrenDownloadableMap[post.id] ?? true;
-                                return areChildrenDownloadable
-                                    ? TextButton(
-                                        onPressed: () {
-                                          context.showYesNoDialog(
-                                              title: _viewModel
-                                                  .downloadChildrenTitle,
-                                              content: _viewModel
-                                                  .getDownloadChildrenMessage(
-                                                      children.length),
-                                              yesLabel: _viewModel
-                                                  .acceptDownloadChildrenAction,
-                                              noLabel: _viewModel
-                                                  .cancelDownloadChildrenAction,
-                                              yesAction: () {
-                                                _viewModel
-                                                    .startDownloadAllChildren(
-                                                        post.id, children);
-                                                AnalyticsHelper
-                                                    .downloadChildren(post.id);
-                                              },
-                                              noAction: () {});
-                                        },
-                                        child: Text(
-                                          _viewModel.downloadChildrenAction,
-                                          style: context.button?.copyWith(
-                                              color: context.secondaryColor),
-                                        ))
-                                    : Container(
-                                        margin:
-                                            const EdgeInsets.only(right: 16.0),
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                  context.secondaryColor),
+                            bloc: ImageDownloader.areChildrenDownloadableCubit,
+                            builder: (
+                              context,
+                              Map<int, bool> childrenDownloadableMap,
+                            ) {
+                              bool areChildrenDownloadable =
+                                  childrenDownloadableMap[post.id] ?? true;
+                              return areChildrenDownloadable
+                                  ? TextButton(
+                                      onPressed: () {
+                                        context.showYesNoDialog(
+                                          title:
+                                              _viewModel.downloadChildrenTitle,
+                                          content: _viewModel
+                                              .getDownloadChildrenMessage(
+                                            children.length,
+                                          ),
+                                          yesLabel: _viewModel
+                                              .acceptDownloadChildrenAction,
+                                          noLabel: _viewModel
+                                              .cancelDownloadChildrenAction,
+                                          yesAction: () {
+                                            _viewModel.startDownloadAllChildren(
+                                              post.id,
+                                              children,
+                                            );
+                                            AnalyticsHelper.downloadChildren(
+                                              post.id,
+                                            );
+                                          },
+                                          noAction: () {},
+                                        );
+                                      },
+                                      child: Text(
+                                        _viewModel.downloadChildrenAction,
+                                        style: context.button?.copyWith(
+                                          color: context.secondaryColor,
                                         ),
-                                      );
-                              })
+                                      ),
+                                    )
+                                  : Container(
+                                      margin:
+                                          const EdgeInsets.only(right: 16.0),
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          context.secondaryColor,
+                                        ),
+                                      ),
+                                    );
+                            },
+                          ),
                         ],
                       ),
-                    ));
-                    content.addAll(children.map((postItem) => Container(
-                          margin: const EdgeInsets.only(
-                              left: 16.0, right: 16.0, top: 16.0),
-                          child: GalleryListItemAndroid(
-                            uiModel: postItem,
-                            itemAspectRatio: 1.5,
-                            postDetailsCubit: _viewModel.postDetailsCubit,
-                            onOpenDetail: (postUiModel) {
-                              _viewModel.requestDetailsPage(postUiModel.id);
-                            },
-                            onCloseDetail: () =>
-                                _viewModel.clearDetailsPageRequest(),
-                            onFavoriteChanged: (post) =>
-                                _viewModel.toggleFavoriteOfPost(post.id),
-                            onTagsSelected: (List<String> selectedTags) {},
-                          ),
-                        )));
-                    content.add(const SizedBox(
-                      height: 16.0,
-                    ));
-                  }
-                  return ListView(
-                    children: content,
+                    ),
                   );
-                },
-              ),
+                  content.addAll(
+                    children.map(
+                      (postItem) => Container(
+                        margin: const EdgeInsets.only(
+                          left: 16.0,
+                          right: 16.0,
+                          top: 16.0,
+                        ),
+                        child: GalleryListItemAndroid(
+                          uiModel: postItem,
+                          itemAspectRatio: 1.5,
+                          postDetailsCubit: _viewModel.postDetailsCubit,
+                          onOpenDetail: (postUiModel) {
+                            _viewModel.requestDetailsPage(postUiModel.id);
+                          },
+                          onCloseDetail: () =>
+                              _viewModel.clearDetailsPageRequest(),
+                          onFavoriteChanged: (post) =>
+                              _viewModel.toggleFavoriteOfPost(post.id),
+                          onTagsSelected: (List<String> selectedTags) {},
+                        ),
+                      ),
+                    ),
+                  );
+                  content.add(
+                    const SizedBox(
+                      height: 16.0,
+                    ),
+                  );
+                }
+                return ListView(
+                  children: content,
+                );
+              },
             ),
           ),
         ),
-        onWillPop: () async {
-          Navigator.of(context)
-              .pop(const DetailResultUiModel(selectedTags: []));
-          return true;
-        });
+      ),
+    );
   }
 
   Widget _buildTitleChip(String title, Color color) {
@@ -662,6 +736,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
       ),
       backgroundColor: context.defaultBackgroundColor,
       padding: const EdgeInsets.all(0.0),
+      side: BorderSide.none,
     );
   }
 
@@ -674,6 +749,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
       ),
       backgroundColor: color,
       padding: const EdgeInsets.all(8.0),
+      side: BorderSide.none,
     );
   }
 
@@ -683,16 +759,18 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
     }
     if (state.state == DownloadState.success) {
       context.showConfirmationDialog(
-          title: _viewModel.downloadSuccessTitle,
-          message: _viewModel.downloadSuccessMessage,
-          actionLabel: _viewModel.downloadResultAction,
-          action: () {});
+        title: _viewModel.downloadSuccessTitle,
+        message: _viewModel.downloadSuccessMessage,
+        actionLabel: _viewModel.downloadResultAction,
+        action: () {},
+      );
     } else if (state.state == DownloadState.failed) {
       context.showConfirmationDialog(
-          title: _viewModel.downloadFailureTitle,
-          message: _viewModel.downloadFailureMessage,
-          actionLabel: _viewModel.downloadResultAction,
-          action: () {});
+        title: _viewModel.downloadFailureTitle,
+        message: _viewModel.downloadFailureMessage,
+        actionLabel: _viewModel.downloadResultAction,
+        action: () {},
+      );
     }
   }
 }

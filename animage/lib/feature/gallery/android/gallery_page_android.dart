@@ -13,6 +13,7 @@ import 'package:animage/utils/material_context_extension.dart';
 import 'package:animage/utils/utils.dart';
 import 'package:animage/widget/gallery_grid_item_android.dart';
 import 'package:animage/widget/gallery_list_item_android.dart';
+import 'package:animage/widget/gallery_mode_switch.dart';
 import 'package:animage/widget/list_update_notification_android.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -118,7 +119,6 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
     bool isDark = context.isDark;
 
     Color? searchBackgroundColor = isDark ? Colors.grey[900] : Colors.grey[200];
-    Color? unSelectedModeColor = isDark ? Colors.white : Colors.grey[400];
 
     return MultiBlocProvider(
       providers: [
@@ -148,6 +148,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
               ),
               child: _SearchView(viewModel: _viewModel),
             ),
+            scrolledUnderElevation: 0.0,
           ),
           body: BlocBuilder(
             bloc: _showTransitionLoadingCubit,
@@ -157,7 +158,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                 children: [
                   Container(
                     color: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: halfSpace),
                     child: BlocBuilder(
                       bloc: _modeCubit,
                       builder: (context, GalleryMode mode) {
@@ -177,7 +178,6 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                                 hasTag: hasTag,
                                 galleryMode: mode,
                                 tags: tags,
-                                unSelectedModeColor: unSelectedModeColor!,
                               ),
                               if (_isAdReady)
                                 Positioned.fill(
@@ -198,7 +198,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                                       ),
                                     ),
                                   ),
-                                )
+                                ),
                             ];
                             return Stack(children: bodyWidgets);
                           },
@@ -222,7 +222,7 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               );
             },
@@ -392,7 +392,6 @@ class _MainBody extends StatefulWidget {
     required this.hasTag,
     required this.galleryMode,
     required this.tags,
-    required this.unSelectedModeColor,
   });
 
   final GalleryViewModel viewModel;
@@ -402,7 +401,6 @@ class _MainBody extends StatefulWidget {
   final GalleryMode galleryMode;
   final DataCubit<GalleryMode> modeCubit;
   final List<String> tags;
-  final Color unSelectedModeColor;
 
   @override
   State<_MainBody> createState() => _MainBodyState();
@@ -416,7 +414,6 @@ class _MainBodyState extends State<_MainBody> {
   _onScrollDirectionChanged(ScrollDirection scrollDirection) async {
     if (scrollDirection != lastScrollDirection) {
       lastScrollDirection = scrollDirection;
-      Log.d('Test>>>', 'scrollDirection=$scrollDirection');
       if (scrollDirection == ScrollDirection.reverse) {
         setState(() {
           _headerVisible = false;
@@ -455,7 +452,6 @@ class _MainBodyState extends State<_MainBody> {
                 viewModel: widget.viewModel,
                 modeCubit: widget.modeCubit,
                 galleryMode: widget.galleryMode,
-                unSelectedModeColor: widget.unSelectedModeColor,
                 tags: widget.tags,
               ),
             ),
@@ -530,7 +526,7 @@ class _GalleryBody extends StatelessWidget {
             child: gallery,
           ),
         ),
-        _NewPostsArea(viewModel: viewModel)
+        _NewPostsArea(viewModel: viewModel),
       ],
     );
   }
@@ -597,8 +593,8 @@ class _PagedGridView extends StatelessWidget {
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         childAspectRatio: 1.0,
         crossAxisCount: 2,
-        mainAxisSpacing: 8.0,
-        crossAxisSpacing: 8.0,
+        mainAxisSpacing: halfSpace,
+        crossAxisSpacing: halfSpace,
       ),
     );
   }
@@ -711,9 +707,7 @@ class _NewPostsAreaState extends State<_NewPostsArea>
             ? SlideTransition(
                 position: _notificationSlideInAnimation,
                 child: Container(
-                  margin: const EdgeInsets.only(
-                    top: 8.0,
-                  ),
+                  margin: const EdgeInsets.only(top: halfSpace),
                   child: GestureDetector(
                     onTap: () {
                       _notificationAnimationController.reverse();
@@ -761,18 +755,15 @@ class _GalleryHeader extends StatelessWidget {
     required this.modeCubit,
     required this.tags,
     required this.galleryMode,
-    required this.unSelectedModeColor,
   });
 
   final GalleryViewModel viewModel;
   final DataCubit<GalleryMode> modeCubit;
   final GalleryMode galleryMode;
-  final Color unSelectedModeColor;
   final List<String> tags;
 
   @override
   Widget build(BuildContext context) {
-    final isGrid = galleryMode == GalleryMode.grid;
     final hasTags = tags.isNotEmpty;
     return Container(
       height: x2Space + normalSpace + (hasTags ? x2Space : 0.0),
@@ -784,85 +775,35 @@ class _GalleryHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                margin: const EdgeInsets.only(
-                  left: 8.0,
-                ),
+                margin: const EdgeInsets.only(left: halfSpace),
                 child: Text(
                   viewModel.pageTitle,
                   style: context.headline6,
                 ),
               ),
-              Container(
-                height: x2Space,
-                width: 101,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(Radius.circular(8.0)),
-                  border: Border.all(
-                    color: context.secondaryColor,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: IconButton(
-                        onPressed: () {
-                          modeCubit.push(
-                            GalleryMode.list,
-                          );
-                          saveGalleryModePref(
-                            GalleryMode.list,
-                          );
-                          AnalyticsHelper.viewListGallery();
-                        },
-                        icon: Icon(
-                          Icons.list,
-                          color: isGrid
-                              ? unSelectedModeColor
-                              : context.secondaryColor,
-                        ),
-                        padding: const EdgeInsetsDirectional.all(4.0),
-                      ),
-                    ),
-                    Container(
-                      width: 1,
-                      color: context.secondaryColor,
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: IconButton(
-                        onPressed: () {
-                          modeCubit.push(
-                            GalleryMode.grid,
-                          );
-                          saveGalleryModePref(
-                            GalleryMode.grid,
-                          );
-                          AnalyticsHelper.viewGridGallery();
-                        },
-                        icon: Icon(
-                          Icons.grid_view,
-                          color: isGrid
-                              ? context.secondaryColor
-                              : unSelectedModeColor,
-                        ),
-                        padding: const EdgeInsetsDirectional.all(4.0),
-                      ),
-                    )
-                  ],
-                ),
-              )
+              GalleryModeSwitch(
+                onModeSelected: (mode) {
+                  modeCubit.push(mode);
+                  saveGalleryModePref(mode);
+                  switch (mode) {
+                    case GalleryMode.list:
+                      AnalyticsHelper.viewListGallery();
+                      break;
+                    case GalleryMode.grid:
+                      AnalyticsHelper.viewGridGallery();
+                  }
+                },
+                galleryMode: galleryMode,
+              ),
             ],
           ),
           Visibility(
             visible: tags.isNotEmpty,
             child: Container(
               constraints: const BoxConstraints.expand(
-                height: 32,
+                height: x2Space,
               ),
-              margin: const EdgeInsets.only(
-                top: 8.0,
-              ),
+              margin: const EdgeInsets.only(top: halfSpace),
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {
@@ -896,19 +837,17 @@ class _GalleryHeader extends StatelessWidget {
                     ),
                     backgroundColor: context.secondaryColor,
                     labelPadding: const EdgeInsets.symmetric(
-                      horizontal: 8.0,
+                      horizontal: halfSpace,
                     ),
                   );
                 },
                 separatorBuilder: (context, index) {
-                  return const SizedBox(
-                    width: 8.0,
-                  );
+                  return const SizedBox(width: halfSpace);
                 },
                 itemCount: tags.length,
               ),
             ),
-          )
+          ),
         ],
       ),
     );
@@ -1021,7 +960,7 @@ class _SearchViewState extends State<_SearchView> {
                               ),
                             ),
                             onTap: () => _removeSearchHistory(historyItem),
-                          )
+                          ),
                         ],
                       ),
                     );
@@ -1047,9 +986,6 @@ class _SearchViewState extends State<_SearchView> {
               style: context.bodyText2?.copyWith(color: searchTextColor),
               textInputAction: TextInputAction.search,
               decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: halfSpace,
-                ),
                 prefixIcon: Icon(
                   Icons.search,
                   color: context.secondaryColor,
