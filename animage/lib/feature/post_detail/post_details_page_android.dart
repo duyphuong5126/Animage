@@ -107,7 +107,6 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
         Navigator.of(context).pop(const DetailResultUiModel(selectedTags: []));
       },
       child: Scaffold(
-        backgroundColor: context.defaultBackgroundColor,
         body: NestedScrollView(
           controller: scrollController,
           headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -129,7 +128,6 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                     ),
                     foregroundColor:
                         isExpanded ? Colors.white : context.primaryColor,
-                    backgroundColor: context.defaultBackgroundColor,
                     elevation: 1,
                     shadowColor: context.defaultShadowColor,
                     expandedHeight: galleryHeight,
@@ -172,9 +170,7 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                         visible: !isExpanded,
                         child: Text(
                           'ID: ${post.id}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headline6
+                          style: context.textTheme.headline6
                               ?.copyWith(color: context.primaryColor),
                         ),
                       ),

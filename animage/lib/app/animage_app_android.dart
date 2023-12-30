@@ -42,6 +42,17 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
         // grey[400]
         textTheme: _getTextTheme(context, false),
         dialogBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          scrolledUnderElevation: 0.0,
+          surfaceTintColor: Colors.white,
+          backgroundColor: Colors.white,
+        ),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          backgroundColor: Colors.white,
+        ),
+        scaffoldBackgroundColor: Colors.white,
+        cardColor: Colors.grey[200],
+        dividerColor: Colors.grey[500],
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
@@ -50,6 +61,17 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
         primaryColor: Colors.white,
         textTheme: _getTextTheme(context, true),
         dialogBackgroundColor: Colors.grey[900],
+        appBarTheme: const AppBarTheme(
+          scrolledUnderElevation: 0.0,
+          surfaceTintColor: Colors.black,
+          backgroundColor: Colors.black,
+        ),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: Colors.grey[900],
+        ),
+        scaffoldBackgroundColor: Colors.black,
+        cardColor: Colors.grey[800],
+        dividerColor: Colors.grey[500],
       ),
       themeMode: ThemeMode.system,
       routes: {
@@ -103,6 +125,14 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
           bodyText2: Theme.of(context)
               .textTheme
               .bodyText2
+              ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
+          subtitle2: Theme.of(context)
+              .textTheme
+              .subtitle2
+              ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
+          caption: Theme.of(context)
+              .textTheme
+              .caption
               ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
         );
   }

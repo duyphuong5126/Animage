@@ -19,4 +19,6 @@ abstract class PostRepository {
   Future<int> getNextGalleryLevelUpTime();
 
   Future<GalleryLevel> getGalleryLevel();
+
+  Future<Stream<GalleryLevel>> observeGalleryLevel();
 }

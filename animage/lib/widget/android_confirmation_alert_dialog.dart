@@ -30,7 +30,7 @@ class AndroidConfirmationAlertDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      surfaceTintColor: Theme.of(context).dialogBackgroundColor,
+      surfaceTintColor: context.theme.dialogBackgroundColor,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

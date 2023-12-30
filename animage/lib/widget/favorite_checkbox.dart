@@ -1,5 +1,5 @@
 import 'package:animage/service/analytics_helper.dart';
-import 'package:animage/utils/utils.dart';
+import 'package:animage/utils/hive_utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

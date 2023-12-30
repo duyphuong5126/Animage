@@ -112,9 +112,7 @@ class _GalleryListItemAndroidState extends State<GalleryListItemAndroid> {
                               uiModel.author,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1
+                              style: context.textTheme.bodyText1
                                   ?.copyWith(color: Colors.white),
                             ),
                             Visibility(
@@ -123,9 +121,7 @@ class _GalleryListItemAndroidState extends State<GalleryListItemAndroid> {
                                 artistUiModel?.name ?? '',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headline5
+                                style: context.textTheme.headline5
                                     ?.copyWith(color: Colors.white),
                               ),
                             )

@@ -16,17 +16,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
-class FavoritePage extends StatefulWidget {
+class FavoritePageAndroid extends StatefulWidget {
   final DataCubit<int> scrollToTopCubit;
 
-  const FavoritePage({Key? key, required this.scrollToTopCubit})
+  const FavoritePageAndroid({Key? key, required this.scrollToTopCubit})
       : super(key: key);
 
   @override
-  State<FavoritePage> createState() => _FavoritePageState();
+  State<FavoritePageAndroid> createState() => _FavoritePageAndroidState();
 }
 
-class _FavoritePageState extends State<FavoritePage> {
+class _FavoritePageAndroidState extends State<FavoritePageAndroid> {
   final FavoriteViewModel _viewModel = FavoriteViewModelImpl();
   final DataCubit<GalleryMode> _modeCubit = DataCubit(GalleryMode.list);
 
@@ -60,7 +60,6 @@ class _FavoritePageState extends State<FavoritePage> {
         bool isGrid = mode == GalleryMode.grid;
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: context.defaultBackgroundColor,
             elevation: 0,
             title: BlocBuilder(
               bloc: FavoriteService.favoriteListCubit,
@@ -80,7 +79,6 @@ class _FavoritePageState extends State<FavoritePage> {
                 galleryMode: mode,
               ),
             ],
-            scrolledUnderElevation: 0.0,
           ),
           body: SafeArea(
             child: Container(
@@ -97,7 +95,6 @@ class _FavoritePageState extends State<FavoritePage> {
               ),
             ),
           ),
-          backgroundColor: Theme.of(context).backgroundColor,
         );
       },
     );

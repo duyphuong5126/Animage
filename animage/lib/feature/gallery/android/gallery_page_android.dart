@@ -10,7 +10,7 @@ import 'package:animage/service/ad_service.dart';
 import 'package:animage/service/analytics_helper.dart';
 import 'package:animage/utils/log.dart';
 import 'package:animage/utils/material_context_extension.dart';
-import 'package:animage/utils/utils.dart';
+import 'package:animage/utils/hive_utils.dart';
 import 'package:animage/widget/gallery_grid_item_android.dart';
 import 'package:animage/widget/gallery_list_item_android.dart';
 import 'package:animage/widget/gallery_mode_switch.dart';
@@ -132,12 +132,11 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
         child: Scaffold(
           appBar: AppBar(
             systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: Theme.of(context).backgroundColor,
+              statusBarColor: context.theme.backgroundColor,
               statusBarIconBrightness:
                   isDark ? Brightness.light : Brightness.dark,
             ),
             elevation: 0,
-            backgroundColor: Theme.of(context).backgroundColor,
             title: Container(
               alignment: Alignment.centerLeft,
               width: double.infinity,
@@ -148,7 +147,6 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
               ),
               child: _SearchView(viewModel: _viewModel),
             ),
-            scrolledUnderElevation: 0.0,
           ),
           body: BlocBuilder(
             bloc: _showTransitionLoadingCubit,
@@ -227,7 +225,6 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
               );
             },
           ),
-          backgroundColor: Theme.of(context).backgroundColor,
         ),
       ),
     );

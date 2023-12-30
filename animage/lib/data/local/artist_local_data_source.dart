@@ -2,7 +2,7 @@ import 'package:animage/data/local/database/master_database.dart';
 import 'package:animage/domain/entity/artist/artist.dart';
 import 'package:animage/domain/entity/artist/artist_list_change_log.dart';
 import 'package:animage/domain/entity/post.dart';
-import 'package:animage/utils/utils.dart';
+import 'package:animage/utils/hive_utils.dart';
 import 'package:hive/hive.dart';
 
 abstract class ArtistLocalDataSource {

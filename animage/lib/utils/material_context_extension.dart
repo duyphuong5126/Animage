@@ -4,6 +4,10 @@ import 'package:animage/widget/android_yes_no_alert_dialog.dart';
 import 'package:flutter/material.dart';
 
 extension MaterialContextExtension on BuildContext {
+  ThemeData get theme => Theme.of(this);
+
+  TextTheme get textTheme => Theme.of(this).textTheme;
+
   double get screenWidth => MediaQuery.of(this).size.width;
 
   double get safeAreaHeight {

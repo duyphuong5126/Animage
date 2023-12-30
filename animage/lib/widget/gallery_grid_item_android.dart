@@ -101,9 +101,7 @@ class _GalleryGridItemAndroidState extends State<GalleryGridItemAndroid> {
                       uiModel.author,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyText2
+                      style: context.textTheme.bodyText2
                           ?.copyWith(color: Colors.white),
                     ),
                   ),

@@ -10,7 +10,7 @@ import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/ad_service.dart';
 import 'package:animage/utils/cupertino_context_extension.dart';
 import 'package:animage/utils/log.dart';
-import 'package:animage/utils/utils.dart';
+import 'package:animage/utils/hive_utils.dart';
 import 'package:animage/widget/gallery_grid_item_ios.dart';
 import 'package:animage/widget/gallery_list_item_ios.dart';
 import 'package:animage/widget/list_update_notification_ios.dart';

@@ -2,7 +2,7 @@ import 'package:animage/data/remote/post_remote_data_source.dart';
 import 'package:animage/domain/entity/gallery_level.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/domain/post_repository.dart';
-import 'package:animage/utils/utils.dart';
+import 'package:animage/utils/hive_utils.dart';
 
 class PostRepositoryImpl implements PostRepository {
   late final PostRemoteDataSource _remoteDataSource =
@@ -43,5 +43,10 @@ class PostRepositoryImpl implements PostRepository {
     GalleryLevel level,
   ) {
     return _remoteDataSource.searchPostsByTag(tags, page, level);
+  }
+
+  @override
+  Future<Stream<GalleryLevel>> observeGalleryLevel() {
+    return watchGalleryLevel();
   }
 }

@@ -43,7 +43,15 @@ void saveGalleryLevelPref(int level, Duration duration) async {
   Box galleryPrefBox = await openHiveBox(galleryPref);
   int endTime = DateTime.now().millisecondsSinceEpoch + duration.inMilliseconds;
   await galleryPrefBox.put(
-      galleryLevel, GalleryLevel(level: level, expirationTime: endTime));
+    galleryLevel,
+    GalleryLevel(level: level, expirationTime: endTime),
+  );
+}
+
+Future<Stream<GalleryLevel>> watchGalleryLevel() async {
+  Box galleryPrefBox = await openHiveBox(galleryPref);
+
+  return galleryPrefBox.watch(key: galleryLevel).map((event) => event.value);
 }
 
 Future<GalleryLevel> getCurrentGalleryLevel() async {
@@ -51,13 +59,17 @@ Future<GalleryLevel> getCurrentGalleryLevel() async {
   GalleryLevel? level = galleryPrefBox.get(galleryLevel);
   if (level == null) {
     return GalleryLevel(
-        level: 0, expirationTime: DateTime.now().millisecondsSinceEpoch);
+      level: 0,
+      expirationTime: DateTime.now().millisecondsSinceEpoch,
+    );
   }
   if (level.level > 0 &&
       level.expirationTime < DateTime.now().millisecondsSinceEpoch) {
     saveGalleryLevelPref(0, const Duration());
     return GalleryLevel(
-        level: 0, expirationTime: DateTime.now().millisecondsSinceEpoch);
+      level: 0,
+      expirationTime: DateTime.now().millisecondsSinceEpoch,
+    );
   } else {
     return level;
   }
@@ -70,6 +82,8 @@ Future<void> saveGalleryLevelUpTime(int millisecondsTime) async {
 
 Future<int> getGalleryLevelUpTime() async {
   Box galleryPrefBox = await openHiveBox(galleryPref);
-  return galleryPrefBox.get(nextGalleryLevelUpTime,
-      defaultValue: DateTime.now().millisecondsSinceEpoch);
+  return galleryPrefBox.get(
+    nextGalleryLevelUpTime,
+    defaultValue: DateTime.now().millisecondsSinceEpoch,
+  );
 }

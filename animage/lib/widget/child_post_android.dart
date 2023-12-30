@@ -15,14 +15,14 @@ class ChildPostAndroid extends StatefulWidget {
   final Function(PostCardUiModel) onOpenDetail;
   final Function() onCloseDetail;
 
-  const ChildPostAndroid(
-      {Key? key,
-      required this.uiModel,
-      required this.itemAspectRatio,
-      required this.postDetailsCubit,
-      required this.onOpenDetail,
-      required this.onCloseDetail})
-      : super(key: key);
+  const ChildPostAndroid({
+    Key? key,
+    required this.uiModel,
+    required this.itemAspectRatio,
+    required this.postDetailsCubit,
+    required this.onOpenDetail,
+    required this.onCloseDetail,
+  }) : super(key: key);
 
   @override
   State<ChildPostAndroid> createState() => _ChildPostAndroidState();
@@ -58,8 +58,8 @@ class _ChildPostAndroidState extends State<ChildPostAndroid> {
                     }
                   },
                   child: Visibility(
-                    child: Container(),
                     visible: false,
+                    child: Container(),
                   ),
                 ),
                 CachedNetworkImage(
@@ -74,14 +74,26 @@ class _ChildPostAndroidState extends State<ChildPostAndroid> {
                   fit: boxFit,
                 ),
                 Container(
-                    constraints: const BoxConstraints.expand(height: 80),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 8.0, horizontal: 16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                            child: Column(
+                  constraints: const BoxConstraints.expand(height: 80),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 16.0,
+                  ),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: <Color>[
+                        Color.fromARGB(200, 0, 0, 0),
+                        Color.fromARGB(0, 0, 0, 0),
+                      ],
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -89,36 +101,25 @@ class _ChildPostAndroidState extends State<ChildPostAndroid> {
                               uiModel.author,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyText1
+                              style: context.textTheme.bodyText1
                                   ?.copyWith(color: Colors.white),
                             ),
                             Visibility(
+                              visible: artistUiModel != null,
                               child: Text(
                                 artistUiModel?.name ?? '',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headline5
+                                style: context.textTheme.headline5
                                     ?.copyWith(color: Colors.white),
                               ),
-                              visible: artistUiModel != null,
-                            )
+                            ),
                           ],
-                        )),
-                      ],
-                    ),
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: <Color>[
-                            Color.fromARGB(200, 0, 0, 0),
-                            Color.fromARGB(0, 0, 0, 0)
-                          ]),
-                    ))
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

@@ -144,7 +144,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
   @override
   DataCubit<ArtistUiModel?> get artistCubit => _artistCubit;
 
-  final DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+  final DateFormat formatter = DateFormat('MMM d, yyyy - HH:mm:ss');
 
   @override
   void initData(Post post) async {
