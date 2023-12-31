@@ -87,7 +87,7 @@ class _GeneralInfoSection extends StatelessWidget {
   String _galleryLevel(int level, DateTime? expirationTime) {
     final DateFormat formatter = DateFormat('MMM d, yyyy - HH:mm:ss');
     final expirationLabel = expirationTime != null
-        ? ' \n(Expired at: ${formatter.format(expirationTime)})'
+        ? ' \n(Available until: ${formatter.format(expirationTime)})'
         : '';
     return level >= 2
         ? 'Adult art supported$expirationLabel'

@@ -477,12 +477,9 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
                                     return !isDownloading && !isPending
                                         ? IconButton(
                                             onPressed: () {
-                                              _viewModel
-                                                  .startDownloadingOriginalImage(
+                                              _downloadOriginalFile(
+                                                context,
                                                 post,
-                                              );
-                                              AnalyticsHelper.download(
-                                                post.id,
                                               );
                                             },
                                             icon: Icon(
@@ -771,5 +768,19 @@ class _PostDetailsPageAndroidState extends State<PostDetailsPageAndroid> {
         action: () {},
       );
     }
+  }
+
+  _downloadOriginalFile(BuildContext context, Post post) {
+    context.showYesNoDialog(
+      title: 'Download',
+      content: 'Do you want to download\nthe original art?',
+      yesLabel: 'Yes',
+      noLabel: 'No',
+      yesAction: () {
+        _viewModel.startDownloadingOriginalImage(post);
+        AnalyticsHelper.download(post.id);
+      },
+      noAction: () {},
+    );
   }
 }

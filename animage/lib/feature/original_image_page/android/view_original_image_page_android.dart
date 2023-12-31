@@ -54,13 +54,14 @@ class _ViewOriginalImagePageAndroidState
             systemStatusBarContrastEnforced: false,
             statusBarColor: Color.fromARGB(0, 0, 0, 0),
           ),
+          iconTheme: const IconThemeData(color: Colors.white),
           backgroundColor: const Color.fromARGB(100, 0, 0, 0),
           title: BlocBuilder(
             bloc: _viewModel.galleryTitle,
             builder: (context, String title) {
               return Visibility(
                 visible: title.isNotEmpty,
-                child: Text(title),
+                child: Text(title, style: const TextStyle(color: Colors.white)),
               );
             },
           ),
