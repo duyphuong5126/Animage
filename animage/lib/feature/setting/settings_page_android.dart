@@ -25,7 +25,13 @@ class _SettingsPageAndroidState extends State<SettingsPageAndroid> {
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
-          title: const Text('About'),
+          title: BlocBuilder<SettingCubit, SettingState>(
+            builder: (context, SettingState state) {
+              return state is SettingInitializedState
+                  ? Text(state.appName)
+                  : const Text('Animage');
+            },
+          ),
         ),
         body: ListView(
           padding: const EdgeInsets.symmetric(
