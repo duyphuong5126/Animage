@@ -1,7 +1,7 @@
 import 'package:animage/bloc/data_cubit.dart';
 import 'package:animage/constant.dart';
 import 'package:animage/feature/favorite/android/favorite_page_android.dart';
-import 'package:animage/feature/gallery/android/gallery_page_android.dart';
+import 'package:animage/feature/gallery/android/gallery_page_android_v2.dart';
 import 'package:animage/feature/setting/settings_page_android.dart';
 import 'package:animage/service/analytics_helper.dart';
 import 'package:animage/utils/material_context_extension.dart';
@@ -33,7 +33,7 @@ class _HomePageState extends State<HomePageAndroid> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          GalleryPageAndroid(scrollToTopCubit: _scrollToTopCubit),
+          const GalleryPageAndroidV2(),
           FavoritePageAndroid(scrollToTopCubit: _scrollToTopCubit),
           const SettingsPageAndroid(),
         ],

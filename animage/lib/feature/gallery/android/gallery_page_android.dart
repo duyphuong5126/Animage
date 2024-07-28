@@ -210,8 +210,8 @@ class _GalleryPageAndroidState extends State<GalleryPageAndroid> {
                       color: defaultTransparentGrey,
                       child: Center(
                         child: SizedBox(
-                          width: x2Space,
-                          height: x2Space,
+                          width: space2,
+                          height: space2,
                           child: CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation<Color>(
                               context.secondaryColor,
@@ -482,7 +482,7 @@ class _GalleryBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.only(
-        top: headerVisible ? x3Space + (hasTag ? x3Space : 0) : 0.0,
+        top: headerVisible ? space3 + (hasTag ? space3 : 0) : 0.0,
       ),
       child: BlocBuilder(
         bloc: viewModel.setUpFinishCubit,
@@ -531,8 +531,8 @@ class _GalleryBody extends StatelessWidget {
   Widget _loadingWidget(Color color) {
     return Center(
       child: SizedBox(
-        width: x2Space,
-        height: x2Space,
+        width: space2,
+        height: space2,
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(color),
         ),
@@ -735,8 +735,8 @@ class _LoadingWidget extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: halfSpace),
         child: SizedBox(
-          width: x2Space,
-          height: x2Space,
+          width: space2,
+          height: space2,
           child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
@@ -763,7 +763,7 @@ class _GalleryHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasTags = tags.isNotEmpty;
     return Container(
-      height: x2Space + normalSpace + (hasTags ? x2Space : 0.0),
+      height: space2 + space1 + (hasTags ? space2 : 0.0),
       color: context.defaultBackgroundColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -798,7 +798,7 @@ class _GalleryHeader extends StatelessWidget {
             visible: tags.isNotEmpty,
             child: Container(
               constraints: const BoxConstraints.expand(
-                height: x2Space,
+                height: space2,
               ),
               margin: const EdgeInsets.only(top: halfSpace),
               child: ListView.separated(
@@ -887,7 +887,7 @@ class _SearchViewState extends State<_SearchView> {
             return Align(
               alignment: Alignment.topLeft,
               child: Container(
-                margin: const EdgeInsets.only(right: x2Space),
+                margin: const EdgeInsets.only(right: space2),
                 clipBehavior: Clip.hardEdge,
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.all(
@@ -915,7 +915,7 @@ class _SearchViewState extends State<_SearchView> {
                     return Container(
                       color: context.defaultBackgroundColor,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: normalSpace,
+                        horizontal: space1,
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,

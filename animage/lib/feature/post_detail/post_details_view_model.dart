@@ -335,6 +335,7 @@ class PostDetailsViewModelImpl extends PostDetailsViewModel {
               sampleUrl: post.sampleUrl ?? '',
               sampleAspectRatio: sampleAspectRatio,
               artist: artistUiModel,
+              post: post,
             );
           }).toList();
           if (result.isNotEmpty) {

@@ -22,8 +22,11 @@ const String home = 'home_page';
 const String postDetailsPage = 'post_details_page';
 const String viewOriginalPage = 'view_original_page';
 
-const double quarterSpace = normalSpace / 4;
-const double halfSpace = normalSpace / 2;
-const double normalSpace = 16.0;
-const double x2Space = normalSpace * 2;
-const double x3Space = normalSpace * 3;
+const double quarterSpace = space1 / 4;
+const double halfSpace = space1 / 2;
+const double space1 = 16.0;
+const double space2 = space1 * 2;
+const double space3 = space1 * 3;
+
+const loadingIconSize = 256.0;
+const smallLoadingIconSize = 128.0;

@@ -1,8 +1,6 @@
 import 'package:animage/bloc/data_cubit.dart';
-import 'package:animage/constant.dart';
 import 'package:animage/domain/entity/post.dart';
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
-import 'package:animage/feature/ui_model/detail_result_ui_model.dart';
 import 'package:animage/feature/ui_model/post_card_ui_model.dart';
 import 'package:animage/service/favorite_service.dart';
 import 'package:animage/utils/material_context_extension.dart';
@@ -11,10 +9,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../constant.dart';
+import '../feature/ui_model/detail_result_ui_model.dart';
+
 class GalleryListItemAndroid extends StatefulWidget {
   final PostCardUiModel uiModel;
   final double itemAspectRatio;
-  final DataCubit<Post?> postDetailsCubit;
+  final DataCubit<Post?>? postDetailsCubit;
   final Function(PostCardUiModel) onOpenDetail;
   final Function() onCloseDetail;
   final Function(PostCardUiModel) onFavoriteChanged;
@@ -24,11 +25,11 @@ class GalleryListItemAndroid extends StatefulWidget {
     Key? key,
     required this.uiModel,
     required this.itemAspectRatio,
-    required this.postDetailsCubit,
     required this.onOpenDetail,
     required this.onCloseDetail,
     required this.onFavoriteChanged,
     required this.onTagsSelected,
+    this.postDetailsCubit,
   }) : super(key: key);
 
   @override
@@ -45,7 +46,15 @@ class _GalleryListItemAndroidState extends State<GalleryListItemAndroid> {
 
     ArtistUiModel? artistUiModel = uiModel.artist;
     return GestureDetector(
-      onTap: () => widget.onOpenDetail(uiModel),
+      onTap: () async {
+        final openResult = await Navigator.of(context)
+            .pushNamed(detailsPageRoute, arguments: uiModel.post);
+        if (openResult is DetailResultUiModel &&
+            openResult.selectedTags.isNotEmpty) {
+          widget.onTagsSelected(openResult.selectedTags);
+        }
+        widget.onCloseDetail();
+      },
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(16.0)),
         child: AspectRatio(
@@ -55,24 +64,6 @@ class _GalleryListItemAndroidState extends State<GalleryListItemAndroid> {
             child: Stack(
               alignment: AlignmentDirectional.topCenter,
               children: [
-                BlocListener(
-                  bloc: widget.postDetailsCubit,
-                  listener: (context, Post? post) async {
-                    if (post != null && post.id == uiModel.id) {
-                      final openResult = await Navigator.of(context)
-                          .pushNamed(detailsPageRoute, arguments: post);
-                      if (openResult is DetailResultUiModel &&
-                          openResult.selectedTags.isNotEmpty) {
-                        widget.onTagsSelected(openResult.selectedTags);
-                      }
-                      widget.onCloseDetail();
-                    }
-                  },
-                  child: Visibility(
-                    visible: false,
-                    child: Container(),
-                  ),
-                ),
                 CachedNetworkImage(
                   imageUrl: uiModel.sampleUrl,
                   width: double.infinity,
@@ -96,7 +87,7 @@ class _GalleryListItemAndroidState extends State<GalleryListItemAndroid> {
                       end: Alignment.bottomCenter,
                       colors: <Color>[
                         Color.fromARGB(200, 0, 0, 0),
-                        Color.fromARGB(0, 0, 0, 0)
+                        Color.fromARGB(0, 0, 0, 0),
                       ],
                     ),
                   ),
@@ -124,7 +115,7 @@ class _GalleryListItemAndroidState extends State<GalleryListItemAndroid> {
                                 style: context.textTheme.headline5
                                     ?.copyWith(color: Colors.white),
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -141,10 +132,10 @@ class _GalleryListItemAndroidState extends State<GalleryListItemAndroid> {
                                 widget.onFavoriteChanged(uiModel),
                           );
                         },
-                      )
+                      ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),

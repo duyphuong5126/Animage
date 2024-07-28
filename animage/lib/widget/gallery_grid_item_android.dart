@@ -13,8 +13,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class GalleryGridItemAndroid extends StatefulWidget {
   final PostCardUiModel uiModel;
   final double itemAspectRatio;
-  final DataCubit<Post?> postDetailsCubit;
-  final Function(PostCardUiModel) onOpenDetail;
+  final DataCubit<Post?>? postDetailsCubit;
+  final Function(PostCardUiModel)? onOpenDetail;
   final Function() onCloseDetail;
   final Function(PostCardUiModel) onFavoriteChanged;
   final Function(List<String> selectedTags) onTagsSelected;
@@ -23,8 +23,8 @@ class GalleryGridItemAndroid extends StatefulWidget {
     Key? key,
     required this.uiModel,
     required this.itemAspectRatio,
-    required this.postDetailsCubit,
-    required this.onOpenDetail,
+    this.postDetailsCubit,
+    this.onOpenDetail,
     required this.onCloseDetail,
     required this.onFavoriteChanged,
     required this.onTagsSelected,
@@ -43,7 +43,15 @@ class _GalleryGridItemAndroidState extends State<GalleryGridItemAndroid> {
         : BoxFit.fitWidth;
 
     return GestureDetector(
-      onTap: () => widget.onOpenDetail(uiModel),
+      onTap: () async {
+        final openResult = await Navigator.of(context)
+            .pushNamed(detailsPageRoute, arguments: uiModel.post);
+        if (openResult is DetailResultUiModel &&
+            openResult.selectedTags.isNotEmpty) {
+          widget.onTagsSelected(openResult.selectedTags);
+        }
+        widget.onCloseDetail();
+      },
       child: ClipRRect(
         borderRadius: const BorderRadius.all(Radius.circular(8.0)),
         child: Stack(
@@ -71,31 +79,13 @@ class _GalleryGridItemAndroidState extends State<GalleryGridItemAndroid> {
                   end: Alignment.bottomCenter,
                   colors: <Color>[
                     Color.fromARGB(200, 0, 0, 0),
-                    Color.fromARGB(0, 0, 0, 0)
+                    Color.fromARGB(0, 0, 0, 0),
                   ],
                 ),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BlocListener(
-                    bloc: widget.postDetailsCubit,
-                    listener: (context, Post? post) async {
-                      if (post != null && post.id == uiModel.id) {
-                        final openResult = await Navigator.of(context)
-                            .pushNamed(detailsPageRoute, arguments: post);
-                        if (openResult is DetailResultUiModel &&
-                            openResult.selectedTags.isNotEmpty) {
-                          widget.onTagsSelected(openResult.selectedTags);
-                        }
-                        widget.onCloseDetail();
-                      }
-                    },
-                    child: Visibility(
-                      visible: false,
-                      child: Container(),
-                    ),
-                  ),
                   Expanded(
                     child: Text(
                       uiModel.author,
@@ -118,10 +108,10 @@ class _GalleryGridItemAndroidState extends State<GalleryGridItemAndroid> {
                             widget.onFavoriteChanged(uiModel),
                       );
                     },
-                  )
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),

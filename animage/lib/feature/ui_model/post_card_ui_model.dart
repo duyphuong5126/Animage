@@ -1,22 +1,21 @@
 import 'package:animage/feature/ui_model/artist_ui_model.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-class PostCardUiModel {
-  final int id;
-  final ArtistUiModel? artist;
+import '../../domain/entity/post.dart';
 
-  final String previewThumbnailUrl;
-  final double previewAspectRatio;
-  final String sampleUrl;
-  final double sampleAspectRatio;
+part 'post_card_ui_model.freezed.dart';
 
-  final String author;
+@freezed
+class PostCardUiModel with _$PostCardUiModel {
+  factory PostCardUiModel({
+    required int id,
+    required String author,
+    required String previewThumbnailUrl,
+    required double previewAspectRatio,
+    required String sampleUrl,
+    required double sampleAspectRatio,
+    ArtistUiModel? artist,
 
-  PostCardUiModel(
-      {required this.id,
-      required this.author,
-      required this.previewThumbnailUrl,
-      required this.previewAspectRatio,
-      required this.sampleUrl,
-      required this.sampleAspectRatio,
-      this.artist});
+    required Post post,
+  }) = _PostCardUiModel;
 }

@@ -19,8 +19,8 @@ class GalleryModeSwitch extends StatelessWidget {
     Color? unSelectedModeColor = isDark ? Colors.white : Colors.grey[400];
     final isGrid = galleryMode == GalleryMode.grid;
     return SizedBox(
-      height: x2Space,
-      width: 109,
+      height: space2,
+      width: 100,
       child: Container(
         margin: const EdgeInsets.only(right: halfSpace),
         height: halfSpace,
@@ -38,7 +38,9 @@ class GalleryModeSwitch extends StatelessWidget {
                   Icons.list,
                   color: isGrid ? unSelectedModeColor : context.secondaryColor,
                 ),
-                padding: const EdgeInsetsDirectional.all(quarterSpace),
+                padding: const EdgeInsetsDirectional.symmetric(
+                  vertical: quarterSpace,
+                ),
               ),
             ),
             Container(
@@ -53,7 +55,9 @@ class GalleryModeSwitch extends StatelessWidget {
                   Icons.grid_view,
                   color: isGrid ? context.secondaryColor : unSelectedModeColor,
                 ),
-                padding: const EdgeInsetsDirectional.all(quarterSpace),
+                padding: const EdgeInsetsDirectional.symmetric(
+                  vertical: quarterSpace,
+                ),
               ),
             ),
           ],

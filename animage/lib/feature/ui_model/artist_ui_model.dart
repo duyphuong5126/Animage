@@ -1,6 +1,11 @@
-class ArtistUiModel {
-  final String name;
-  final List<String> urls;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const ArtistUiModel({required this.name, required this.urls});
+part 'artist_ui_model.freezed.dart';
+
+@freezed
+class ArtistUiModel with _$ArtistUiModel {
+  const factory ArtistUiModel({
+    required String name,
+    required List<String> urls,
+  }) = _ArtistUiModel;
 }

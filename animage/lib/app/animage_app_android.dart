@@ -36,7 +36,6 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
           : null,
       theme: ThemeData(
         brightness: Brightness.light,
-        backgroundColor: Colors.white,
         shadowColor: Colors.grey[400],
         primaryColor: Colors.grey[900],
         // grey[400]
@@ -77,7 +76,8 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
       routes: {
         '/': (context) => const HomePageAndroid(),
         detailsPageRoute: (context) => const PostDetailsPageAndroid(),
-        viewOriginalPageRoute: (context) => const ViewOriginalImagePageAndroid()
+        viewOriginalPageRoute: (context) =>
+            const ViewOriginalImagePageAndroid(),
       },
       navigatorObservers: [
         FirebaseAnalyticsObserver(
@@ -105,36 +105,17 @@ class _AnimageAppAndroidState extends State<AnimageAppAndroid> {
   }
 
   TextTheme _getTextTheme(BuildContext context, bool isDark) {
-    return Theme.of(context).textTheme.copyWith(
-          headline4: Theme.of(context)
-              .textTheme
-              .headline4
-              ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
-          headline5: Theme.of(context)
-              .textTheme
-              .headline5
-              ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
-          headline6: Theme.of(context)
-              .textTheme
-              .headline6
-              ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
-          bodyText1: Theme.of(context)
-              .textTheme
-              .bodyText1
-              ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
-          bodyText2: Theme.of(context)
-              .textTheme
-              .bodyText2
-              ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
-          subtitle2: Theme.of(context)
-              .textTheme
-              .subtitle2
-              ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
-          caption: Theme.of(context)
-              .textTheme
-              .caption
-              ?.copyWith(color: isDark ? Colors.white : Colors.grey[900]),
-        );
+    final theme = Theme.of(context);
+    final textColor = isDark ? Colors.white : Colors.grey[900];
+    return theme.textTheme.copyWith(
+      headline4: theme.textTheme.headline4?.copyWith(color: textColor),
+      headline5: theme.textTheme.headline5?.copyWith(color: textColor),
+      headline6: theme.textTheme.headline6?.copyWith(color: textColor),
+      bodyText1: theme.textTheme.bodyText1?.copyWith(color: textColor),
+      bodyText2: theme.textTheme.bodyText2?.copyWith(color: textColor),
+      subtitle2: theme.textTheme.subtitle2?.copyWith(color: textColor),
+      caption: theme.textTheme.caption?.copyWith(color: textColor),
+    );
   }
 
   void _initNotificationSettings() async {

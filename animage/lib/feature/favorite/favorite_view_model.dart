@@ -164,8 +164,10 @@ class FavoriteViewModelImpl extends FavoriteViewModel {
     }
   }
 
-  Future<void> _getPage(int pageIndex,
-      PagingController<int, PostCardUiModel> pagingController) async {
+  Future<void> _getPage(
+    int pageIndex,
+    PagingController<int, PostCardUiModel> pagingController,
+  ) async {
     _getFavoriteListUseCase
         .execute((pageIndex - 1) * _pageSize, _pageSize)
         .then<Pair<List<Post>, Map<int, Artist>>>((List<Post> postList) {
@@ -213,8 +215,10 @@ class FavoriteViewModelImpl extends FavoriteViewModel {
                     ArtistUiModel(name: artist.name, urls: artist.urls);
               }
             } catch (error) {
-              Log.d(_tag,
-                  'Could not find any artist matches id ${post.creatorId}');
+              Log.d(
+                _tag,
+                'Could not find any artist matches id ${post.creatorId}',
+              );
             }
 
             return PostCardUiModel(
@@ -225,6 +229,7 @@ class FavoriteViewModelImpl extends FavoriteViewModel {
               sampleUrl: post.sampleUrl ?? '',
               sampleAspectRatio: sampleAspectRatio,
               artist: artistUiModel,
+              post: post,
             );
           }).toList();
           Log.d(_tag, 'result=${result.length}');

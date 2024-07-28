@@ -16,8 +16,8 @@ class TemporarilyCancelSpecialOfferUseCaseImpl
     }
     /*double timePeriod =
         GalleryLevel.levelExpirationMap[level]!.inMilliseconds / 2;*/
-    await _repository.saveNextGalleryLevelUpTime(
-        DateTime.now().millisecondsSinceEpoch +
-            const Duration(hours: 1).inMilliseconds.toInt());
+    final duration =
+        DateTime.now().add(const Duration(hours: 1)).millisecondsSinceEpoch;
+    await _repository.saveNextGalleryLevelUpTime(duration);
   }
 }

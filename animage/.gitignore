@@ -45,3 +45,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /lib/feature/setting/setting_cubit.freezed.dart
+/lib/feature/gallery/gallery_page_state.freezed.dart
+/lib/feature/ui_model/artist_ui_model.freezed.dart
+/lib/feature/ui_model/post_card_ui_model.freezed.dart

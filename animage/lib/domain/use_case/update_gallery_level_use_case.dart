@@ -11,5 +11,7 @@ class UpdateGalleryLevelUseCaseImpl extends UpdateGalleryLevelUseCase {
 
   @override
   Future<void> execute(int level) => _repository.updateGalleryLevel(
-      level, GalleryLevel.levelExpirationMap[level] ?? const Duration());
+        level,
+        GalleryLevel.levelExpirationMap[level] ?? const Duration(),
+      );
 }

@@ -36,11 +36,11 @@ class _SettingsPageAndroidState extends State<SettingsPageAndroid> {
         body: ListView(
           padding: const EdgeInsets.symmetric(
             horizontal: halfSpace,
-            vertical: normalSpace,
+            vertical: space1,
           ),
           children: const [
             _GeneralInfoSection(),
-            SizedBox(height: x2Space),
+            SizedBox(height: space2),
             _ContactInfoSection(),
           ],
         ),
@@ -155,18 +155,18 @@ class _Section extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: const EdgeInsets.only(left: normalSpace),
+          margin: const EdgeInsets.only(left: space1),
           child: Text(title, style: context.subtitle2),
         ),
         Container(
           margin: const EdgeInsets.only(top: quarterSpace),
           padding: const EdgeInsets.symmetric(
             vertical: halfSpace,
-            horizontal: normalSpace,
+            horizontal: space1,
           ),
           width: double.infinity,
           decoration: BoxDecoration(
-            borderRadius: const BorderRadius.all(Radius.circular(normalSpace)),
+            borderRadius: const BorderRadius.all(Radius.circular(space1)),
             color: context.theme.cardColor,
           ),
           child: body,
@@ -228,7 +228,7 @@ class _ExternalInfoItem extends StatelessWidget {
             ),
           ),
           const SizedBox(width: quarterSpace),
-          const Icon(Icons.open_in_new, size: normalSpace),
+          const Icon(Icons.open_in_new, size: space1),
         ],
       ),
     );

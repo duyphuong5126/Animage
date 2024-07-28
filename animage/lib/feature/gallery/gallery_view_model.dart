@@ -462,6 +462,7 @@ class GalleryViewModelImpl extends GalleryViewModel {
                 sampleUrl: post.sampleUrl ?? '',
                 sampleAspectRatio: sampleAspectRatio,
                 artist: artistUiModel,
+                post: post,
               );
             }).toList();
             if (result.isEmpty) {
